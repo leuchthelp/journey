@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+body {
+  background-color: #e0dbcaef;
+}
+
+@layer components {
+  .grid-play-options {
+    @apply m-4 grid grid-cols-3 place-items-center-safe gap-x-2 rounded-full bg-bg-playbar;
+  }
+
+  .playbar-styled-button {
+    @apply h-16 w-16 rounded-full hover:bg-hover hover:ring;
+  }
+}
+
+@theme {
+  --color-hover: #bbab79ef;
+  --color-bg-playbar: #cfc29b;
+}
