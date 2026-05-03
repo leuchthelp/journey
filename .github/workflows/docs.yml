@@ -24,9 +24,7 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
             enable-cache: true
-      - run: cd docs/
-      - run: uv venv && source .venv/bin/activate && uv sync
-      - run: uv add zensical && uv run zensical build --clean
+      - run: uv run zensical build --clean
       - uses: actions/upload-pages-artifact@v5
         with:
           path: site

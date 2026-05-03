@@ -24,7 +24,12 @@ dist-ssr
 *.sw?
 
 # Manual
-node_modules
+.venv
+.cache
+site
+uv.lock
+.python-version
+main.py
 
 *.png
 *.jpg
