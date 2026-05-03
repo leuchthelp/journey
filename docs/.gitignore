@@ -1,0 +1,11 @@
+# Manual 
+
+.venv
+.cache
+site
+
+.python-version
+uv.lock
+main.py
+
+# Allowed
