@@ -1,8 +1,12 @@
 import { invoke } from "@tauri-apps/api/core";
 import { SongItem } from "./MediaItems";
+import { warn, debug, trace, info, error } from "@tauri-apps/plugin-log";
+import Database from "@tauri-apps/plugin-sql";
 
 let greetInputEl: HTMLInputElement | null;
 let greetMsgEl: HTMLElement | null;
+
+const db = await Database.load("sqlite:test.db");
 
 async function greet() {
   if (greetMsgEl && greetInputEl) {
