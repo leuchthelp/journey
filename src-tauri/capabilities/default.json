@@ -9,6 +9,6 @@
     "core:default",
     "opener:default",
     "sql:default",
-    "log:default"
+    "sql:allow-execute"
   ]
 }
