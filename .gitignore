@@ -40,4 +40,4 @@ main.py
 *.ico
 
 #Allowed
-!src-tauri/icons/Square30x30Logo.png
+!src-tauri/icons/icon.png
