@@ -34,11 +34,6 @@
   main_space.appendChild(newElement);
 </script>
 
-<main class="flex h-screen w-screen flex-col place-items-center-safe">
-  <div id="main-space" class="mt-5 h-full"></div>
-  <div class="grid-play-options">
-    <button class="playbar-styled-button">1</button>
-    <button class="playbar-styled-button">2</button>
-    <button class="playbar-styled-button">3</button>
-  </div>
+<main id="main-space" class="mt-5 h-full">
+  
 </main>

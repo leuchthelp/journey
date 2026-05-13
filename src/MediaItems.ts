@@ -24,6 +24,6 @@ export class SongItem implements MediaItem {
   }
 
   animation() {
-    return 
+    return;
   }
 }
