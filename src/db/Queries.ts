@@ -17,13 +17,13 @@ export function ensureTableWithJson(input: string) {
 }
 
 export function insertNJsonIn(input: string) {
-  let query = `INSERT into ${input} (${COLUMN_NAME}, ${COLUMN_JSON})\n VALUES ($1, $2)`;
+  let query = `INSERT into ${input} (${COLUMN_NAME}, ${COLUMN_JSON}) VALUES ($1, $2)`;
   return query;
 }
 
 export function selectNJsonIn(input: string, selector: string) {
   let query =
-    `SELECT json_extract(${COLUMN_JSON}, '$.${selector}') AS ${selector}\n` +
+    `SELECT json_extract(${COLUMN_JSON}, '$.${selector}') AS ${selector} ` +
     `FROM ${input};`;
   return query;
 }

@@ -8,9 +8,11 @@
     "Laptop",
     '{"brand": "Dell", "price": 1200, "features": ["i7", "16GB RAM", "512GB SSD"]}',
   ];
+  let res2 = await cache.deleteAll();
   let res = await cache.addEntries(test);
   let res1 = await cache.getEntries("features");
   console.log(res1);
+  console.log(res2)
 
   let main_space = document.getElementById("main-space") as HTMLDivElement;
   let newSongItem = new SongItem();

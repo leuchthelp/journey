@@ -21,18 +21,23 @@ export class MediaCache {
 
   private init = async (): Promise<any> => {
     this.database = await this.database;
-    return await this.database.execute(ensureTableWithJson(this.name_table));
+    return this.database.execute(ensureTableWithJson(this.name_table));
+  };
+
+  public deleteAll = async (): Promise<any> => {
+    this.database = await this.database;
+    return this.database.execute(deleteAllIn(this.name_table));
   };
 
   public addEntries = async (entries: string[]): Promise<any> => {
     this.database = await this.database;
     console.log(insertNJsonIn(this.name_table));
-    return await this.database.execute(insertNJsonIn(this.name_table), entries);
+    return this.database.execute(insertNJsonIn(this.name_table), entries);
   };
 
   public getEntries = async (selector: string): Promise<Array<Object>> => {
     this.database = await this.database;
     console.log(selectNJsonIn(this.name_table, selector));
-    return await this.database.select(selectNJsonIn(this.name_table, selector));
+    return this.database.select(selectNJsonIn(this.name_table, selector));
   };
 }
