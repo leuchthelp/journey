@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { invoke } from "@tauri-apps/api/core";
-  import { SongItem } from "./MediaItems";
-  import { MediaCache } from "./db/MediaCache.ts";
+  import { SongItem } from "../MediaItems";
+  import { MediaCache } from "../db/MediaCache";
 
   const cache = new MediaCache();
 
