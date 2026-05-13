@@ -1,4 +1,4 @@
 {
   "svelte.enable-ts-plugin": true,
-  "prettier.documentSelectors": ["**/*.svelte"],
+  "prettier.documentSelectors": ["**/*.svelte"]
 }
