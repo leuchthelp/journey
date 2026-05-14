@@ -11,7 +11,7 @@ export function ensureTableWithJson(input: string) {
     `CREATE TABLE if NOT EXISTS ${input} (` +
     "id INTEGER PRIMARY KEY," +
     `${COLUMN_NAME} TEXT NOT NULL,` +
-    `${COLUMN_JSON} TEXT` +
+    `${COLUMN_JSON} TEXT NOT NULL` +
     ");";
   return query;
 }
@@ -21,9 +21,14 @@ export function insertNJsonIn(input: string) {
   return query;
 }
 
-export function selectNJsonIn(input: string, selector: string) {
+export function selectNInJsonIn(input: string, selector: string) {
   let query =
     `SELECT json_extract(${COLUMN_JSON}, '$.${selector}') AS ${selector} ` +
     `FROM ${input};`;
+  return query;
+}
+
+export function selectNJsonIn(input: string) {
+  let query = `SELECT ${COLUMN_JSON} FROM ${input};`;
   return query;
 }

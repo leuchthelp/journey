@@ -3,8 +3,10 @@ import {
   deleteAllIn,
   insertNJsonIn,
   selectNJsonIn,
+  selectNInJsonIn,
 } from "../db/Queries.ts";
 import Database from "@tauri-apps/plugin-sql";
+
 
 export class MediaCache {
   private location: string;
@@ -31,13 +33,16 @@ export class MediaCache {
 
   public addEntries = async (entries: string[]): Promise<any> => {
     this.database = await this.database;
-    console.log(insertNJsonIn(this.name_table));
     return this.database.execute(insertNJsonIn(this.name_table), entries);
   };
 
-  public getEntries = async (selector: string): Promise<Array<Object>> => {
+  public getEntries = async (): Promise<Object[]> => {
     this.database = await this.database;
-    console.log(selectNJsonIn(this.name_table, selector));
-    return this.database.select(selectNJsonIn(this.name_table, selector));
+    return this.database.select(selectNJsonIn(this.name_table));
+  };
+
+  public getWithinEntries = async (selector: string): Promise<Object[]> => {
+    this.database = await this.database;
+    return this.database.select(selectNInJsonIn(this.name_table, selector));
   };
 }

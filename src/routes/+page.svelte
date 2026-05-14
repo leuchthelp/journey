@@ -1,41 +1,23 @@
 <script lang="ts">
-  import { SongItem } from "../MediaItems";
   import { MediaCache } from "../db/MediaCache";
+  import Playbar from "$lib/components/Playbar/Playbar.svelte";
+  import { SongItem } from "$lib/components/MediaItems/MediaItems";
+  import SongItemComponent from "$lib/components/MediaItems/SongItemComponent.svelte";
 
   const cache = new MediaCache();
 
-  let test = [
-    "Laptop",
-    '{"brand": "Dell", "price": 1200, "features": ["i7", "16GB RAM", "512GB SSD"]}',
-  ];
-  let res2 = await cache.deleteAll();
-  let res = await cache.addEntries(test);
-  let res1 = await cache.getEntries("features");
-  console.log(res1);
-  console.log(res2)
+  const test = ["testItem", JSON.stringify(new SongItem())];
 
-  let main_space = document.getElementById("main-space") as HTMLDivElement;
-  let newSongItem = new SongItem();
+  //await cache.deleteAll();
+  const res = await cache.addEntries(test);
+  const res1 = await cache.getEntries();
+  console.log(res1[0]["details"]);
 
-  let styling = newSongItem.defaultStyling();
-
-  const newElement = document.createElement("div");
-
-  for (var style of styling) {
-    newElement.classList.add(style);
-  }
-  newElement.classList.add("ring");
-  newElement.classList.add(newSongItem.outlineGradient());
-
-  const spawn = [{ transform: "scale(0)" }, { transform: "scale(1)" }];
-  const spawnTime = {
-    duration: 1000,
-    iterations: 1,
-  };
-  newElement.animate(spawn, spawnTime);
-  main_space.appendChild(newElement);
+  let test2: SongItem = Object.assign(new SongItem(), JSON.parse(res1[0]["details"]));
+  console.log(test2);
 </script>
 
-<main id="main-space" class="mt-5 h-full">
-  
+<main class="mt-5 h-full">
+  <SongItemComponent songItem={test2} />
 </main>
+<Playbar></Playbar>
