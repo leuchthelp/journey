@@ -7,10 +7,8 @@
   };
 
   let { songItem }: Props = $props();
-  let styling = $derived(songItem.defaultStyling + songItem.outlineGradient);
-
-  $inspect(styling)
+  let styling = $derived(songItem.defaultStyling + " " + songItem.outlineGradient);
   let content = $derived(songItem.content);
 </script>
 
-<Button styling={styling}>{content}</Button>
+<Button {styling}>{content}</Button>

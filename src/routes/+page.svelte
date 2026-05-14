@@ -11,9 +11,11 @@
   //await cache.deleteAll();
   const res = await cache.addEntries(test);
   const res1 = await cache.getEntries();
-  console.log(res1[0]["details"]);
 
-  let test2: SongItem = Object.assign(new SongItem(), JSON.parse(res1[0]["details"]));
+  let test2: SongItem = Object.assign(
+    new SongItem(),
+    JSON.parse(res1[0]["details"]),
+  );
   console.log(test2);
 </script>
 
