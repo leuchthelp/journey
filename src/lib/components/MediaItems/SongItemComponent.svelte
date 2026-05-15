@@ -2,7 +2,7 @@
   import Button from "./MediaItemButton.svelte";
   import { SongItem } from "./MediaItems";
 
-  type Props = {
+  interface Props {
     songItem: SongItem;
   };
 

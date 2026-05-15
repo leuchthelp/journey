@@ -16,10 +16,9 @@
     new SongItem(),
     JSON.parse(res1[0]["details"]),
   );
-  console.log(test2);
 </script>
 
 <main class="mt-5 h-full">
   <SongItemComponent songItem={test2} />
 </main>
-<Playbar></Playbar>
+<Playbar />

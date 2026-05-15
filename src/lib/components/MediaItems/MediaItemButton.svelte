@@ -1,11 +1,12 @@
 <script lang="ts">
-  type Props = {
+  interface Props {
     styling: string;
+    children?: import('svelte').Snippet;
   };
 
-  let { styling }: Props = $props();
+  let { styling, children }: Props = $props();
 </script>
 
 <button class={styling} onclick={() => console.log(styling)}>
-  <slot />
+  {@render children?.()}
 </button>
