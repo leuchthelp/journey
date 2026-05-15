@@ -1,8 +1,8 @@
 <script lang="ts">
   interface Props {
     styling: string;
-    children?: import('svelte').Snippet;
-  };
+    children?: import("svelte").Snippet;
+  }
 
   let { styling, children }: Props = $props();
 </script>

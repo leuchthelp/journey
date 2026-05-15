@@ -7,7 +7,6 @@ import {
 } from "../db/Queries.ts";
 import Database from "@tauri-apps/plugin-sql";
 
-
 export class MediaCache {
   private location: string;
   private name_table: string;

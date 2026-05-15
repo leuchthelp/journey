@@ -1,24 +1,34 @@
 <script lang="ts">
-  import { MediaCache } from "../db/MediaCache";
-  import Playbar from "$lib/components/Playbar/Playbar.svelte";
+  import { db } from "../db/InitDB";
   import { SongItem } from "$lib/components/MediaItems/MediaItems";
+  import Playbar from "$lib/components/Playbar/Playbar.svelte";
   import SongItemComponent from "$lib/components/MediaItems/SongItemComponent.svelte";
 
-  const cache = new MediaCache();
 
-  const test = ["testItem", JSON.stringify(new SongItem())];
+  await db.deleteAll();
 
-  //await cache.deleteAll();
-  const res = await cache.addEntries(test);
-  const res1 = await cache.getEntries();
 
-  let test2: SongItem = Object.assign(
-    new SongItem(),
-    JSON.parse(res1[0]["details"]),
-  );
+  const tmp = new SongItem()
+  const test = ["testItem", JSON.stringify(tmp)];
+  console.log(tmp);
+  await db.addEntries(test)
+
+
+  let res1 = $state(await db.getEntries());
+  $inspect(res1);
+
+
+  function parseObject(item: any) {
+    const test = Object.assign(new SongItem(), JSON.parse(item["details"]))
+
+    console.log(test)
+    return test;
+  }
 </script>
 
 <main class="mt-5 h-full">
-  <SongItemComponent songItem={test2} />
+  {#each res1 as item}
+    <SongItemComponent songItem={parseObject(item)} />
+  {/each}
 </main>
 <Playbar />
