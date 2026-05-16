@@ -10,11 +10,8 @@
 
   let res1 = await db.query.mediaItems.findMany().execute();
 
-  function parseObject(item: any) {
-    const test = Object.assign(new SongItem(), item);
-
-    console.log(test);
-    return test;
+  function parseObject(item: schema.MediaItems) {
+    return Object.assign(new SongItem(), item);
   }
 </script>
 
