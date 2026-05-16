@@ -1,21 +1,25 @@
-import { MediaPaths } from "./MediaPaths";
+import { type MediaItems } from "../../../db/schema";
 
-interface IMediaItem {
-  backgroundImage: string;
-  content: string;
-  outlineGradient: string;
-  defaultStyling: string;
-  animation: any;
-  loaded: boolean;
-  paths: MediaPaths;
-}
-
-export class SongItem implements IMediaItem {
-  paths = new MediaPaths();
-  backgroundImage = "";
-  content = "";
+export class SongItem implements Omit<MediaItems, "id"> {
+  hash = null;
+  backgroundImage = null;
+  content = null;
   outlineGradient = "ring-[#C2381D]";
   defaultStyling = "m-0.5 h-24 w-24 rounded-full bg-amber-200 ring";
-  animation = "";
+  animation = null;
   loaded = false;
+  local = null;
+  providers = "{}";
+}
+
+export class ArtistItem implements Omit<MediaItems, "id"> {
+  hash = null;
+  backgroundImage = null;
+  content = null;
+  outlineGradient = "ring-[#C2381D]";
+  defaultStyling = "m-0.5 h-24 w-24 rounded-full bg-amber-200 ring";
+  animation = null;
+  loaded = false;
+  local = null;
+  providers = "{}";
 }

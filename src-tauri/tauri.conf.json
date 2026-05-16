@@ -25,5 +25,10 @@
   "bundle": {
     "active": true,
     "targets": "all"
+  },
+  "plugins": {
+    "sql": {
+      "preload": ["sqlite:dev.db"]
+    }
   }
 }

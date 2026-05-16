@@ -1,21 +1,17 @@
 <script lang="ts">
-  import { db } from "../db/InitDB";
+  import { db } from "../db/database";
+  import * as schema from "../db/schema";
   import { SongItem } from "$lib/components/MediaItems/MediaItems";
   import Playbar from "$lib/components/Playbar/Playbar.svelte";
   import SongItemComponent from "$lib/components/MediaItems/SongItemComponent.svelte";
 
-  await db.deleteAll();
+  //await db.insert(schema.mediaItems).values(test)
+  //await db.delete(schema.mediaItems)
 
-  const tmp = new SongItem();
-  const test = ["testItem", JSON.stringify(tmp)];
-  console.log(tmp);
-  await db.addEntries(test);
-
-  let res1 = $state(await db.getEntries());
-  $inspect(res1);
+  let res1 = await db.query.mediaItems.findMany().execute();
 
   function parseObject(item: any) {
-    const test = Object.assign(new SongItem(), JSON.parse(item["details"]));
+    const test = Object.assign(new SongItem(), item);
 
     console.log(test);
     return test;
