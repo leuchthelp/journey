@@ -14,7 +14,7 @@ export type SelectQueryResult = {
  */
 
 export async function getDb() {
-  return await Database.load("sqlite:dev.db");
+  return Database.load("sqlite:dev.db");
 }
 
 /**
@@ -27,10 +27,16 @@ export const db = drizzle<typeof schema>(
     let results = [];
     // If the query is a SELECT, use the select method
     if (isSelectQuery(sql)) {
-      rows = await sqlite.select(sql, params);
+      rows = await sqlite.select(sql, params).catch((e) => {
+        console.error("SQL Error:", e);
+        return [];
+      });
     } else {
       // Otherwise, use the execute method
-      rows = await sqlite.execute(sql, params);
+      rows = await sqlite.execute(sql, params).catch((e) => {
+        console.error("SQL Error:", e);
+        return [];
+      });
       return { rows: [] };
     }
 
