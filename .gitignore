@@ -12,9 +12,20 @@ dist
 dist-ssr
 *.local
 
+# Svelte
+/build
+/.svelte-kit
+/package
+.env
+.env.*
+!.env.example
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea
 .DS_Store
 *.suo
@@ -40,4 +51,4 @@ main.py
 *.ico
 
 #Allowed
-!src-tauri/icons/Square30x30Logo.png
+!src-tauri/icons/icon.png

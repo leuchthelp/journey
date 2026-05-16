@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1778947632160,
+      "tag": "20260516160712_married_switch",
+      "breakpoints": true
+    }
+  ]
+}
