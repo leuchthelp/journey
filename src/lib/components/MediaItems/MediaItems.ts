@@ -1,7 +1,7 @@
 import { type MediaItems } from "../../../db/schema";
 
 export class SongItem implements Omit<MediaItems, "id"> {
-  type = "SongItem";
+  type = SongItem.name;
   outlineGradient = "ring-[#C2381D]";
 
   hash!: string;
@@ -15,7 +15,7 @@ export class SongItem implements Omit<MediaItems, "id"> {
 }
 
 export class ArtistItem implements Omit<MediaItems, "id"> {
-  type = "ArtistItem";
+  type = ArtistItem.name;
   outlineGradient = "ring-[#D42CA4]";
 
   hash!: string;
@@ -29,7 +29,7 @@ export class ArtistItem implements Omit<MediaItems, "id"> {
 }
 
 export class GenreItem implements Omit<MediaItems, "id"> {
-  type = "GenreItem";
+  type = GenreItem.name;
   outlineGradient = "ring-[#2C8FD4]";
 
   hash!: string;
@@ -43,7 +43,7 @@ export class GenreItem implements Omit<MediaItems, "id"> {
 }
 
 export class PlaylistItem implements Omit<MediaItems, "id"> {
-  type = "PlaylistItem";
+  type = PlaylistItem.name;
   outlineGradient = "ring-[#42D42C]";
 
   hash!: string;

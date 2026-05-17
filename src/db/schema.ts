@@ -8,7 +8,7 @@ export const mediaItems = sqliteTable("MediaItems", {
   content: text("content").default("").notNull(),
   outlineGradient: text("outlineGradient").default("ring-[#C2381D]").notNull(),
   defaultStyling: text("defaultStyling")
-    .default("m-0.5 h-24 w-24 rounded-full bg-amber-200 ring")
+    .default("m-0.5 h-24 w-24 rounded-xl bg-amber-200 ring")
     .notNull(),
   animation: text("animation").default("").notNull(),
   loaded: integer("loaded", { mode: "boolean" }).default(false).notNull(),
