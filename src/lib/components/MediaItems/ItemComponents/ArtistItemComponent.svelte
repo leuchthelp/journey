@@ -13,4 +13,4 @@
   let content = $derived(songItem.content);
 </script>
 
-<Button {styling}>{content}</Button>
+<Button {styling}><a href="/{songItem.hash}">{content}</a></Button>
