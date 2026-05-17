@@ -98,16 +98,12 @@
       "indexes": {
         "MediaItems_id_unique": {
           "name": "MediaItems_id_unique",
-          "columns": [
-            "id"
-          ],
+          "columns": ["id"],
           "isUnique": true
         },
         "MediaItems_hash_unique": {
           "name": "MediaItems_hash_unique",
-          "columns": [
-            "hash"
-          ],
+          "columns": ["hash"],
           "isUnique": true
         }
       },
