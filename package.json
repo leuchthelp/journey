@@ -28,7 +28,7 @@
     "@sveltejs/adapter-static": "^3.0.10",
     "@sveltejs/kit": "^2.60.1",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
-    "@tauri-apps/cli": "^2.11.1",
+    "@tauri-apps/cli": "^2.11.2",
     "drizzle-kit": "^0.31.10",
     "prettier": "^3.8.3",
     "prettier-plugin-svelte": "^3.5.2",

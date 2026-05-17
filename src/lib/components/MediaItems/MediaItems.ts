@@ -1,25 +1,57 @@
 import { type MediaItems } from "../../../db/schema";
 
 export class SongItem implements Omit<MediaItems, "id"> {
-  hash = null;
-  backgroundImage = null;
-  content = null;
+  type = "SongItem";
   outlineGradient = "ring-[#C2381D]";
-  defaultStyling = "m-0.5 h-24 w-24 rounded-full bg-amber-200 ring";
-  animation = null;
-  loaded = false;
-  local = null;
-  providers = "{}";
+
+  hash!: string;
+  backgroundImage!: string;
+  content!: string;
+  defaultStyling!: string;
+  animation!: string;
+  loaded!: boolean;
+  local!: string;
+  providers!: string;
 }
 
 export class ArtistItem implements Omit<MediaItems, "id"> {
-  hash = null;
-  backgroundImage = null;
-  content = null;
-  outlineGradient = "ring-[#C2381D]";
-  defaultStyling = "m-0.5 h-24 w-24 rounded-full bg-amber-200 ring";
-  animation = null;
-  loaded = false;
-  local = null;
-  providers = "{}";
+  type = "ArtistItem";
+  outlineGradient = "ring-[#D42CA4]";
+
+  hash!: string;
+  backgroundImage!: string;
+  content!: string;
+  defaultStyling!: string;
+  animation!: string;
+  loaded!: boolean;
+  local!: string;
+  providers!: string;
+}
+
+export class GenreItem implements Omit<MediaItems, "id"> {
+  type = "GenreItem";
+  outlineGradient = "ring-[#2C8FD4]";
+
+  hash!: string;
+  backgroundImage!: string;
+  content!: string;
+  defaultStyling!: string;
+  animation!: string;
+  loaded!: boolean;
+  local!: string;
+  providers!: string;
+}
+
+export class PlaylistItem implements Omit<MediaItems, "id"> {
+  type = "PlaylistItem";
+  outlineGradient = "ring-[#42D42C]";
+
+  hash!: string;
+  backgroundImage!: string;
+  content!: string;
+  defaultStyling!: string;
+  animation!: string;
+  loaded!: boolean;
+  local!: string;
+  providers!: string;
 }

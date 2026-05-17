@@ -1,12 +1,12 @@
 <script lang="ts">
-  import Button from "./MediaItemButton.svelte";
-  import { SongItem } from "./MediaItems";
+  import Button from "../MediaItemButton.svelte";
+  import { SongItem } from "../MediaItems";
 
-  interface Props {
-    songItem: SongItem;
-  }
+  type Props = {
+    item: SongItem;
+  };
 
-  let { songItem }: Props = $props();
+  let { item: songItem }: Props = $props();
   let styling = $derived(
     songItem.defaultStyling + " " + songItem.outlineGradient,
   );

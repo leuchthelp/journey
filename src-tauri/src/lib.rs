@@ -11,6 +11,18 @@ pub fn run() {
             sql: include_str!("../migrations/20260516160712_married_switch.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 2,
+            description: "add item type",
+            sql: include_str!("../migrations/20260517092712_mushy_giant_man.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 3,
+            description: "make all none null",
+            sql: include_str!("../migrations/20260517102756_loose_pandemic.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
