@@ -26,6 +26,15 @@ import { homeCache } from "$lib/components/MediaItems/ItemCache";
 // test4.content = "PlaylistItem";
 // await db.insert(schema.mediaItems).values([test, test2, test3, test4])
 //await db.delete(schema.mediaItems)
+function toArrayClean<X>(xs: Iterable<X | undefined>): X[] {
+  let res: X[] = [];
+
+  for (let entry of xs) {
+    if (entry) res.push(entry);
+  }
+
+  return res;
+}
 
 export const load: PageLoad = async () => {
   let res: schema.MediaItems[];
@@ -33,7 +42,7 @@ export const load: PageLoad = async () => {
   // Medium: look in cache if item has been posted already
   if (homeCache) {
     let tmp = homeCache.rvalues();
-    res = [...tmp];
+    res = toArrayClean(tmp);
 
     if (res.length !== 0)
       return {
@@ -41,6 +50,6 @@ export const load: PageLoad = async () => {
       };
   }
 
-  res = await db.query.mediaItems.findMany().execute();
+  res = await db.select().from(schema.mediaItems).limit(6);
   return { post: res };
 };
