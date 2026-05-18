@@ -7,10 +7,8 @@
   };
 
   let { item }: Props = $props();
-  let styling = $derived(
-    item.defaultStyling + " " + item.outlineGradient,
-  );
+  let styling = $derived(item.defaultStyling + " " + item.outlineGradient);
   let content = $derived(item.content);
 </script>
 
-<Button {styling}><a href="/{item.hash}">{content}</a></Button>
+<Button {styling}><a href="/genre/{item.hash}">{content}</a></Button>

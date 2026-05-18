@@ -2,7 +2,7 @@ import { LRUCache } from "lru-cache";
 import { type MediaItems } from "$lib/db/schema";
 
 const options = {
-  max: 25,
+  max: 150,
 
   // how long to live in ms
   ttl: 1000 * 60 * 5,
