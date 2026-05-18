@@ -5,7 +5,7 @@
 </script>
 
 <h1>
-  {#if data.post[0] !== undefined}
+  {#if data.post[0]}
     {data.post[0].hash}
   {/if}
 </h1>

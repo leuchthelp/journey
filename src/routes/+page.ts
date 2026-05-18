@@ -31,9 +31,9 @@ export const load: PageLoad = async () => {
   let res: schema.MediaItems[];
 
   // Medium: look in cache if item has been posted already
-  if (itemCache !== undefined) {
-    let tmp = itemCache.values();
-    res = [...tmp];
+  if (itemCache) {
+    let tmp = itemCache.rvalues();
+    res = [...tmp] as schema.MediaItems[];
 
     if (res.length !== 0)
       return {

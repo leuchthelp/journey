@@ -10,7 +10,7 @@ export const load: PageLoad = async ({ params }) => {
   // Fastest: try check out parent page if it already posted the item
   let data = page.data.post as schema.MediaItems[];
   let res: schema.MediaItems[];
-  if (data !== undefined) {
+  if (data) {
     res = data.filter((item) => item.hash === params.slug);
 
     if (res.length !== 0)
@@ -20,9 +20,9 @@ export const load: PageLoad = async ({ params }) => {
   }
 
   // Medium: look in cache if item has been posted already
-  if (itemCache !== undefined) {
+  if (itemCache) {
     let tmp = itemCache.get(params.slug);
-    if (tmp !== undefined)
+    if (tmp)
       return {
         post: [tmp],
       };
