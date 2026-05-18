@@ -6,11 +6,11 @@
     item: SongItem;
   };
 
-  let { item: songItem }: Props = $props();
+  let { item }: Props = $props();
   let styling = $derived(
-    songItem.defaultStyling + " " + songItem.outlineGradient,
+    item.defaultStyling + " " + item.outlineGradient,
   );
-  let content = $derived(songItem.content);
+  let content = $derived(item.content);
 </script>
 
-<Button {styling}><a href="/{songItem.hash}">{content}</a></Button>
+<Button {styling}><a href="/{item.hash}">{content}</a></Button>

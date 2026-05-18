@@ -1,6 +1,7 @@
-import { db } from "../db/database";
-import * as schema from "../db/schema";
+import { db } from "$lib/db/database";
+import * as schema from "$lib/db/schema";
 import type { PageLoad } from "./$types";
+import { itemCache } from "$lib/components/MediaItems/ItemCache";
 
 // import {
 //   ArtistItem,
@@ -27,5 +28,19 @@ import type { PageLoad } from "./$types";
 //await db.delete(schema.mediaItems)
 
 export const load: PageLoad = async () => {
-  return { post: await db.query.mediaItems.findMany().execute() };
+  let res: schema.MediaItems[];
+
+  // Medium: look in cache if item has been posted already
+  if (itemCache !== undefined) {
+    let tmp = itemCache.values();
+    res = [...tmp];
+
+    if (res.length !== 0)
+      return {
+        post: res,
+      };
+  }
+
+  res = await db.query.mediaItems.findMany().execute();
+  return { post: res };
 };
