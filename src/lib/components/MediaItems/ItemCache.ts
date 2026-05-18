@@ -14,3 +14,4 @@ const options = {
 };
 
 export const itemCache = new LRUCache<string, MediaItems>(options);
+export const homeCache = new LRUCache<string, MediaItems>(options);

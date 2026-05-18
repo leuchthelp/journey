@@ -1,7 +1,7 @@
 import { db } from "$lib/db/database";
 import * as schema from "$lib/db/schema";
 import type { PageLoad } from "./$types";
-import { itemCache } from "$lib/components/MediaItems/ItemCache";
+import { homeCache } from "$lib/components/MediaItems/ItemCache";
 
 // import {
 //   ArtistItem,
@@ -31,9 +31,9 @@ export const load: PageLoad = async () => {
   let res: schema.MediaItems[];
 
   // Medium: look in cache if item has been posted already
-  if (itemCache) {
-    let tmp = itemCache.rvalues();
-    res = [...tmp] as schema.MediaItems[];
+  if (homeCache) {
+    let tmp = homeCache.rvalues();
+    res = [...tmp];
 
     if (res.length !== 0)
       return {
