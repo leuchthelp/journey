@@ -2,6 +2,7 @@ import { db } from "$lib/db/database";
 import * as schema from "$lib/db/schema";
 import type { PageLoad } from "./$types";
 import { homeCache } from "$lib/components/MediaItems/ItemCache";
+import { testJf } from "$lib/providers/JellyfinProvider";
 
 // import {
 //   ArtistItem,
@@ -38,6 +39,8 @@ function toArrayClean<X>(xs: Iterable<X | undefined>): X[] {
 
 export const load: PageLoad = async () => {
   let res: schema.MediaItems[];
+
+  testJf()
 
   // Medium: look in cache if item has been posted already
   if (homeCache) {

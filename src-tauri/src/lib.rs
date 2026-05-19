@@ -1,6 +1,19 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 
+//use musicbrainz_rs::entity::artist::*;
+//use musicbrainz_rs::prelude::*;
+
+// #[tauri::command]
+// fn test() {
+//     let nirvana = Artist::fetch()
+//         .id("5b11f4ce-a62d-471e-81fc-a69a8278c7da")
+//         .execute();
+
+//     let tmp = nirvana?.name;
+//     println!("{tmp}");
+// }
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let migrations = vec![
@@ -35,6 +48,7 @@ pub fn run() {
                 .build(),
         )
         .plugin(tauri_plugin_opener::init())
+        //.invoke_handler(tauri::generate_handler![test])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
