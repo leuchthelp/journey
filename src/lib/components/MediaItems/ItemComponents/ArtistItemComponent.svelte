@@ -11,4 +11,4 @@
   let content = $derived(item.content);
 </script>
 
-<Button {styling}><a href="/artist/{item.hash}">{content}</a></Button>
+<Button {styling}><a href="/pages/artist/{item.hash}">{content}</a></Button>
