@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+import { vite as vidstack } from 'vidstack/plugins';
 import { enhancedImages } from '@sveltejs/enhanced-img'
 import { sveltekit } from "@sveltejs/kit/vite";
 import tailwindcss from "@tailwindcss/vite";
@@ -7,7 +8,7 @@ const host = process.env.TAURI_DEV_HOST;
 
 // https://vite.dev/config/
 export default defineConfig(async () => ({
-  plugins: [tailwindcss(), enhancedImages(), sveltekit()],
+  plugins: [tailwindcss(), enhancedImages(), sveltekit(), vidstack()],
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //

@@ -9,5 +9,6 @@
   "prettier.documentSelectors": ["**/*.svelte"],
   "[svelte]": {
     "editor.defaultFormatter": "svelte.svelte-vscode"
-  }
+  },
+  "html.customData": ["./node_modules/vidstack/vscode.html-data.json"]
 }

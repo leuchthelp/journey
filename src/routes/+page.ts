@@ -52,9 +52,10 @@ export const load: PageLoad = async () => {
     if (res.length !== 0)
       return {
         post: res,
+        url: url
       };
   }
 
   res = await db.select().from(schema.mediaItems).limit(6);
-  return { post: res };
+  return { post: res, url: url };
 };

@@ -29,7 +29,9 @@
     "checkJs": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "sourceMap": true
+    "sourceMap": true,
+
+    "types": ["vidstack/svelte"]
   },
   "include": ["src"]
 }

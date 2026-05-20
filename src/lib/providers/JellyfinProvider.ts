@@ -2,7 +2,6 @@ import { Jellyfin } from "@jellyfin/sdk";
 import { getUserApi } from "@jellyfin/sdk/lib/utils/api/user-api";
 import { getLibraryApi } from "@jellyfin/sdk/lib/utils/api/library-api";
 import { getUserLibraryApi } from "@jellyfin/sdk/lib/utils/api/user-library-api";
-import { getItemLookupApi } from "@jellyfin/sdk/lib/utils/api/item-lookup-api";
 import { getItemsApi } from "@jellyfin/sdk/lib/utils/api/items-api";
 import { getAudioApi } from "@jellyfin/sdk/lib/utils/api/audio-api";
 
@@ -52,8 +51,5 @@ export async function testJf() {
 
   const songId = children.data.Items?.at(2)?.Id;
 
-  let tmp = await getAudioApi(api).getAudioStream({ itemId: songId });
-  console.log("Libraries =>", tmp);
-
-  return tmp.config.url
+  return getAudioApi(api).getAudioStream({ itemId: songId, _static: true });
 }
