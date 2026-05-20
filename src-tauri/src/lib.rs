@@ -1,18 +1,19 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 
-//use musicbrainz_rs::entity::artist::*;
-//use musicbrainz_rs::prelude::*;
+use musicbrainz_rs::entity::artist::*;
+use musicbrainz_rs::prelude::*;
 
-// #[tauri::command]
-// fn test() {
-//     let nirvana = Artist::fetch()
-//         .id("5b11f4ce-a62d-471e-81fc-a69a8278c7da")
-//         .execute();
+#[tauri::command]
+fn test2() {
+    let nirvana = Artist::fetch()
+        .id("5b11f4ce-a62d-471e-81fc-a69a8278c7da")
+        .execute()
+        .unwrap();
 
-//     let tmp = nirvana?.name;
-//     println!("{tmp}");
-// }
+    let tmp = nirvana.name;
+    println!("{tmp}");
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -47,8 +48,7 @@ pub fn run() {
                 .add_migrations("sqlite:dev.db", migrations)
                 .build(),
         )
-        .plugin(tauri_plugin_opener::init())
-        //.invoke_handler(tauri::generate_handler![test])
+        .invoke_handler(tauri::generate_handler![test2])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

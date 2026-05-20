@@ -3,6 +3,7 @@ import * as schema from "$lib/db/schema";
 import type { PageLoad } from "./$types";
 import { homeCache } from "$lib/components/MediaItems/ItemCache";
 import { testJf } from "$lib/providers/JellyfinProvider";
+import { invoke } from '@tauri-apps/api/core';
 
 // import {
 //   ArtistItem,
@@ -40,7 +41,8 @@ function toArrayClean<X>(xs: Iterable<X | undefined>): X[] {
 export const load: PageLoad = async () => {
   let res: schema.MediaItems[];
 
-  testJf()
+  let url = await testJf()
+  console.log(url)
 
   // Medium: look in cache if item has been posted already
   if (homeCache) {
