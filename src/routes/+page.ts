@@ -2,7 +2,7 @@ import { db } from "$lib/db/database";
 import * as schema from "$lib/db/schema";
 import type { PageLoad } from "./$types";
 import { homeCache } from "$lib/components/MediaItems/ItemCache";
-import { testJf } from "$lib/providers/JellyfinProvider";
+import { testJf, testJf2 } from "$lib/providers/JellyfinProvider";
 import { invoke } from '@tauri-apps/api/core';
 
 // import {
@@ -42,7 +42,9 @@ export const load: PageLoad = async () => {
   let res: schema.MediaItems[];
 
   let url = await testJf()
-  console.log(url)
+  console.log(url.config.url)
+
+  let test2 = await testJf2()
 
   // Medium: look in cache if item has been posted already
   if (homeCache) {
@@ -52,10 +54,11 @@ export const load: PageLoad = async () => {
     if (res.length !== 0)
       return {
         post: res,
-        url: url
+        url: url,
+        tmp: test2
       };
   }
 
   res = await db.select().from(schema.mediaItems).limit(6);
-  return { post: res, url: url };
+  return { post: res, url: url, tmp: test2 };
 };

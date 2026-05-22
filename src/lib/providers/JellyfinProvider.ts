@@ -4,6 +4,7 @@ import { getLibraryApi } from "@jellyfin/sdk/lib/utils/api/library-api";
 import { getUserLibraryApi } from "@jellyfin/sdk/lib/utils/api/user-library-api";
 import { getItemsApi } from "@jellyfin/sdk/lib/utils/api/items-api";
 import { getAudioApi } from "@jellyfin/sdk/lib/utils/api/audio-api";
+import { getApiKeyApi } from "@jellyfin/sdk/lib/utils/api/api-key-api";
 
 export async function testJf() {
   const jellyfin = new Jellyfin({
@@ -51,5 +52,36 @@ export async function testJf() {
 
   const songId = children.data.Items?.at(2)?.Id;
 
-  return getAudioApi(api).getAudioStream({ itemId: songId, _static: true });
+  return getAudioApi(api).getAudioStream({ itemId: songId });
+}
+
+export async function testJf2() {
+  const jellyfin = new Jellyfin({
+    clientInfo: {
+      name: "journey",
+      version: "0.1.0",
+    },
+    deviceInfo: {
+      name: "dev",
+      id: "dev-pc",
+    },
+  });
+
+  const api = jellyfin.createApi(
+    `https://${import.meta.env.VITE_JELLYFIN_SERVER}/`,
+  );
+  const auth = await getUserApi(api).authenticateUserByName({
+    authenticateUserByName: {
+      Username: import.meta.env.VITE_JELLYFIN_USER,
+      Pw: import.meta.env.VITE_JELLYFIN_PASSWORD,
+    },
+  });
+
+  const doit = await getApiKeyApi(api).createKey({ app: "journey" });
+  console.log(doit);
+
+  const key = await getApiKeyApi(api).getKeys();
+  console.log(key);
+
+  return key.data.Items?.at(0)?.AccessToken;
 }

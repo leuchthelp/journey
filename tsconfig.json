@@ -30,8 +30,6 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "sourceMap": true,
-
-    "types": ["vidstack/svelte"]
   },
   "include": ["src"]
 }
