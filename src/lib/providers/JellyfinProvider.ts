@@ -77,9 +77,6 @@ export async function testJf2() {
     },
   });
 
-  const doit = await getApiKeyApi(api).createKey({ app: "journey" });
-  console.log(doit);
-
   const key = await getApiKeyApi(api).getKeys();
   console.log(key);
 

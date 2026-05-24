@@ -3,31 +3,7 @@ import * as schema from "../lib/db/schema.ts";
 import type { PageLoad } from "../../.svelte-kit/types/src/routes/$types.d.ts";
 import { homeCache } from "../lib/components/MediaItems/ItemCache.ts";
 import { testJf, testJf2 } from "../lib/providers/JellyfinProvider.ts";
-import { invoke } from '@tauri-apps/api/core';
 
-// import {
-//   ArtistItem,
-//   GenreItem,
-//   PlaylistItem,
-//   SongItem,
-// } from "$lib/components/MediaItems/MediaItems";
-
-// const test = new SongItem();
-// const test2 = new ArtistItem();
-// const test3 = new GenreItem();
-// const test4 = new PlaylistItem();
-
-// test.hash = "SongItem";
-// test2.hash = "ArtistItem";
-// test3.hash = "GenreItem";
-// test4.hash = "PlaylistItem";
-
-// test.content = "SongItem";
-// test2.content = "ArtistItem";
-// test3.content = "GenreItem";
-// test4.content = "PlaylistItem";
-// await db.insert(schema.mediaItems).values([test, test2, test3, test4])
-//await db.delete(schema.mediaItems)
 function toArrayClean<X>(xs: Iterable<X | undefined>): X[] {
   let res: X[] = [];
 
@@ -41,10 +17,10 @@ function toArrayClean<X>(xs: Iterable<X | undefined>): X[] {
 export const load: PageLoad = async () => {
   let res: schema.MediaItems[];
 
-  let url = await testJf()
-  console.log(url.config.url)
+  let url = await testJf();
+  console.log(url.config.url);
 
-  let test2 = await testJf2()
+  let test2 = await testJf2();
 
   // Medium: look in cache if item has been posted already
   if (homeCache) {
@@ -55,7 +31,7 @@ export const load: PageLoad = async () => {
       return {
         post: res,
         url: url,
-        tmp: test2
+        tmp: test2,
       };
   }
 
