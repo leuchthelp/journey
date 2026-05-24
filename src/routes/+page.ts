@@ -1,8 +1,8 @@
-import { db } from "$lib/db/database";
-import * as schema from "$lib/db/schema";
-import type { PageLoad } from "./$types";
-import { homeCache } from "$lib/components/MediaItems/ItemCache";
-import { testJf, testJf2 } from "$lib/providers/JellyfinProvider";
+import { db } from "../lib/db/database.ts";
+import * as schema from "../lib/db/schema.ts";
+import type { PageLoad } from "../../.svelte-kit/types/src/routes/$types.d.ts";
+import { homeCache } from "../lib/components/MediaItems/ItemCache.ts";
+import { testJf, testJf2 } from "../lib/providers/JellyfinProvider.ts";
 import { invoke } from '@tauri-apps/api/core';
 
 // import {

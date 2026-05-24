@@ -1,4 +1,4 @@
-import { type MediaItems } from "../../db/schema";
+import { type MediaItems } from "../../db/schema.ts";
 
 export class SongItem implements Omit<MediaItems, "id"> {
   type = SongItem.name;
