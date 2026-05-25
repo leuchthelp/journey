@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   let { children } = $props();
   import "../app.css";
 
@@ -6,11 +6,17 @@
   import NavbarButton from "$lib/components/Navbar/NavbarButton.svelte";
   import Playbar from "$lib/components/Playbar/Playbar.svelte";
   import PlaybarButton from "$lib/components/Playbar/PlaybarButton.svelte";
+  import ProviderAccordion from "$lib/components/Settings/Provider/ProviderAccordion.svelte";
+  import ProviderAccordionItem from "$lib/components/Settings/Provider/ProviderAccordionItem.svelte";
+  import Settings from "$lib/components/Settings/Settings.svelte";
+
+  let visible = $state(false);
+
+  function toggleVisible() {
+    visible = !visible;
+  }
 </script>
 
-<Navbar>
-  <NavbarButton>hello</NavbarButton>
-</Navbar>
 <main class="mt-5 h-full">
   {@render children()}
 </main>
@@ -19,3 +25,18 @@
   <PlaybarButton>2</PlaybarButton>
   <PlaybarButton>3</PlaybarButton>
 </Playbar>
+
+<div class="fixed flex flex-row h-full w-full">
+  <Navbar>
+    <NavbarButton func={toggleVisible}>settings</NavbarButton>
+  </Navbar>
+  {#if visible}
+    <Settings>
+      <ProviderAccordion>
+        <ProviderAccordionItem>jellyfin</ProviderAccordionItem>
+        <ProviderAccordionItem>youtube</ProviderAccordionItem>
+        <ProviderAccordionItem>tidal</ProviderAccordionItem>
+      </ProviderAccordion>
+    </Settings>
+  {/if}
+</div>

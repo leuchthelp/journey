@@ -2,7 +2,7 @@
   type Props = {
     styling: string;
     children?: import("svelte").Snippet;
-  }
+  };
 
   let { styling, children }: Props = $props();
 </script>

@@ -13,7 +13,11 @@
   let item = $derived(data.post);
 </script>
 
-<enhanced:img class="h-48 w-48 object-contain rounded-xl bg-amber-200" src={item.backgroundImage} alt="Loading"/>
+<enhanced:img
+  class="h-48 w-48 object-contain rounded-xl bg-amber-200"
+  src={item.backgroundImage}
+  alt="Loading"
+/>
 <h1>
   {item.content ?? error(404, "Not found")}
 </h1>

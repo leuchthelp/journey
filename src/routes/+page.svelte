@@ -13,8 +13,7 @@
   };
 
   let test = $derived(data.url.config.url + `?static=true&ApiKey=${data.tmp}`);
-  $inspect(test)
-
+  $inspect(test);
 </script>
 
 <audio-player>
