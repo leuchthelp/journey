@@ -9,7 +9,7 @@
   }
 </script>
 
-<div class="flex flex-col w-124 outline-amber-200 outline-4">
+<div class="flex flex-col outline-amber-200 outline-4">
   <button class="place-self-start" onclick={() => toggleVisible()}
     >Providers</button
   >

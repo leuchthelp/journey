@@ -26,17 +26,18 @@
   <PlaybarButton>3</PlaybarButton>
 </Playbar>
 
-<div class="fixed flex flex-row h-full w-full">
+<div class="fixed flex flex-row h-full place-self-start" class:w-full={visible}>
   <Navbar>
+    <div class="h-full"></div>
     <NavbarButton func={toggleVisible}>settings</NavbarButton>
   </Navbar>
   {#if visible}
-    <Settings>
-      <ProviderAccordion>
-        <ProviderAccordionItem>jellyfin</ProviderAccordionItem>
-        <ProviderAccordionItem>youtube</ProviderAccordionItem>
-        <ProviderAccordionItem>tidal</ProviderAccordionItem>
-      </ProviderAccordion>
-    </Settings>
+      <Settings>
+        <ProviderAccordion>
+          <ProviderAccordionItem>jellyfin</ProviderAccordionItem>
+          <ProviderAccordionItem>youtube</ProviderAccordionItem>
+          <ProviderAccordionItem>tidal</ProviderAccordionItem>
+        </ProviderAccordion>
+      </Settings>
   {/if}
 </div>
