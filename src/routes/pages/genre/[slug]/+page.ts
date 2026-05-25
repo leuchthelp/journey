@@ -13,19 +13,21 @@ export const load: PageLoad = async ({ params }) => {
   if (data) {
     res = data.filter((item) => item.hash === params.slug);
 
-    if (res.length !== 0)
+    if (res.length !== 0) {
       return {
         post: res,
       };
+    }
   }
 
   // Medium: look in cache if item has been posted already
   if (itemCache) {
     let tmp = itemCache.get(params.slug);
-    if (tmp)
+    if (tmp) {
       return {
         post: [tmp],
       };
+    }
   }
 
   // Brutal: fallback to database to get item fresh
@@ -35,10 +37,11 @@ export const load: PageLoad = async ({ params }) => {
     .where(eq(schema.mediaItems.hash, params.slug))
     .limit(1);
 
-  if (res.length !== 0)
+  if (res.length !== 0) {
     return {
       post: res,
     };
+  }
 
   error(404, "Not found");
 };

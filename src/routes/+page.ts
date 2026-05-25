@@ -27,12 +27,13 @@ export const load: PageLoad = async () => {
     let tmp = homeCache.rvalues();
     res = toArrayClean(tmp);
 
-    if (res.length !== 0)
+    if (res.length !== 0) {
       return {
         post: res,
         url: url,
         tmp: test2,
       };
+    }
   }
 
   res = await db.select().from(schema.mediaItems).limit(6);

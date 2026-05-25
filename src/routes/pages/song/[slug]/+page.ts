@@ -14,19 +14,21 @@ export const load: PageLoad = async ({ params }) => {
   if (data) {
     let res = data.filter((item) => item.hash === params.slug)[0];
 
-    if (res)
+    if (res) {
       return {
         post: res,
       };
+    }
   }
 
   // Medium: look in cache if item has been posted already
   if (itemCache) {
     res = itemCache.get(params.slug);
-    if (res)
+    if (res) {
       return {
         post: res,
       };
+    }
   }
 
   // Brutal: fallback to database to get item fresh
@@ -37,10 +39,11 @@ export const load: PageLoad = async ({ params }) => {
     .limit(1);
 
   res = tmp[0];
-  if (res)
+  if (res) {
     return {
       post: res,
     };
+  }
 
   error(404, "Not found");
 };

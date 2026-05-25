@@ -1,9 +1,7 @@
 <script lang="ts">
-  import Button from "./PlaybarButton.svelte";
+  let { children } = $props();
 </script>
 
 <div class="grid-play-options">
-  <Button>1</Button>
-  <Button>2</Button>
-  <Button>3</Button>
+  {@render children?.()}
 </div>

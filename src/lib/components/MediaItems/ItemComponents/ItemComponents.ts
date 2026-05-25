@@ -1,4 +1,9 @@
-import { SongItem, GenreItem, ArtistItem, PlaylistItem } from "../MediaItems.ts";
+import {
+  ArtistItem,
+  GenreItem,
+  PlaylistItem,
+  SongItem,
+} from "../MediaItems.ts";
 import SongItemComponent from "./SongItemComponent.svelte";
 import GenreItemComponent from "./GenreItemComponent.svelte";
 import ArtistItemComponent from "./ArtistItemComponent.svelte";

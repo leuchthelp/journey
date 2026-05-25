@@ -1,5 +1,5 @@
 import { LRUCache } from "lru-cache";
-import { type MediaItems } from "../../db/schema.ts";
+import type { MediaItems } from "../../db/schema.ts";
 
 const options = {
   max: 150,
