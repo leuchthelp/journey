@@ -20,8 +20,6 @@
     "@tauri-apps/plugin-sql": "~2.4.0",
     "@tauri-apps/plugin-window-state": "~2.4.1",
     "@videojs/html": "^10.0.0-beta.24",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",
     "hls.js": "^1.6.16",
     "lru-cache": "^11.5.0",
