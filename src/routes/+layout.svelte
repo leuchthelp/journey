@@ -32,12 +32,12 @@
     <NavbarButton func={toggleVisible}>settings</NavbarButton>
   </Navbar>
   {#if visible}
-      <Settings>
-        <ProviderAccordion>
-          <ProviderAccordionItem>jellyfin</ProviderAccordionItem>
-          <ProviderAccordionItem>youtube</ProviderAccordionItem>
-          <ProviderAccordionItem>tidal</ProviderAccordionItem>
+    <Settings>
+      <ProviderAccordion title={"Providers"}>
+        <ProviderAccordion title={"Jellyfin"}>
+          <ProviderAccordionItem>Login</ProviderAccordionItem>
         </ProviderAccordion>
-      </Settings>
+      </ProviderAccordion>
+    </Settings>
   {/if}
 </div>

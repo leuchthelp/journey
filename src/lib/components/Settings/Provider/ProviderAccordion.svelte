@@ -1,6 +1,11 @@
 <script lang="ts">
   import { fade } from "svelte/transition";
-  let { children } = $props();
+  type Props = {
+    title: string;
+    children?: import("svelte").Snippet;
+  };
+
+  let { title, children }: Props = $props();
 
   let visible = $state(false);
 
@@ -11,7 +16,7 @@
 
 <div class="flex flex-col outline-amber-200 outline-4">
   <button class="place-self-start" onclick={() => toggleVisible()}
-    >Providers</button
+    >{title}</button
   >
 
   {#if visible}

@@ -1,5 +1,9 @@
 <script lang="ts">
-  let { children } = $props();
+  type Props = {
+    children?: import("svelte").Snippet;
+  }
+
+  let { children }: Props = $props();
 </script>
 
 <div class="">
