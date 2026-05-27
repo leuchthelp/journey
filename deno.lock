@@ -15,6 +15,7 @@
     "npm:@tauri-apps/plugin-window-state@~2.4.1": "2.4.1",
     "npm:@videojs/html@^10.0.0-beta.24": "10.0.0-beta.24_@svta+cml-cta@1.0.1__@svta+cml-structured-field-values@1.0.1___@svta+cml-utils@1.0.1__@svta+cml-utils@1.0.1_@svta+cml-structured-field-values@1.0.1__@svta+cml-utils@1.0.1_@svta+cml-utils@1.0.1",
     "npm:better-auth@^1.6.11": "1.6.11_@sveltejs+kit@2.61.1__@sveltejs+vite-plugin-svelte@7.1.2___svelte@5.55.9___vite@8.0.14__svelte@5.55.9__typescript@6.0.3__vite@8.0.14_drizzle-kit@0.31.10_drizzle-orm@0.45.2__kysely@0.28.17_svelte@5.55.9",
+    "npm:clsx@^2.1.1": "2.1.1",
     "npm:drizzle-kit@~0.31.10": "0.31.10",
     "npm:drizzle-orm@~0.45.2": "0.45.2_kysely@0.28.17",
     "npm:hls.js@^1.6.16": "1.6.16",
@@ -56,7 +57,7 @@
         "drizzle-orm"
       ]
     },
-    "@better-auth/kysely-adapter@1.6.11_@better-auth+core@1.6.11__@better-auth+utils@0.4.0__@better-fetch+fetch@1.1.21__better-call@1.3.5___zod@4.4.3__jose@6.2.3__kysely@0.28.17__nanostores@1.3.0_@better-auth+utils@0.4.0_kysely@0.28.17_@better-fetch+fetch@1.1.21_better-call@1.3.5__zod@4.4.3_jose@6.2.3_nanostores@1.3.0": {
+    "@better-auth/kysely-adapter@1.6.11_@better-auth+core@1.6.11__@better-auth+utils@0.4.0__@better-fetch+fetch@1.1.21__better-call@1.3.5___zod@4.4.3__jose@6.2.3__kysely@0.28.17__nanostores@1.3.0_@better-auth+utils@0.4.0_kysely@0.28.17": {
       "integrity": "sha512-/g8M9RfIjdcZDnbstSUvQiINkvdNlCeZr248zwqx2/PVksQI1MhQofbzUn3RnQnbPKp0EPwpX/dR3oudRFenUg==",
       "dependencies": [
         "@better-auth/core",
@@ -67,28 +68,28 @@
         "kysely"
       ]
     },
-    "@better-auth/memory-adapter@1.6.11_@better-auth+core@1.6.11__@better-auth+utils@0.4.0__@better-fetch+fetch@1.1.21__better-call@1.3.5___zod@4.4.3__jose@6.2.3__kysely@0.28.17__nanostores@1.3.0_@better-auth+utils@0.4.0_@better-fetch+fetch@1.1.21_better-call@1.3.5__zod@4.4.3_jose@6.2.3_kysely@0.28.17_nanostores@1.3.0": {
+    "@better-auth/memory-adapter@1.6.11_@better-auth+core@1.6.11__@better-auth+utils@0.4.0__@better-fetch+fetch@1.1.21__better-call@1.3.5___zod@4.4.3__jose@6.2.3__kysely@0.28.17__nanostores@1.3.0_@better-auth+utils@0.4.0": {
       "integrity": "sha512-hpdfw0BBf8MuzLkIdmbcUZICbY9r/bhLO2RxSnkzT5+/O+0I0u2I8+m0YUP7vNllP/ZCKASHOYgXPLO75Z0f9Q==",
       "dependencies": [
         "@better-auth/core",
         "@better-auth/utils"
       ]
     },
-    "@better-auth/mongo-adapter@1.6.11_@better-auth+core@1.6.11__@better-auth+utils@0.4.0__@better-fetch+fetch@1.1.21__better-call@1.3.5___zod@4.4.3__jose@6.2.3__kysely@0.28.17__nanostores@1.3.0_@better-auth+utils@0.4.0_@better-fetch+fetch@1.1.21_better-call@1.3.5__zod@4.4.3_jose@6.2.3_kysely@0.28.17_nanostores@1.3.0": {
+    "@better-auth/mongo-adapter@1.6.11_@better-auth+core@1.6.11__@better-auth+utils@0.4.0__@better-fetch+fetch@1.1.21__better-call@1.3.5___zod@4.4.3__jose@6.2.3__kysely@0.28.17__nanostores@1.3.0_@better-auth+utils@0.4.0": {
       "integrity": "sha512-3Tor8rSv8vSEIMEaV2PFpPEuVhqc1gNoZ6eGvoh3LwExXXuj8madew6ob+H1pH7Aphn3Ar5PQ08AguT8TbwFAA==",
       "dependencies": [
         "@better-auth/core",
         "@better-auth/utils"
       ]
     },
-    "@better-auth/prisma-adapter@1.6.11_@better-auth+core@1.6.11__@better-auth+utils@0.4.0__@better-fetch+fetch@1.1.21__better-call@1.3.5___zod@4.4.3__jose@6.2.3__kysely@0.28.17__nanostores@1.3.0_@better-auth+utils@0.4.0_@better-fetch+fetch@1.1.21_better-call@1.3.5__zod@4.4.3_jose@6.2.3_kysely@0.28.17_nanostores@1.3.0": {
+    "@better-auth/prisma-adapter@1.6.11_@better-auth+core@1.6.11__@better-auth+utils@0.4.0__@better-fetch+fetch@1.1.21__better-call@1.3.5___zod@4.4.3__jose@6.2.3__kysely@0.28.17__nanostores@1.3.0_@better-auth+utils@0.4.0": {
       "integrity": "sha512-Pw+7q7zTp+VSci1V+CYMvuxIbAeVMZLe4lRo46LJoAKMHfjFl5T/ycsyFvWs/DkWC7n9gZZzRDEbHp0I5FiKKw==",
       "dependencies": [
         "@better-auth/core",
         "@better-auth/utils"
       ]
     },
-    "@better-auth/telemetry@1.6.11_@better-auth+core@1.6.11__@better-auth+utils@0.4.0__@better-fetch+fetch@1.1.21__better-call@1.3.5___zod@4.4.3__jose@6.2.3__kysely@0.28.17__nanostores@1.3.0_@better-auth+utils@0.4.0_@better-fetch+fetch@1.1.21_better-call@1.3.5__zod@4.4.3_jose@6.2.3_kysely@0.28.17_nanostores@1.3.0": {
+    "@better-auth/telemetry@1.6.11_@better-auth+core@1.6.11__@better-auth+utils@0.4.0__@better-fetch+fetch@1.1.21__better-call@1.3.5___zod@4.4.3__jose@6.2.3__kysely@0.28.17__nanostores@1.3.0_@better-auth+utils@0.4.0_@better-fetch+fetch@1.1.21": {
       "integrity": "sha512-hsjDHc8MZbm6/AHeNdtywrWedXevnBjmdvnHTcZub+rTVjOv+Td0roI8USKuC6uUibmrl//2rJfVCsGbopihNA==",
       "dependencies": [
         "@better-auth/core",
@@ -2090,6 +2091,7 @@
         "npm:@tauri-apps/plugin-window-state@~2.4.1",
         "npm:@videojs/html@^10.0.0-beta.24",
         "npm:better-auth@^1.6.11",
+        "npm:clsx@^2.1.1",
         "npm:drizzle-kit@~0.31.10",
         "npm:drizzle-orm@~0.45.2",
         "npm:hls.js@^1.6.16",

@@ -11,5 +11,5 @@ export const auth = betterAuth({
   emailAndPassword: { 
     enabled: true, 
   },
-  plugins: [sveltekitCookies(getRequestEvent)],
+  secret: import.meta.env.VITE_BETTER_AUTH_SECRET
 });

@@ -4,6 +4,10 @@
   import { toSvelteComponent } from "$lib/snippets/ToSvelteComponent.svelte";
   import "@videojs/html/audio/player";
   import "@videojs/html/audio/minimal-skin";
+  import { authClient } from "$lib/auth-client";
+  const session = $state(authClient.useSession());
+
+  $inspect(session)
 
   let { data }: PageProps = $props();
 
@@ -38,3 +42,32 @@
     {@render toSvelteComponent(item)}
   {/if}
 {/each}
+
+<div>
+  {#if session.data}
+    <div>
+      <p>
+        {session.data.user.name}
+      </p>
+      <button
+        onclick={async () => {
+          await authClient.signOut();
+        }}
+      >
+        Sign Out
+      </button>
+    </div>
+  {:else}
+    <button
+      onclick={async () => {
+        await authClient.signUp.email({
+          email: "john.doe@example.com", // required
+          password: "password1234", // required
+          name: "John Doe", // required
+        });
+      }}
+    >
+      Continue with GitHub
+    </button>
+  {/if}
+</div>
