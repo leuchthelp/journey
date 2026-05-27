@@ -31,5 +31,5 @@
     "forceConsistentCasingInFileNames": true,
     "sourceMap": true
   },
-  "include": ["src"]
+  "include": ["src", "src/routes/api/auth/[...all]/hooks.ts"]
 }

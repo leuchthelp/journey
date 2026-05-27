@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/sqlite-proxy";
 import Database from "@tauri-apps/plugin-sql";
-import * as schema from "./schema.ts";
+import * as schema from "./schema/schema.ts";
 
 /**
  * Represents the result of a SELECT query.

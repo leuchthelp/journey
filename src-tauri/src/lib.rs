@@ -37,6 +37,12 @@ pub fn run() {
             sql: include_str!("../migrations/20260517102756_loose_pandemic.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 4,
+            description: "integrate betterauth",
+            sql: include_str!("../migrations/20260527141800_last_black_tom.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

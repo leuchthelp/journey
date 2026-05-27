@@ -1,8 +1,8 @@
-import { db } from "../lib/db/database.ts";
-import * as schema from "../lib/db/schema.ts";
-import type { PageLoad } from "../../.svelte-kit/types/src/routes/$types.d.ts";
-import { homeCache } from "../lib/components/MediaItems/ItemCache.ts";
-import { testJf, testJf2 } from "../lib/providers/JellyfinProvider.ts";
+import { db } from "$lib/db/database.ts";
+import * as schema from "$lib/db/schema/schema.ts";
+import type { PageLoad } from "./$types";
+import { homeCache } from "$lib/components/MediaItems/ItemCache.ts";
+import { testJf, testJf2 } from "$lib/providers/JellyfinProvider.ts";
 
 function toArrayClean<X>(xs: Iterable<X | undefined>): X[] {
   let res: X[] = [];
