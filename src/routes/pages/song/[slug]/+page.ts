@@ -1,11 +1,11 @@
-import { db } from "../../../../lib/db/database.ts";
+import { db } from "$lib/db/database.ts";
 import { error } from "@sveltejs/kit";
-import type { PageLoad } from "../../../../../.svelte-kit/types/src/routes/pages/song/[slug]/$types.d.ts";
-import * as schema from "../../../../lib/db/schema.ts";
-import { SongItem } from "../../../../lib/components/MediaItems/MediaItems.ts";
+import type { PageLoad } from "./$types";
+import * as schema from "$lib/db/schema/schema.ts";
+import { SongItem } from "$lib/components/MediaItems/MediaItems.ts";
 import { eq } from "drizzle-orm";
 import { page } from "$app/state";
-import { itemCache } from "../../../../lib/components/MediaItems/ItemCache.ts";
+import { itemCache } from "$lib/components/MediaItems/ItemCache.ts";
 
 export const load: PageLoad = async ({ params }) => {
   // Fastest: try check out parent page if it already posted the item
