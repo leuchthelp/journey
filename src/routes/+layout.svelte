@@ -9,6 +9,7 @@
   import ProviderAccordion from "$lib/components/Settings/Provider/ProviderAccordion.svelte";
   import ProviderAccordionItem from "$lib/components/Settings/Provider/ProviderAccordionItem.svelte";
   import Settings from "$lib/components/Settings/Settings.svelte";
+  import JellyfinAuth from "$lib/components/Settings/Provider/Jellyfin/JellyfinAuth.svelte";
 
   let visible = $state(false);
 
@@ -35,7 +36,9 @@
     <Settings>
       <ProviderAccordion title={"Providers"}>
         <ProviderAccordion title={"Jellyfin"}>
-          <ProviderAccordionItem>Login</ProviderAccordionItem>
+          <ProviderAccordionItem
+            ><JellyfinAuth></JellyfinAuth></ProviderAccordionItem
+          >
         </ProviderAccordion>
       </ProviderAccordion>
     </Settings>

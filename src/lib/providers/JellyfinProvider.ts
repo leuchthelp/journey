@@ -6,21 +6,22 @@ import { getItemsApi } from "@jellyfin/sdk/lib/utils/api/items-api";
 import { getAudioApi } from "@jellyfin/sdk/lib/utils/api/audio-api";
 import { getApiKeyApi } from "@jellyfin/sdk/lib/utils/api/api-key-api";
 
-export async function testJf() {
-  const jellyfin = new Jellyfin({
-    clientInfo: {
-      name: "journey",
-      version: "0.1.0",
-    },
-    deviceInfo: {
-      name: "dev",
-      id: "dev-pc",
-    },
-  });
+export const jellyfin = new Jellyfin({
+  clientInfo: {
+    name: "journey",
+    version: "0.1.0",
+  },
+  deviceInfo: {
+    name: "dev",
+    id: "dev-pc",
+  },
+});
 
-  const api = jellyfin.createApi(
-    `https://${import.meta.env.VITE_JELLYFIN_SERVER}/`,
-  );
+export const api = jellyfin.createApi(
+  `https://${import.meta.env.VITE_JELLYFIN_SERVER}/`,
+);
+
+export async function testJf() {
   const auth = await getUserApi(api).authenticateUserByName({
     authenticateUserByName: {
       Username: import.meta.env.VITE_JELLYFIN_USER,
