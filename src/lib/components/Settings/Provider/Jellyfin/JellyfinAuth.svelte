@@ -56,7 +56,7 @@
     localStorage.removeItem("jellyfinPsw");
     localStorage.removeItem("jellyfinUname");
     localStorage.removeItem("jellyfinToken");
-    psw = ""
+    psw = "";
     success = false;
   }
 </script>
