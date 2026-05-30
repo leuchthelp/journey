@@ -1,15 +1,45 @@
 <script lang="ts">
-  import { api } from "$lib/providers/variants/JellyfinProvider";
+  import { providerManager } from "$lib/providers/ProviderManager";
+  import { JellyfinProvider } from "$lib/providers/variants";
   import { getUserApi } from "@jellyfin/sdk/lib/utils/api/user-api";
 
   let success = $state(false);
   let server = $state("");
   let uname = $state("");
   let psw = $state("");
+  let authToken = $state("");
+
+  type Props = {
+    serverID: string;
+  };
+
+  let { serverID }: Props = $props();
+
+  let provider = providerManager.providers
+    .filter(
+      (provider): provider is JellyfinProvider =>
+        provider.getServerID!() === serverID,
+    )
+    .at(0);
+
+  if (!provider) {
+    provider = new JellyfinProvider();
+    providerManager.providers.push(provider);
+  }
+
+  let api = provider.getApi();
 
   const sendTestRequest = async (): Promise<boolean> => {
     if (server === "" || uname === "" || psw === "") {
       return false;
+    }
+
+    if (!api) {
+      if (authToken !== "") {
+        api = provider.createApi(server, authToken);
+      } else {
+        api = provider.createApi(server);
+      }
     }
 
     let auth = await getUserApi(api).authenticateUserByName({
@@ -23,7 +53,9 @@
       return false;
     }
 
-    localStorage.setItem("jellyfinToken", auth.data.AccessToken);
+    authToken = auth.data.AccessToken;
+
+    localStorage.setItem("jellyfinToken", authToken);
     localStorage.setItem("jellyfinPsw", psw);
     localStorage.setItem("jellyfinUname", uname);
     return true;
@@ -42,12 +74,22 @@
   function tryExistingCreds() {
     const tmpPsw = localStorage.getItem("jellyfinPsw");
     const tmpUname = localStorage.getItem("jellyfinUname");
+    const tmpAuthToken = localStorage.getItem("jellyfinToken");
+
+    if (tmpAuthToken) {
+      sendTestRequest().then(() => {
+        authToken = tmpAuthToken;
+        success = true;
+        return;
+      });
+    }
 
     if (tmpPsw && tmpUname) {
       sendTestRequest().then(() => {
         psw = tmpPsw;
         uname = tmpUname;
         success = true;
+        return;
       });
     }
   }
@@ -56,9 +98,14 @@
     localStorage.removeItem("jellyfinPsw");
     localStorage.removeItem("jellyfinUname");
     localStorage.removeItem("jellyfinToken");
+    authToken = "";
     psw = "";
     success = false;
   }
+
+  $inspect(
+    `success: ${success}, authToken: ${authToken}, uname: ${uname}, psw: ${psw}`,
+  );
 </script>
 
 <div class="">

@@ -9,11 +9,11 @@ import { device, uuid } from "../shared";
 import type { Provider } from "./Provider";
 
 export class JellyfinProvider implements Provider {
-  client: Jellyfin;
-  serverID: string;
-  api!: JellyfinApi;
+  readonly client: Jellyfin;
+  private _serverID?: string;
+  private _api?: JellyfinApi;
 
-  constructor(serverID: string) {
+  constructor(url?: string, token?: string) {
     this.client = new Jellyfin({
       clientInfo: {
         name: import.meta.env.VITE_JOURNEY_NAME,
@@ -25,7 +25,25 @@ export class JellyfinProvider implements Provider {
       },
     });
 
-    this.serverID = serverID;
+    console.log(`device: ${device}, id: ${uuid}`);
+
+    if (url) {
+      this.createApi(url, token);
+    }
+  }
+
+  public createApi(url: string, token?: string): JellyfinApi {
+    console.log(`url: ${url}, token: ${token}`);
+    this._api = this.client.createApi(url, token);
+    return this._api;
+  }
+
+  public getApi(): JellyfinApi | undefined {
+    return this._api;
+  }
+
+  public getServerID(): string | undefined {
+    return this._serverID;
   }
 }
 

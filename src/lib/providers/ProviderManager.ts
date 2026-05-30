@@ -7,3 +7,5 @@ type IProviderManager = {
 export class ProviderManager implements IProviderManager {
   providers: Provider[] = [];
 }
+
+export const providerManager = new ProviderManager();
