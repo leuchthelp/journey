@@ -36,9 +36,9 @@
     <Settings>
       <ProviderAccordion title={"Providers"}>
         <ProviderAccordion title={"Jellyfin"}>
-          <ProviderAccordionItem
-            ><JellyfinAuth></JellyfinAuth></ProviderAccordionItem
-          >
+          <ProviderAccordionItem>
+            <JellyfinAuth></JellyfinAuth>
+          </ProviderAccordionItem>
         </ProviderAccordion>
       </ProviderAccordion>
     </Settings>

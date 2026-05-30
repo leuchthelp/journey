@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { api } from "$lib/providers/JellyfinProvider";
+  import { api } from "$lib/providers/variants/JellyfinProvider";
   import { getUserApi } from "@jellyfin/sdk/lib/utils/api/user-api";
 
   let success = $state(false);
@@ -19,13 +19,13 @@
       },
     });
 
-    console.log(auth);
-
     if (!auth.data.AccessToken) {
       return false;
     }
 
-    //success = true
+    localStorage.setItem("jellyfinToken", auth.data.AccessToken);
+    localStorage.setItem("jellyfinPsw", psw);
+    localStorage.setItem("jellyfinUname", uname);
     return true;
   };
 
@@ -33,14 +33,38 @@
     let res = sendTestRequest();
 
     res.then((value) => {
-      console.log(value);
+      success = value;
     });
+  }
+
+  tryExistingCreds();
+
+  function tryExistingCreds() {
+    const tmpPsw = localStorage.getItem("jellyfinPsw");
+    const tmpUname = localStorage.getItem("jellyfinUname");
+
+    if (tmpPsw && tmpUname) {
+      sendTestRequest().then(() => {
+        psw = tmpPsw;
+        uname = tmpUname;
+        success = true;
+      });
+    }
+  }
+
+  function removeConnection() {
+    localStorage.removeItem("jellyfinPsw");
+    localStorage.removeItem("jellyfinUname");
+    localStorage.removeItem("jellyfinToken");
+    psw = ""
+    success = false;
   }
 </script>
 
 <div class="">
   {#if success}
-    <div>Already in</div>
+    <div>Connected</div>
+    <button onclick={() => removeConnection()}>Remove Connection</button>
   {:else}
     <form>
       <label for="server">Server Address</label>

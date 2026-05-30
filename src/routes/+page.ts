@@ -2,7 +2,6 @@ import { db } from "$lib/db/database.ts";
 import * as schema from "$lib/db/schema/schema.ts";
 import type { PageLoad } from "./$types";
 import { homeCache } from "$lib/components/MediaItems/ItemCache.ts";
-import { testJf, testJf2 } from "$lib/providers/JellyfinProvider.ts";
 
 function toArrayClean<X>(xs: Iterable<X | undefined>): X[] {
   let res: X[] = [];
@@ -17,11 +16,6 @@ function toArrayClean<X>(xs: Iterable<X | undefined>): X[] {
 export const load: PageLoad = async () => {
   let res: schema.MediaItems[];
 
-  let url = await testJf();
-  console.log(url.config.url);
-
-  let test2 = await testJf2();
-
   // Medium: look in cache if item has been posted already
   if (homeCache) {
     let tmp = homeCache.rvalues();
@@ -30,12 +24,10 @@ export const load: PageLoad = async () => {
     if (res.length !== 0) {
       return {
         post: res,
-        url: url,
-        tmp: test2,
       };
     }
   }
 
   res = await db.select().from(schema.mediaItems).limit(6);
-  return { post: res, url: url, tmp: test2 };
+  return { post: res };
 };

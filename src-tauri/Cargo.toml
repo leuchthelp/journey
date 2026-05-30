@@ -26,6 +26,7 @@ tauri-plugin-sql = { version = "2", features = ["sqlite"] }
 tauri-plugin-persisted-scope = "2"
 tauri-plugin-fs = "2"
 musicbrainz_rs = {version = "0.13.0", features = ["sync"] }
+tauri-plugin-os = "2"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-window-state = "2"

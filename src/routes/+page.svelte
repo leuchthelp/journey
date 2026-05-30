@@ -11,14 +11,11 @@
     capture: () => data,
     restore: (value) => (data = value),
   };
-
-  let test = $derived(data.url.config.url + `?static=true&ApiKey=${data.tmp}`);
-  $inspect(test);
 </script>
 
 <audio-player>
   <media-container>
-    <audio src={test}></audio>
+    <audio></audio>
     <media-play-button class="media-play-button">
       <span class="paused">Play</span>
     </media-play-button>
