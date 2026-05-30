@@ -2,6 +2,7 @@
   import { providerManager } from "$lib/providers/ProviderManager";
   import { JellyfinProvider } from "$lib/providers/variants";
   import { getUserApi } from "@jellyfin/sdk/lib/utils/api/user-api";
+  import { error } from "@sveltejs/kit";
 
   let success = $state(false);
   let server = $state("");
@@ -15,16 +16,15 @@
 
   let { serverID }: Props = $props();
 
-  let provider = providerManager.providers
-    .filter(
-      (provider): provider is JellyfinProvider =>
-        provider.getServerID!() === serverID,
-    )
-    .at(0);
+  let provider = providerManager.getProviderByServerID(serverID);
 
   if (!provider) {
     provider = new JellyfinProvider();
     providerManager.providers.push(provider);
+  }
+
+  if (!(provider instanceof JellyfinProvider)) {
+    error(404);
   }
 
   let api = provider.getApi();
