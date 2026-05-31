@@ -5,18 +5,23 @@
   import Playbar from "$lib/components/Playbar/Playbar.svelte";
   import PlaybarButton from "$lib/components/Playbar/PlaybarButton.svelte";
   import ProviderAccordion from "$lib/components/Settings/Provider/ProviderAccordion.svelte";
-  import ProviderAccordionItem from "$lib/components/Settings/Provider/ProviderAccordionItem.svelte";
   import Settings from "$lib/components/Settings/Settings.svelte";
   import { toAuthComponent } from "$lib/snippets/ToAuthComponent.svelte";
   import type { LayoutProps } from "./$types";
 
   let { data, children }: LayoutProps = $props();
-
   let visible = $state(false);
 
   function toggleVisible() {
     visible = !visible;
   }
+
+  let displayables: string[] = $state([]);
+  function addComponent() {
+    displayables.push("JellyfinProvider");
+  }
+
+  $inspect(data.post)
 </script>
 
 <main class="mt-5 h-full">
@@ -37,11 +42,13 @@
     <Settings>
       <ProviderAccordion title={"Providers"}>
         <ProviderAccordion title={"Jellyfin"}>
-          <ProviderAccordionItem>
-            {#each data.post as item}
-              {@render toAuthComponent(item)}
-            {/each}
-          </ProviderAccordionItem>
+          <button onclick={() => addComponent()}>Add Jellyfin Provider</button>
+          {#each displayables as type}
+            {@render toAuthComponent(type)}
+          {/each}
+          {#each data.post as item}
+            {@render toAuthComponent(item.type, item.id)}
+          {/each}
         </ProviderAccordion>
       </ProviderAccordion>
     </Settings>

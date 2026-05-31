@@ -3,17 +3,17 @@ import type { Provider } from "./variants/Provider";
 type IProviderManager = {
   providers: Provider[];
 
-  getProviderByServerID: (serverID: string) => Provider | undefined;
+  getProviderByID: (id: string) => Provider;
   addProvider: (provider: Provider) => void;
 };
 
 export class ProviderManager implements IProviderManager {
   providers: Provider[] = [];
 
-  public getProviderByServerID(serverID: string): Provider | undefined {
+  public getProviderByID(id: string): Provider {
     return this.providers
-      .filter((provider) => provider.getServerID!() === serverID)
-      .at(0);
+      .filter((provider) => provider.getID!() === id)
+      .at(0)!;
   }
 
   public addProvider(provider: Provider) {

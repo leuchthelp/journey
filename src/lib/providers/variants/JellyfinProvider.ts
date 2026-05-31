@@ -5,8 +5,12 @@ import type { Provider } from "./Provider";
 
 export class JellyfinProvider implements Provider {
   readonly client: Jellyfin;
-  private _serverID?: string;
+  readonly type = "JellyfinProvider";
+
   private _api?: JellyfinApi;
+
+  id!: string;
+  url!: string;
 
   constructor(url?: string, token?: string) {
     this.client = new Jellyfin({
@@ -26,7 +30,6 @@ export class JellyfinProvider implements Provider {
   }
 
   public createApi(url: string, token?: string): JellyfinApi {
-    console.log(`url: ${url}, token: ${token}`);
     this._api = this.client.createApi(url, token);
     return this._api;
   }
@@ -35,7 +38,15 @@ export class JellyfinProvider implements Provider {
     return this._api;
   }
 
-  public getServerID(): string | undefined {
-    return this._serverID;
+  public getID(): string | undefined {
+    return this.id;
+  }
+
+  public setID(id: string) {
+    this.id = id;
+  }
+
+  public setURL(url: string) {
+    this.url = url;
   }
 }

@@ -1,36 +1,33 @@
 <script lang="ts">
   import { db } from "$lib/db/database";
-  import { providerItems, type ProviderItem } from "$lib/db/schema/schema";
+  import { providerItems } from "$lib/db/schema/schema";
   import { providerManager } from "$lib/providers/ProviderManager";
   import { JellyfinProvider } from "$lib/providers/variants";
   import { getUserApi } from "@jellyfin/sdk/lib/utils/api/user-api";
-  import { error } from "@sveltejs/kit";
   import { eq } from "drizzle-orm";
+
+  type Props = {
+    id?: string;
+  };
+
+  let { id: serverID }: Props = $props();
 
   let success = $state(false);
   let uname = $state("");
   let psw = $state("");
   let authToken = $state("");
 
-  type Props = {
-    id: string;
-    url: string;
-    type: string;
-  };
+  let provider: JellyfinProvider;
 
-  let { id: serverID, url: serverURL, type }: Props = $props();
-
-  let provider = providerManager.getProviderByServerID(serverID);
-
-  if (!provider) {
+  if (!serverID) {
     provider = new JellyfinProvider();
     providerManager.providers.push(provider);
+  } else {
+    provider = providerManager.getProviderByID(serverID) as JellyfinProvider;
   }
 
-  if (!(provider instanceof JellyfinProvider)) {
-    error(404);
-  }
-
+  console.log(provider)
+  let serverURL = $state(provider.url);
   let api = provider.getApi();
 
   const sendTestRequest = async (): Promise<boolean> => {
@@ -53,8 +50,6 @@
       },
     });
 
-    console.log(auth);
-
     if (!auth.data.AccessToken) {
       return false;
     }
@@ -66,10 +61,15 @@
     }
 
     console.log(`serverID: ${serverID}, url: ${serverURL}`);
-
-    let addserver: ProviderItem = { id: serverID, url: serverURL, type: type };
-    //await db.delete(providerItems)
-    await db.insert(providerItems).values(addserver).onConflictDoNothing();
+    provider.setID(serverID);
+    provider.setURL(serverURL);
+    console.log(provider);
+    await db
+      .insert(providerItems)
+      .values(provider)
+      .catch(() => {
+        return false;
+      });
 
     localStorage.setItem("jellyfinToken", authToken);
     localStorage.setItem("jellyfinPsw", psw);
@@ -96,7 +96,7 @@
 
     db.select()
       .from(providerItems)
-      .where(eq(providerItems.id, serverID))
+      .where(eq(providerItems.id, serverID!))
       .then((serverItem) => {
         serverURL = serverItem.at(0)?.url!;
       });
@@ -134,10 +134,6 @@
     psw = "";
     success = false;
   }
-
-  // $inspect(
-  //   `success: ${success}, authToken: ${authToken}, uname: ${uname}, psw: ${psw}`,
-  // );
 </script>
 
 <div class="">
