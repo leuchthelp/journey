@@ -1,11 +1,16 @@
 <script lang="ts">
+  import { db } from "$lib/db/database";
+  import { providerItems, type ProviderItem } from "$lib/db/schema/schema";
   import { providerManager } from "$lib/providers/ProviderManager";
   import { JellyfinProvider } from "$lib/providers/variants";
   import { getUserApi } from "@jellyfin/sdk/lib/utils/api/user-api";
   import { error } from "@sveltejs/kit";
+  import { eq } from "drizzle-orm";
+
+  let type = "JellyfinAuth";
 
   let success = $state(false);
-  let server = $state("");
+  let serverURL = $state("");
   let uname = $state("");
   let psw = $state("");
   let authToken = $state("");
@@ -30,15 +35,15 @@
   let api = provider.getApi();
 
   const sendTestRequest = async (): Promise<boolean> => {
-    if (server === "" || uname === "" || psw === "") {
+    if (serverURL === "" || uname === "" || psw === "") {
       return false;
     }
 
     if (!api) {
       if (authToken !== "") {
-        api = provider.createApi(server, authToken);
+        api = provider.createApi(serverURL, authToken);
       } else {
-        api = provider.createApi(server);
+        api = provider.createApi(serverURL);
       }
     }
 
@@ -49,11 +54,23 @@
       },
     });
 
+    console.log(auth);
+
     if (!auth.data.AccessToken) {
       return false;
     }
 
     authToken = auth.data.AccessToken;
+
+    if (!serverID) {
+      serverID = auth.data.ServerId!;
+    }
+
+    console.log(`serverID: ${serverID}, url: ${serverURL}`);
+
+    let addserver: ProviderItem = { id: serverID, url: serverURL, type: type };
+    //await db.delete(providerItems)
+    await db.insert(providerItems).values(addserver);
 
     localStorage.setItem("jellyfinToken", authToken);
     localStorage.setItem("jellyfinPsw", psw);
@@ -72,23 +89,39 @@
   tryExistingCreds();
 
   function tryExistingCreds() {
+    success = false;
+
     const tmpPsw = localStorage.getItem("jellyfinPsw");
     const tmpUname = localStorage.getItem("jellyfinUname");
     const tmpAuthToken = localStorage.getItem("jellyfinToken");
 
+    db.select()
+      .from(providerItems)
+      .where(eq(providerItems.id, serverID))
+      .then((serverItem) => {
+        serverURL = serverItem.at(0)?.url!;
+      });
+
+    console.log("first");
     if (tmpAuthToken) {
-      sendTestRequest().then(() => {
-        authToken = tmpAuthToken;
-        success = true;
+      sendTestRequest().then((check) => {
+        if (check) {
+          authToken = tmpAuthToken;
+          success = true;
+        }
         return;
       });
     }
 
+    console.log("second");
+
     if (tmpPsw && tmpUname) {
-      sendTestRequest().then(() => {
-        psw = tmpPsw;
-        uname = tmpUname;
-        success = true;
+      sendTestRequest().then((check) => {
+        if (check) {
+          psw = tmpPsw;
+          uname = tmpUname;
+          success = true;
+        }
         return;
       });
     }
@@ -103,9 +136,9 @@
     success = false;
   }
 
-  $inspect(
-    `success: ${success}, authToken: ${authToken}, uname: ${uname}, psw: ${psw}`,
-  );
+  // $inspect(
+  //   `success: ${success}, authToken: ${authToken}, uname: ${uname}, psw: ${psw}`,
+  // );
 </script>
 
 <div class="">
@@ -114,8 +147,8 @@
     <button onclick={() => removeConnection()}>Remove Connection</button>
   {:else}
     <form>
-      <label for="server">Server Address</label>
-      <input type="url" required bind:value={server} />
+      <label for="serverURL">Server Address</label>
+      <input type="url" required bind:value={serverURL} />
 
       <label for="uname">Username</label>
       <input required bind:value={uname} />

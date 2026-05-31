@@ -1,6 +1,6 @@
-import { type MediaItems } from "../../db/schema/schema.ts";
+import type { MediaItem } from "../../db/schema/schema.ts";
 
-export class SongItem implements Omit<MediaItems, "id"> {
+export class SongItem implements Omit<MediaItem, "id"> {
   type = SongItem.name;
   outlineGradient = "ring-[#C2381D]";
 
@@ -14,7 +14,7 @@ export class SongItem implements Omit<MediaItems, "id"> {
   providers!: string;
 }
 
-export class ArtistItem implements Omit<MediaItems, "id"> {
+export class ArtistItem implements Omit<MediaItem, "id"> {
   type = ArtistItem.name;
   outlineGradient = "ring-[#D42CA4]";
 
@@ -28,7 +28,7 @@ export class ArtistItem implements Omit<MediaItems, "id"> {
   providers!: string;
 }
 
-export class GenreItem implements Omit<MediaItems, "id"> {
+export class GenreItem implements Omit<MediaItem, "id"> {
   type = GenreItem.name;
   outlineGradient = "ring-[#2C8FD4]";
 
@@ -42,7 +42,7 @@ export class GenreItem implements Omit<MediaItems, "id"> {
   providers!: string;
 }
 
-export class PlaylistItem implements Omit<MediaItems, "id"> {
+export class PlaylistItem implements Omit<MediaItem, "id"> {
   type = PlaylistItem.name;
   outlineGradient = "ring-[#42D42C]";
 

@@ -43,6 +43,30 @@ pub fn run() {
             sql: include_str!("../migrations/20260527141800_last_black_tom.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 5,
+            description: "add server table",
+            sql: include_str!("../migrations/20260531090213_dear_random.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 6,
+            description: "change type of server id",
+            sql: include_str!("../migrations/20260531091022_dark_mentallo.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 7,
+            description: "add provider type",
+            sql: include_str!("../migrations/20260531095232_gifted_mariko_yashida.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 8,
+            description: "rename",
+            sql: include_str!("../migrations/20260531111218_thin_sersi.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

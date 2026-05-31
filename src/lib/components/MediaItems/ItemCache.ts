@@ -1,5 +1,5 @@
 import { LRUCache } from "lru-cache";
-import type { MediaItems } from "../../db/schema/schema.ts";
+import type { MediaItem } from "../../db/schema/schema.ts";
 
 const options = {
   max: 150,
@@ -13,5 +13,5 @@ const options = {
   updateAgeOnHas: false,
 };
 
-export const itemCache = new LRUCache<string, MediaItems>(options);
-export const homeCache = new LRUCache<string, MediaItems>(options);
+export const itemCache = new LRUCache<string, MediaItem>(options);
+export const homeCache = new LRUCache<string, MediaItem>(options);

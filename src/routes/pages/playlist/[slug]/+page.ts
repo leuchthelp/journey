@@ -8,8 +8,8 @@ import { itemCache } from "$lib/components/MediaItems/ItemCache.ts";
 
 export const load: PageLoad = async ({ params }) => {
   // Fastest: try check out parent page if it already posted the item
-  let data = page.data.post as schema.MediaItems[];
-  let res: schema.MediaItems[];
+  let data = page.data.post as schema.MediaItem[];
+  let res: schema.MediaItem[];
   if (data) {
     res = data.filter((item) => item.hash === params.slug);
 

@@ -25,8 +25,6 @@ export class JellyfinProvider implements Provider {
       },
     });
 
-    console.log(`device: ${device}, id: ${uuid}`);
-
     if (url) {
       this.createApi(url, token);
     }

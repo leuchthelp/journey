@@ -9,8 +9,9 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "format": "deno fmt",
-    "tauri": "tauri"
+    "format": "dx prettier --write .",
+    "tauri": "tauri",
+    "generate": "dx drizzle-kit generate"
   },
   "dependencies": {
     "@jellyfin/sdk": "^0.13.0",

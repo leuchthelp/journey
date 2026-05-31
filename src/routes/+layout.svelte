@@ -9,7 +9,7 @@
   import ProviderAccordion from "$lib/components/Settings/Provider/ProviderAccordion.svelte";
   import ProviderAccordionItem from "$lib/components/Settings/Provider/ProviderAccordionItem.svelte";
   import Settings from "$lib/components/Settings/Settings.svelte";
-  import JellyfinAuth from "$lib/components/Settings/Provider/Jellyfin/JellyfinAuth.svelte";
+  import JellyfinAuth from "$lib/components/Settings/Provider/variants/JellyfinAuth.svelte";
 
   let visible = $state(false);
 

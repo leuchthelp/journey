@@ -16,4 +16,11 @@ export const mediaItems = sqliteTable("MediaItems", {
   providers: text("providers").default('{"test": "location"}').notNull(),
 });
 
-export type MediaItems = typeof mediaItems.$inferSelect;
+export const providerItems = sqliteTable("ProviderItems", {
+  id: text("id").primaryKey().unique(),
+  url: text("url").default("").notNull(),
+  type: text("type").default("").notNull(),
+});
+
+export type MediaItem = typeof mediaItems.$inferSelect;
+export type ProviderItem = typeof providerItems.$inferSelect;
