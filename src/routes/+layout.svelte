@@ -8,6 +8,8 @@
   import Settings from "$lib/components/Settings/Settings.svelte";
   import { toAuthComponent } from "$lib/snippets/ToAuthComponent.svelte";
   import type { LayoutProps } from "./$types";
+  import { providerManager } from "$lib/providers/ProviderManager";
+  import type { ProviderItem } from "$lib/db/schema/schema";
 
   let { data, children }: LayoutProps = $props();
   let visible = $state(false);
@@ -21,7 +23,11 @@
     displayables.push("JellyfinProvider");
   }
 
-  $inspect(data.post)
+  $effect(() => {
+    data.post.forEach((item: ProviderItem) => {
+      providerManager.initProvider(item);
+    });
+  });
 </script>
 
 <main class="mt-5 h-full">

@@ -4,8 +4,9 @@ export interface Provider extends ProviderItem {
   readonly client: unknown;
 
   createApi?: (url: string, token?: string) => unknown;
+  authenticateApi?: () => boolean;
   getApi?: () => unknown;
   getID?: () => string | undefined;
-  setID: (id: string) => void;
-  setURL: (url: string) => void;
+  setID?: (id: string) => void;
+  setURL?: (url: string) => void;
 }

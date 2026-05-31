@@ -9,10 +9,10 @@ export class JellyfinProvider implements Provider {
 
   private _api?: JellyfinApi;
 
-  id!: string;
-  url!: string;
+  id: string;
+  url: string;
 
-  constructor(url?: string, token?: string) {
+  constructor(id?: string, url?: string, token?: string) {
     this.client = new Jellyfin({
       clientInfo: {
         name: import.meta.env.VITE_JOURNEY_NAME,
@@ -24,8 +24,19 @@ export class JellyfinProvider implements Provider {
       },
     });
 
+    if (id) {
+      this.id = id;
+
+      token = localStorage.getItem(`${id}Token`) || undefined;
+    } else {
+      this.id = "";
+    }
+
     if (url) {
+      this.url = url;
       this.createApi(url, token);
+    } else {
+      this.url = "";
     }
   }
 

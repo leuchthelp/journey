@@ -2,7 +2,7 @@
   import { db } from "$lib/db/database";
   import { providerItems } from "$lib/db/schema/schema";
   import { providerManager } from "$lib/providers/ProviderManager";
-  import { JellyfinProvider } from "$lib/providers/variants";
+  import { JellyfinProvider } from "$lib/providers/variants/JellyfinProvider";
   import { getUserApi } from "@jellyfin/sdk/lib/utils/api/user-api";
   import { eq } from "drizzle-orm";
 
@@ -21,12 +21,12 @@
 
   if (!serverID) {
     provider = new JellyfinProvider();
-    providerManager.providers.push(provider);
+    providerManager.addProvider(provider);
   } else {
     provider = providerManager.getProviderByID(serverID) as JellyfinProvider;
   }
 
-  console.log(provider)
+  console.log(provider);
   let serverURL = $state(provider.url);
   let api = provider.getApi();
 
@@ -71,9 +71,9 @@
         return false;
       });
 
-    localStorage.setItem("jellyfinToken", authToken);
-    localStorage.setItem("jellyfinPsw", psw);
-    localStorage.setItem("jellyfinUname", uname);
+    localStorage.setItem(`${serverID}Token`, authToken);
+    localStorage.setItem(`${serverID}Psw`, psw);
+    localStorage.setItem(`${serverID}Uname`, uname);
     return true;
   };
 
@@ -90,9 +90,9 @@
   function tryExistingCreds() {
     success = false;
 
-    const tmpPsw = localStorage.getItem("jellyfinPsw");
-    const tmpUname = localStorage.getItem("jellyfinUname");
-    const tmpAuthToken = localStorage.getItem("jellyfinToken");
+    const tmpPsw = localStorage.getItem(`${serverID}Psw`);
+    const tmpUname = localStorage.getItem(`${serverID}Uname`);
+    const tmpAuthToken = localStorage.getItem(`${serverID}Token`);
 
     db.select()
       .from(providerItems)
@@ -101,7 +101,6 @@
         serverURL = serverItem.at(0)?.url!;
       });
 
-    console.log("first");
     if (tmpAuthToken) {
       sendTestRequest().then((check) => {
         if (check) {
@@ -111,8 +110,6 @@
         return;
       });
     }
-
-    console.log("second");
 
     if (tmpPsw && tmpUname) {
       sendTestRequest().then((check) => {
@@ -127,9 +124,9 @@
   }
 
   function removeConnection() {
-    localStorage.removeItem("jellyfinPsw");
-    localStorage.removeItem("jellyfinUname");
-    localStorage.removeItem("jellyfinToken");
+    localStorage.removeItem(`${serverID}Psw`);
+    localStorage.removeItem(`${serverID}Uname`);
+    localStorage.removeItem(`${serverID}Token`);
     authToken = "";
     psw = "";
     success = false;
