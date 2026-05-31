@@ -12,10 +12,9 @@
 
   let { id: serverID }: Props = $props();
 
-  let success = $state(false);
   let uname = $state("");
   let psw = $state("");
-  let authToken = $state("");
+  let accessToken = $state("");
 
   let provider: JellyfinProvider;
 
@@ -27,20 +26,26 @@
   }
 
   console.log(provider);
+
+  let success = $state(provider.authStatus());
   let serverURL = $state(provider.url);
   let api = provider.getApi();
 
   const sendTestRequest = async (): Promise<boolean> => {
-    if (serverURL === "" || uname === "" || psw === "") {
+    if (serverURL === "") {
       return false;
     }
 
     if (!api) {
-      if (authToken !== "") {
-        api = provider.createApi(serverURL, authToken);
+      if (accessToken !== "") {
+        api = provider.createApi(serverURL, accessToken);
       } else {
         api = provider.createApi(serverURL);
       }
+    }
+
+    if (uname === "" || psw === "") {
+      return false;
     }
 
     let auth = await getUserApi(api).authenticateUserByName({
@@ -54,13 +59,12 @@
       return false;
     }
 
-    authToken = auth.data.AccessToken;
+    accessToken = auth.data.AccessToken;
 
     if (!serverID) {
       serverID = auth.data.ServerId!;
     }
 
-    console.log(`serverID: ${serverID}, url: ${serverURL}`);
     provider.setID(serverID);
     provider.setURL(serverURL);
     console.log(provider);
@@ -71,7 +75,7 @@
         return false;
       });
 
-    localStorage.setItem(`${serverID}Token`, authToken);
+    localStorage.setItem(`${serverID}Token`, accessToken);
     localStorage.setItem(`${serverID}Psw`, psw);
     localStorage.setItem(`${serverID}Uname`, uname);
     return true;
@@ -85,7 +89,9 @@
     });
   }
 
-  tryExistingCreds();
+  if (!success) {
+    tryExistingCreds();
+  }
 
   function tryExistingCreds() {
     success = false;
@@ -104,7 +110,7 @@
     if (tmpAuthToken) {
       sendTestRequest().then((check) => {
         if (check) {
-          authToken = tmpAuthToken;
+          accessToken = tmpAuthToken;
           success = true;
         }
         return;
@@ -127,7 +133,7 @@
     localStorage.removeItem(`${serverID}Psw`);
     localStorage.removeItem(`${serverID}Uname`);
     localStorage.removeItem(`${serverID}Token`);
-    authToken = "";
+    accessToken = "";
     psw = "";
     success = false;
   }

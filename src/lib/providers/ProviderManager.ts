@@ -23,10 +23,12 @@ export class ProviderManager implements IProviderManager {
 
   public initProvider(providerItem: ProviderItem) {
     if (providerOptions.has(providerItem.type)) {
+      let accessToken =
+        localStorage.getItem(`${providerItem.id}Token`) || undefined;
+
       let provider = providerOptions.get(providerItem.type)!;
-      let init = new provider(providerItem.id, providerItem.url);
+      let init = new provider(providerItem.id, providerItem.url, accessToken);
       console.log(init);
-      console.log(import.meta.env.VITE_JOURNEY_NAME)
       this.addProvider(init);
     }
   }
