@@ -39,7 +39,6 @@ export const db = drizzle<typeof schema>(
 
     // If the method is "all", return all rows
     results = method === "all" ? rows : rows[0];
-    await sqlite.close();
     return { rows: results };
   },
   // Pass the schema to the drizzle instance
