@@ -1,10 +1,10 @@
 <script module lang="ts">
   import { componentOptions } from "$lib/components/MediaItems/ItemComponents";
-  import type { MediaItems } from "$lib/db/schema/schema";
-  export { toSvelteComponent };
+  import type { MediaItem } from "$lib/db/schema/schema";
+  export { toMediaItemComponent };
 </script>
 
-{#snippet toSvelteComponent(item: MediaItems)}
+{#snippet toMediaItemComponent(item: MediaItem)}
   {#if componentOptions.has(item.type)}
     {@const SvelteComponent = componentOptions.get(item.type)}
     <SvelteComponent {item}></SvelteComponent>

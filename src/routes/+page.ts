@@ -14,7 +14,7 @@ function toArrayClean<X>(xs: Iterable<X | undefined>): X[] {
 }
 
 export const load: PageLoad = async () => {
-  let res: schema.MediaItems[];
+  let res: schema.MediaItem[];
 
   // Medium: look in cache if item has been posted already
   if (homeCache) {

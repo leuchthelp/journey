@@ -13,7 +13,7 @@ export type SelectQueryResult = {
  * Loads the sqlite database via the Tauri Proxy.
  */
 
-export async function getDb() {
+async function getDb() {
   return Database.load("sqlite:dev.db");
 }
 

@@ -1,7 +1,5 @@
 <script lang="ts">
-  let { children } = $props();
   import "../app.css";
-
   import Navbar from "$lib/components/Navbar/Navbar.svelte";
   import NavbarButton from "$lib/components/Navbar/NavbarButton.svelte";
   import Playbar from "$lib/components/Playbar/Playbar.svelte";
@@ -9,7 +7,10 @@
   import ProviderAccordion from "$lib/components/Settings/Provider/ProviderAccordion.svelte";
   import ProviderAccordionItem from "$lib/components/Settings/Provider/ProviderAccordionItem.svelte";
   import Settings from "$lib/components/Settings/Settings.svelte";
-  import JellyfinAuth from "$lib/components/Settings/Provider/variants/JellyfinAuth.svelte";
+  import { toAuthComponent } from "$lib/snippets/ToAuthComponent.svelte";
+  import type { LayoutProps } from "./$types";
+
+  let { data, children }: LayoutProps = $props();
 
   let visible = $state(false);
 
@@ -37,7 +38,9 @@
       <ProviderAccordion title={"Providers"}>
         <ProviderAccordion title={"Jellyfin"}>
           <ProviderAccordionItem>
-            <JellyfinAuth></JellyfinAuth>
+            {#each data.post as item}
+              {@render toAuthComponent(item)}
+            {/each}
           </ProviderAccordionItem>
         </ProviderAccordion>
       </ProviderAccordion>

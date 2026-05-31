@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { PageData, PageProps, Snapshot } from "./$types";
   import { itemCache, homeCache } from "$lib/components/MediaItems/ItemCache";
-  import { toSvelteComponent } from "$lib/snippets/ToSvelteComponent.svelte";
+  import { toMediaItemComponent } from "$lib/snippets/ToMediaItemComponent.svelte";
   import "@videojs/html/audio/player";
   import "@videojs/html/audio/minimal-skin";
 
@@ -32,6 +32,6 @@
 
 {#each data.post as item}
   {#if itemCache.set(item.hash, item) && homeCache.set(item.hash, item)}
-    {@render toSvelteComponent(item)}
+    {@render toMediaItemComponent(item)}
   {/if}
 {/each}

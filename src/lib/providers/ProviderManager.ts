@@ -4,6 +4,7 @@ type IProviderManager = {
   providers: Provider[];
 
   getProviderByServerID: (serverID: string) => Provider | undefined;
+  addProvider: (provider: Provider) => void;
 };
 
 export class ProviderManager implements IProviderManager {
@@ -13,6 +14,10 @@ export class ProviderManager implements IProviderManager {
     return this.providers
       .filter((provider) => provider.getServerID!() === serverID)
       .at(0);
+  }
+
+  public addProvider(provider: Provider) {
+    this.providers.push(provider);
   }
 }
 

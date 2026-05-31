@@ -7,19 +7,18 @@
   import { error } from "@sveltejs/kit";
   import { eq } from "drizzle-orm";
 
-  let type = "JellyfinAuth";
-
   let success = $state(false);
-  let serverURL = $state("");
   let uname = $state("");
   let psw = $state("");
   let authToken = $state("");
 
   type Props = {
-    serverID: string;
+    id: string;
+    url: string;
+    type: string;
   };
 
-  let { serverID }: Props = $props();
+  let { id: serverID, url: serverURL, type }: Props = $props();
 
   let provider = providerManager.getProviderByServerID(serverID);
 
@@ -70,7 +69,7 @@
 
     let addserver: ProviderItem = { id: serverID, url: serverURL, type: type };
     //await db.delete(providerItems)
-    await db.insert(providerItems).values(addserver);
+    await db.insert(providerItems).values(addserver).onConflictDoNothing();
 
     localStorage.setItem("jellyfinToken", authToken);
     localStorage.setItem("jellyfinPsw", psw);
