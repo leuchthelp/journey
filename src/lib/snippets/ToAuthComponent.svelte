@@ -4,11 +4,11 @@
   export { toAuthComponent };
 </script>
 
-{#snippet toAuthComponent(type: string, id?: string)}
+{#snippet toAuthComponent(type: string, serverId?: string)}
   <ProviderAccordionItem>
     {#if providerAuthOptions.has(type)}
       {@const SvelteComponent = providerAuthOptions.get(type)}
-      <SvelteComponent {id}></SvelteComponent>
+      <SvelteComponent {serverId}></SvelteComponent>
     {/if}
   </ProviderAccordionItem>
 {/snippet}

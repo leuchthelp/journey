@@ -5,13 +5,14 @@ export interface Provider extends ProviderItem {
 
   createApi: (url: string, token?: string) => void;
 
-  authApiWithPw?: (uname: string, psw: string) => void;
+  authApiWithPw?: (uname: string, psw: string) => Promise<void>;
   authStatus: () => boolean;
 
-  addToDB: () => Promise<void>;
+  addToDb: () => Promise<void>;
   retrieveCredentials?: () => void;
   removeConnection: () => void;
 
   getApi: () => unknown;
-  getID: () => string | undefined;
+  getServerId: () => string;
+  getUserId: () => string;
 }

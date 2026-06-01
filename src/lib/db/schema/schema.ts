@@ -17,7 +17,8 @@ export const mediaItems = sqliteTable("MediaItems", {
 });
 
 export const providerItems = sqliteTable("ProviderItems", {
-  id: text("id").primaryKey().unique(),
+  userId: text("userId").default("").primaryKey().unique().notNull(),
+  serverId: text("serverId").default("").notNull(),
   url: text("url").default("").notNull(),
   type: text("type").default("").notNull(),
 });

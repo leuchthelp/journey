@@ -6,6 +6,7 @@ import type { Provider } from "./Provider";
 import { device, uuid } from "../shared";
 import { providerItems } from "$lib/db/schema/schema";
 import { db } from "$lib/db/database";
+import { providerManager } from "../ProviderManager";
 
 export class JellyfinProvider implements Provider {
   readonly client: Jellyfin;
@@ -14,10 +15,16 @@ export class JellyfinProvider implements Provider {
   private _api?: JellyfinApi;
   private _authenticated = false;
 
-  id: string;
+  serverId: string;
   url: string;
+  userId: string;
 
-  constructor(id?: string, url?: string, accessToken?: string) {
+  constructor(
+    serverId?: string,
+    url?: string,
+    userId?: string,
+    accessToken?: string,
+  ) {
     this.client = new Jellyfin({
       clientInfo: {
         name: import.meta.env.VITE_JOURNEY_NAME,
@@ -29,13 +36,10 @@ export class JellyfinProvider implements Provider {
       },
     });
 
-    this.id = "";
+    this.serverId = serverId ? serverId : "";
+    this.userId = userId ? userId : "";
+
     this.url = "";
-
-    if (id) {
-      this.id = id;
-    }
-
     if (url) {
       this.createApi(url, accessToken);
     }
@@ -46,41 +50,55 @@ export class JellyfinProvider implements Provider {
 
     if (accessToken) {
       this._api = this.client.createApi(url, accessToken);
-      this.authStatus();
+      this._authenticated = true;
       return;
     }
+
+    this._api = this.client.createApi(url, accessToken);
   }
 
-  public authApiWithPw(uname: string, psw: string) {
+  async authApiWithPw(uname: string, psw: string) {
     if (this.authStatus()) {
       return;
     }
 
-    getUserApi(this._api || error(404))
-      .authenticateUserByName({
+    let auth = await getUserApi(this._api || error(404)).authenticateUserByName(
+      {
         authenticateUserByName: {
           Username: uname,
           Pw: psw,
         },
-      })
-      .then((auth) => {
-        if (auth.data.AccessToken && auth.data.ServerId) {
-          this.setID(auth.data.ServerId);
-          localStorage.setItem(`${this.getID()}Token`, auth.data.AccessToken);
-          localStorage.setItem(`${this.getID()}Uname`, uname);
-          localStorage.setItem(`${this.getID()}Psw`, psw);
+      },
+    );
 
-          this.addToDB();
-        }
-      });
+    if (auth.data.AccessToken && auth.data.ServerId) {
+      this.setServerId(auth.data.ServerId);
+      this.setUserId(auth.data.User?.Id!);
+
+      if (!providerManager.existsProviderWith(this.userId)) {
+
+        localStorage.setItem(
+          `${this.getServerId()}Token`,
+          auth.data.AccessToken,
+        );
+        this.addToDb();
+        this._authenticated = true;
+
+        console.log("hello")
+
+        providerManager.addProvider(this);
+        return;
+      }
+
+      console.error("user already exists, not adding connection");
+    }
   }
 
-  async addToDB(): Promise<void> {
-    if (this._api && this.url !== "" && this.id !== "") {
+  async addToDb(): Promise<void> {
+    if (this._api && this.url !== "" && this.serverId !== "") {
       await db
         .insert(providerItems)
         .values(this)
-        .onConflictDoNothing()
         .catch((e) => {
           console.error("Failed to add to DB, reason unknown");
           throw e;
@@ -89,36 +107,39 @@ export class JellyfinProvider implements Provider {
   }
 
   public removeConnection() {
-    localStorage.removeItem(`${this.id}Psw`);
-    localStorage.removeItem(`${this.id}Uname`);
-    localStorage.removeItem(`${this.id}Token`);
+    localStorage.removeItem(`${this.serverId}Token`);
+    providerManager.removeProvider(this);
 
     this.createApi(this.url);
+    this._authenticated = false;
   }
 
   public getApi(): JellyfinApi | undefined {
     return this._api;
   }
 
-  public getID(): string | undefined {
-    return this.id;
+  public getServerId(): string {
+    return this.serverId;
   }
 
-  private setID(id: string) {
-    this.id = id;
+  public getUserId(): string {
+    return this.userId;
+  }
+
+  private setServerId(serverId: string) {
+    this.serverId = serverId;
   }
 
   private setURL(url: string) {
     this.url = url;
   }
 
-  public authStatus(): boolean {
-    if (this._api?.accessToken) {
-      this._authenticated = true;
-      return this._authenticated;
-    }
+  private setUserId(userId: string) {
+    this.userId = userId;
+  }
 
-    this._authenticated = false;
+  public authStatus(): boolean {
+    console.log(this._authenticated)
     return this._authenticated;
   }
 }

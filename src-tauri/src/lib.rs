@@ -67,6 +67,24 @@ pub fn run() {
             sql: include_str!("../migrations/20260531111218_thin_sersi.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 9,
+            description: "add provider user",
+            sql: include_str!("../migrations/20260601151022_material_timeslip.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 10,
+            description: "separate serverId & userId",
+            sql: include_str!("../migrations/20260601202016_tranquil_mephisto.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 11,
+            description: "confused",
+            sql: include_str!("../migrations/20260601214120_harsh_marvel_apes.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

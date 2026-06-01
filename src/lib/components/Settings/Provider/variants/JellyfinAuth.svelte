@@ -3,21 +3,20 @@
   import { JellyfinProvider } from "$lib/providers/variants/JellyfinProvider";
 
   type Props = {
-    id?: string;
+    serverId?: string;
   };
 
-  let { id: serverID }: Props = $props();
+  let { serverId }: Props = $props();
 
   let uname = $state("");
   let psw = $state("");
 
   let provider: JellyfinProvider;
 
-  if (!serverID) {
+  if (!serverId) {
     provider = new JellyfinProvider();
-    providerManager.addProvider(provider);
   } else {
-    provider = providerManager.getProviderByID(serverID) as JellyfinProvider;
+    provider = providerManager.getProviderByID(serverId) as JellyfinProvider;
   }
 
   let success = $state(provider.authStatus());
@@ -26,8 +25,9 @@
   function addConnection() {
     if (!provider.authStatus()) {
       provider.createApi(serverURL);
-      provider.authApiWithPw(uname, psw);
+      provider.authApiWithPw(uname, psw).catch((e) => console.error(e));
 
+      console.log(provider.authStatus());
       if (provider.authStatus()) {
         success = true;
       }
@@ -39,6 +39,10 @@
     psw = "";
     success = false;
   }
+
+  $inspect(
+    `success: ${success}, uname: ${uname}, psw: ${psw}, url: ${serverURL}, serverId: ${serverId}`,
+  );
 </script>
 
 <div class="">

@@ -28,6 +28,8 @@
       providerManager.initProvider(item);
     });
   });
+
+  console.log(providerManager)
 </script>
 
 <main class="mt-5 h-full">
@@ -53,7 +55,7 @@
             {@render toAuthComponent(type)}
           {/each}
           {#each data.post as item}
-            {@render toAuthComponent(item.type, item.id)}
+            {@render toAuthComponent(item.type, item.serverId)}
           {/each}
         </ProviderAccordion>
       </ProviderAccordion>
