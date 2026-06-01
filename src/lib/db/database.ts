@@ -22,13 +22,13 @@ export const db = drizzle<typeof schema>(
     if (isSelectQuery(sql)) {
       rows = await sqlite.select(sql, params).catch((e) => {
         console.error("SQL Error:", e);
-        return [];
+        throw e;
       });
     } else {
       // Otherwise, use the execute method
       rows = await sqlite.execute(sql, params).catch((e) => {
         console.error("SQL Error:", e);
-        return [];
+        throw e;
       });
       return { rows: [] };
     }

@@ -1,10 +1,6 @@
 <script lang="ts">
-  import { db } from "$lib/db/database";
-  import { providerItems } from "$lib/db/schema/schema";
   import { providerManager } from "$lib/providers/ProviderManager";
   import { JellyfinProvider } from "$lib/providers/variants/JellyfinProvider";
-  import { getUserApi } from "@jellyfin/sdk/lib/utils/api/user-api";
-  import { eq } from "drizzle-orm";
 
   type Props = {
     id?: string;
@@ -14,7 +10,6 @@
 
   let uname = $state("");
   let psw = $state("");
-  let accessToken = $state("");
 
   let provider: JellyfinProvider;
 
@@ -25,115 +20,22 @@
     provider = providerManager.getProviderByID(serverID) as JellyfinProvider;
   }
 
-  console.log(provider);
-
   let success = $state(provider.authStatus());
   let serverURL = $state(provider.url);
-  let api = provider.getApi();
 
-  const sendTestRequest = async (): Promise<boolean> => {
-    if (serverURL === "") {
-      return false;
-    }
+  function addConnection() {
+    if (!provider.authStatus()) {
+      provider.createApi(serverURL);
+      provider.authApiWithPw(uname, psw);
 
-    if (!api) {
-      if (accessToken !== "") {
-        api = provider.createApi(serverURL, accessToken);
-      } else {
-        api = provider.createApi(serverURL);
+      if (provider.authStatus()) {
+        success = true;
       }
-    }
-
-    if (uname === "" || psw === "") {
-      return false;
-    }
-
-    let auth = await getUserApi(api).authenticateUserByName({
-      authenticateUserByName: {
-        Username: uname,
-        Pw: psw,
-      },
-    });
-
-    if (!auth.data.AccessToken) {
-      return false;
-    }
-
-    accessToken = auth.data.AccessToken;
-
-    if (!serverID) {
-      serverID = auth.data.ServerId!;
-    }
-
-    provider.setID(serverID);
-    provider.setURL(serverURL);
-    console.log(provider);
-    await db
-      .insert(providerItems)
-      .values(provider)
-      .catch(() => {
-        return false;
-      });
-
-    localStorage.setItem(`${serverID}Token`, accessToken);
-    localStorage.setItem(`${serverID}Psw`, psw);
-    localStorage.setItem(`${serverID}Uname`, uname);
-    return true;
-  };
-
-  function retrieveCredential() {
-    let res = sendTestRequest();
-
-    res.then((value) => {
-      success = value;
-    });
-  }
-
-  if (!success) {
-    tryExistingCreds();
-  }
-
-  function tryExistingCreds() {
-    success = false;
-
-    const tmpPsw = localStorage.getItem(`${serverID}Psw`);
-    const tmpUname = localStorage.getItem(`${serverID}Uname`);
-    const tmpAuthToken = localStorage.getItem(`${serverID}Token`);
-
-    db.select()
-      .from(providerItems)
-      .where(eq(providerItems.id, serverID!))
-      .then((serverItem) => {
-        serverURL = serverItem.at(0)?.url!;
-      });
-
-    if (tmpAuthToken) {
-      sendTestRequest().then((check) => {
-        if (check) {
-          accessToken = tmpAuthToken;
-          success = true;
-        }
-        return;
-      });
-    }
-
-    if (tmpPsw && tmpUname) {
-      sendTestRequest().then((check) => {
-        if (check) {
-          psw = tmpPsw;
-          uname = tmpUname;
-          success = true;
-        }
-        return;
-      });
     }
   }
 
   function removeConnection() {
-    localStorage.removeItem(`${serverID}Psw`);
-    localStorage.removeItem(`${serverID}Uname`);
-    localStorage.removeItem(`${serverID}Token`);
-    accessToken = "";
+    provider.removeConnection();
     psw = "";
     success = false;
   }
@@ -154,7 +56,7 @@
       <label for="psw">Password</label>
       <input type="password" required bind:value={psw} />
 
-      <button onclick={() => retrieveCredential()}>Connect</button>
+      <button onclick={() => addConnection()}>Connect</button>
     </form>
   {/if}
 </div>

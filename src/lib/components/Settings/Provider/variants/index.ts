@@ -1,3 +1,5 @@
 import JellyfinAuth from "./JellyfinAuth.svelte";
 
-export const providerAuthOptions = new Map([["JellyfinProvider", JellyfinAuth]]);
+export const providerAuthOptions = new Map([
+  ["JellyfinProvider", JellyfinAuth],
+]);

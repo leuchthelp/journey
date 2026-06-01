@@ -1,8 +1,11 @@
 import { Api as JellyfinApi, Jellyfin } from "@jellyfin/sdk";
-import { device, uuid } from "../shared";
-import type { Provider } from "./Provider";
 import { getUserApi } from "@jellyfin/sdk/lib/utils/api/user-api";
 import { error } from "@sveltejs/kit";
+
+import type { Provider } from "./Provider";
+import { device, uuid } from "../shared";
+import { providerItems } from "$lib/db/schema/schema";
+import { db } from "$lib/db/database";
 
 export class JellyfinProvider implements Provider {
   readonly client: Jellyfin;
@@ -26,39 +29,31 @@ export class JellyfinProvider implements Provider {
       },
     });
 
+    this.id = "";
+    this.url = "";
+
     if (id) {
       this.id = id;
-    } else {
-      this.id = "";
     }
 
     if (url) {
-      this.url = url;
       this.createApi(url, accessToken);
-    } else {
-      this.url = "";
     }
-
-    this.authStatus();
   }
 
-  public createApi(url: string, accessToken?: string): JellyfinApi {
-    this._api = this.client.createApi(url, accessToken);
+  public createApi(url: string, accessToken?: string) {
+    this.setURL(url);
 
-    if (!this._api.accessToken) {
-      const tmpUname = localStorage.getItem(`${this.getID()}Uname`);
-      const tmpPsw = localStorage.getItem(`${this.getID()}Psw`);
-
-      if (tmpUname && tmpPsw) {
-        this._api = this.authApiWithPw(tmpUname, tmpPsw);
-      }
+    if (accessToken) {
+      this._api = this.client.createApi(url, accessToken);
+      this.authStatus();
+      return;
     }
-    return this._api;
   }
 
-  public authApiWithPw(uname: string, psw: string): JellyfinApi {
+  public authApiWithPw(uname: string, psw: string) {
     if (this.authStatus()) {
-      return this._api || error(404);
+      return;
     }
 
     getUserApi(this._api || error(404))
@@ -68,10 +63,37 @@ export class JellyfinProvider implements Provider {
           Pw: psw,
         },
       })
-      .then()
-      .catch(() => error(404));
+      .then((auth) => {
+        if (auth.data.AccessToken && auth.data.ServerId) {
+          this.setID(auth.data.ServerId);
+          localStorage.setItem(`${this.getID()}Token`, auth.data.AccessToken);
+          localStorage.setItem(`${this.getID()}Uname`, uname);
+          localStorage.setItem(`${this.getID()}Psw`, psw);
 
-    return this._api || error(404);
+          this.addToDB();
+        }
+      });
+  }
+
+  async addToDB(): Promise<void> {
+    if (this._api && this.url !== "" && this.id !== "") {
+      await db
+        .insert(providerItems)
+        .values(this)
+        .onConflictDoNothing()
+        .catch((e) => {
+          console.error("Failed to add to DB, reason unknown");
+          throw e;
+        });
+    }
+  }
+
+  public removeConnection() {
+    localStorage.removeItem(`${this.id}Psw`);
+    localStorage.removeItem(`${this.id}Uname`);
+    localStorage.removeItem(`${this.id}Token`);
+
+    this.createApi(this.url);
   }
 
   public getApi(): JellyfinApi | undefined {
@@ -82,19 +104,21 @@ export class JellyfinProvider implements Provider {
     return this.id;
   }
 
-  public setID(id: string) {
+  private setID(id: string) {
     this.id = id;
   }
 
-  public setURL(url: string) {
+  private setURL(url: string) {
     this.url = url;
   }
 
   public authStatus(): boolean {
     if (this._api?.accessToken) {
       this._authenticated = true;
+      return this._authenticated;
     }
 
+    this._authenticated = false;
     return this._authenticated;
   }
 }

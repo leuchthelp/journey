@@ -40,11 +40,11 @@
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@tauri-apps/cli": "^2.11.2",
     "drizzle-kit": "^0.31.10",
-    "prettier-plugin-svelte": "^4.0.1",
+    "prettier-plugin-svelte": "^4.1.0",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "svelte": "^5.56.0",
-    "svelte-check": "^4.4.8",
+    "svelte-check": "^4.5.0",
     "typescript": "~6.0.3",
-    "vite": "^8.0.14"
+    "vite": "^8.0.16"
   }
 }
