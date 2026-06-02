@@ -7,6 +7,7 @@ export interface Provider extends ProviderItem {
 
   authApiWithPw?: (uname: string, psw: string) => Promise<void>;
   authStatus: () => boolean;
+  setAuthStatus: (value: boolean) => void;
 
   addToDb: () => Promise<void>;
   retrieveCredentials?: () => void;

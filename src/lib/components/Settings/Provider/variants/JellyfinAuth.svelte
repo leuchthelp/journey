@@ -16,7 +16,7 @@
   if (!serverId) {
     provider = new JellyfinProvider();
   } else {
-    provider = providerManager.getProviderByID(serverId) as JellyfinProvider;
+    provider = providerManager.getProviderByServerId(serverId) as JellyfinProvider;
   }
 
   let success = $state(provider.authStatus());

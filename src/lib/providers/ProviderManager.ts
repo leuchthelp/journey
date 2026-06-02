@@ -5,7 +5,7 @@ import type { Provider } from "./variants/Provider";
 type IProviderManager = {
   providers: Provider[];
 
-  getProviderByID: (serverId: string) => Provider;
+  getProviderByServerId: (serverId: string) => Provider;
   addProvider: (provider: Provider) => void;
   removeProvider: (provider: Provider) => void;
   initProvider: (provider: Provider) => void;
@@ -15,9 +15,15 @@ type IProviderManager = {
 class ProviderManager implements IProviderManager {
   providers: Provider[] = [];
 
-  public getProviderByID(serverId: string): Provider {
+  public getProviderByServerId(serverId: string): Provider {
     return this.providers
       .filter((provider) => provider.getServerId() === serverId)
+      .at(0)!;
+  }
+
+  public getProviderByUserId(userId: string): Provider {
+    return this.providers
+      .filter((provider) => provider.getUserId() === userId)
       .at(0)!;
   }
 

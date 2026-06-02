@@ -50,6 +50,7 @@ export class JellyfinProvider implements Provider {
 
     if (accessToken) {
       this._api = this.client.createApi(url, accessToken);
+      this.setAuthStatus(true)
       return;
     }
 
@@ -70,9 +71,20 @@ export class JellyfinProvider implements Provider {
       },
     );
 
-    if (auth.data.AccessToken && auth.data.ServerId) {
+    if (auth.data.AccessToken && auth.data.ServerId && auth.data.User?.Id) {
       this.setServerId(auth.data.ServerId);
       this.setUserId(auth.data.User?.Id!);
+
+      if (providerManager.existsProviderWith(this.userId)) {
+        if (!providerManager.getProviderByUserId(this.userId).authStatus()) {
+          localStorage.setItem(
+            `${this.getServerId()}Token`,
+            auth.data.AccessToken,
+          );
+          this.setAuthStatus(true)
+          return;
+        }
+      }
 
       if (!providerManager.existsProviderWith(this.userId)) {
         localStorage.setItem(
@@ -81,6 +93,7 @@ export class JellyfinProvider implements Provider {
         );
         this.addToDb();
         providerManager.addProvider(this);
+        this.setAuthStatus(true)
         return;
       }
 
@@ -106,6 +119,7 @@ export class JellyfinProvider implements Provider {
     providerManager.removeProvider(this);
 
     this.createApi(this.url);
+    this.setAuthStatus(false)
   }
 
   public getApi(): JellyfinApi | undefined {
@@ -133,12 +147,10 @@ export class JellyfinProvider implements Provider {
   }
 
   public authStatus(): boolean {
-    if (this._api?.accessToken) {
-      this._authenticated = true;
-      return this._authenticated;
-    }
-
-    this._authenticated = false;
     return this._authenticated;
+  }
+
+  public setAuthStatus(value: boolean) {
+    this._authenticated = value
   }
 }
