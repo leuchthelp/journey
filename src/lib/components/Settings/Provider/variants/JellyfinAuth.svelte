@@ -25,12 +25,11 @@
   function addConnection() {
     if (!provider.authStatus()) {
       provider.createApi(serverURL);
-      provider.authApiWithPw(uname, psw).catch((e) => console.error(e));
-
-      console.log(provider.authStatus());
-      if (provider.authStatus()) {
-        success = true;
-      }
+      provider.authApiWithPw(uname, psw).then(() => {
+        if (provider.authStatus()) {
+          success = true;
+        }
+      });
     }
   }
 
@@ -40,9 +39,9 @@
     success = false;
   }
 
-  $inspect(
-    `success: ${success}, uname: ${uname}, psw: ${psw}, url: ${serverURL}, serverId: ${serverId}`,
-  );
+  // $inspect(
+  //   `success: ${success}, uname: ${uname}, psw: ${psw}, url: ${serverURL}, serverId: ${serverId}`,
+  // );
 </script>
 
 <div class="">

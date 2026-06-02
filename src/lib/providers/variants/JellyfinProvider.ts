@@ -50,7 +50,6 @@ export class JellyfinProvider implements Provider {
 
     if (accessToken) {
       this._api = this.client.createApi(url, accessToken);
-      this._authenticated = true;
       return;
     }
 
@@ -76,21 +75,16 @@ export class JellyfinProvider implements Provider {
       this.setUserId(auth.data.User?.Id!);
 
       if (!providerManager.existsProviderWith(this.userId)) {
-
         localStorage.setItem(
           `${this.getServerId()}Token`,
           auth.data.AccessToken,
         );
         this.addToDb();
-        this._authenticated = true;
-
-        console.log("hello")
-
         providerManager.addProvider(this);
         return;
       }
 
-      console.error("user already exists, not adding connection");
+      throw Error("Connection already exists");
     }
   }
 
@@ -99,6 +93,7 @@ export class JellyfinProvider implements Provider {
       await db
         .insert(providerItems)
         .values(this)
+        .onConflictDoNothing()
         .catch((e) => {
           console.error("Failed to add to DB, reason unknown");
           throw e;
@@ -111,7 +106,6 @@ export class JellyfinProvider implements Provider {
     providerManager.removeProvider(this);
 
     this.createApi(this.url);
-    this._authenticated = false;
   }
 
   public getApi(): JellyfinApi | undefined {
@@ -139,7 +133,12 @@ export class JellyfinProvider implements Provider {
   }
 
   public authStatus(): boolean {
-    console.log(this._authenticated)
+    if (this._api?.accessToken) {
+      this._authenticated = true;
+      return this._authenticated;
+    }
+
+    this._authenticated = false;
     return this._authenticated;
   }
 }

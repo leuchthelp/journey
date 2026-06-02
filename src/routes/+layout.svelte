@@ -28,8 +28,6 @@
       providerManager.initProvider(item);
     });
   });
-
-  console.log(providerManager)
 </script>
 
 <main class="mt-5 h-full">
