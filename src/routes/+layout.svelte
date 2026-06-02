@@ -9,7 +9,6 @@
   import { toAuthComponent } from "$lib/snippets/ToAuthComponent.svelte";
   import type { LayoutProps } from "./$types";
   import { providerManager } from "$lib/providers/ProviderManager";
-  import type { ProviderItem } from "$lib/db/schema/schema";
 
   let { data, children }: LayoutProps = $props();
   let visible = $state(false);
@@ -25,12 +24,8 @@
 
   // ugly, need to change to remove duplicate code
   $effect(() => {
-    data.post.forEach((item: ProviderItem) => {
-      providerManager.initProvider(item);
-    });
+    providerManager.initProvider(data.post);
   });
-
-  console.log(providerManager)
 </script>
 
 <main class="mt-5 h-full">

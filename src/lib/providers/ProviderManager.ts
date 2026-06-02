@@ -4,16 +4,18 @@ import type { Provider } from "./variants/Provider";
 
 type IProviderManager = {
   providers: Provider[];
+  indexPromises: Promise<void>[];
 
   getProviderByServerId: (serverId: string) => Provider;
   addProvider: (provider: Provider) => void;
   removeProvider: (provider: Provider) => void;
-  initProvider: (provider: Provider) => void;
+  initProvider: (providerItems: Provider[]) => void;
   existsProviderWith: (userId: string) => boolean;
 };
 
 class ProviderManager implements IProviderManager {
   providers: Provider[] = [];
+  indexPromises: Promise<void>[] = [];
 
   public getProviderByServerId(serverId: string): Provider {
     return this.providers
@@ -41,20 +43,30 @@ class ProviderManager implements IProviderManager {
     delete this.providers[index];
   }
 
-  public initProvider(providerItem: ProviderItem) {
-    if (providerOptions.has(providerItem.type)) {
-      let accessToken =
-        localStorage.getItem(`${providerItem.serverId}Token`) || undefined;
+  public initProvider(providerItems: ProviderItem[]) {
+    providerItems.forEach((providerItem) => {
+      if (providerOptions.has(providerItem.type)) {
+        let accessToken =
+          localStorage.getItem(`${providerItem.serverId}Token`) || undefined;
 
-      let provider = providerOptions.get(providerItem.type)!;
-      let init = new provider(
-        providerItem.serverId,
-        providerItem.url,
-        providerItem.userId,
-        accessToken,
-      );
-      this.addProvider(init);
-    }
+        let provider = providerOptions.get(providerItem.type)!;
+        let init = new provider(
+          providerItem.serverId,
+          providerItem.url,
+          providerItem.userId,
+          accessToken,
+        );
+        this.addProvider(init);
+
+        if (init.authStatus()) {
+          this.indexPromises.push(init.indexFiles());
+        }
+      }
+    });
+
+    Promise.allSettled(this.indexPromises).finally(() =>
+      console.log("indexing finished"),
+    );
   }
 }
 

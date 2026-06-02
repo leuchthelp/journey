@@ -1,5 +1,8 @@
 import { Api as JellyfinApi, Jellyfin } from "@jellyfin/sdk";
 import { getUserApi } from "@jellyfin/sdk/lib/utils/api/user-api";
+import { getLibraryApi } from "@jellyfin/sdk/lib/utils/api/library-api";
+import { getUserLibraryApi } from "@jellyfin/sdk/lib/utils/api/user-library-api";
+import { getItemsApi } from "@jellyfin/sdk/lib/utils/api/items-api";
 import { error } from "@sveltejs/kit";
 
 import type { Provider } from "./Provider";
@@ -50,7 +53,7 @@ export class JellyfinProvider implements Provider {
 
     if (accessToken) {
       this._api = this.client.createApi(url, accessToken);
-      this.setAuthStatus(true)
+      this.setAuthStatus(true);
       return;
     }
 
@@ -81,7 +84,7 @@ export class JellyfinProvider implements Provider {
             `${this.getServerId()}Token`,
             auth.data.AccessToken,
           );
-          this.setAuthStatus(true)
+          this.setAuthStatus(true);
           return;
         }
       }
@@ -93,7 +96,7 @@ export class JellyfinProvider implements Provider {
         );
         this.addToDb();
         providerManager.addProvider(this);
-        this.setAuthStatus(true)
+        this.setAuthStatus(true);
         return;
       }
 
@@ -119,7 +122,7 @@ export class JellyfinProvider implements Provider {
     providerManager.removeProvider(this);
 
     this.createApi(this.url);
-    this.setAuthStatus(false)
+    this.setAuthStatus(false);
   }
 
   public getApi(): JellyfinApi | undefined {
@@ -151,6 +154,43 @@ export class JellyfinProvider implements Provider {
   }
 
   public setAuthStatus(value: boolean) {
-    this._authenticated = value
+    this._authenticated = value;
+  }
+
+  async indexFiles(): Promise<void> {
+    if (this._api) {
+      let api = this._api;
+
+      for await (const library of this.getLibraries(api)) {
+        for await (const userLibrary of this.getUserLibraryItems(
+          api,
+          library,
+        )) {
+          for await (const artist of this.getChildren(api, userLibrary)) {
+            console.log(artist);
+          }
+        }
+      }
+    }
+  }
+
+  async *getLibraries(api: JellyfinApi) {
+    let items = (await getLibraryApi(api).getMediaFolders()).data?.Items ?? [];
+
+    for (const library of items) {
+      if (library.Id) yield library.Id;
+    }
+  }
+
+  async *getUserLibraryItems(api: JellyfinApi, ids: string) {
+    let item = (
+      await getUserLibraryApi(api).getItem({ itemId: ids, userId: this.userId })
+    ).data;
+
+    if (item.Id) yield item.Id;
+  }
+
+  async *getChildren(api: JellyfinApi, id: string) {
+    yield (await getItemsApi(api).getItems({ parentId: id })).data.Items;
   }
 }

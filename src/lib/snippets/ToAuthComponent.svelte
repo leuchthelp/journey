@@ -1,6 +1,6 @@
 <script module lang="ts">
   import ProviderAccordionItem from "$lib/components/Settings/Provider/ProviderAccordionItem.svelte";
-  import { providerAuthOptions } from "$lib/components/Settings/Provider/variants";
+  import { providerAuthOptions } from "$lib/components/Settings/Auth/variants";
   export { toAuthComponent };
 </script>
 
