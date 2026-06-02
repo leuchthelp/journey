@@ -1,8 +1,11 @@
 import { Api as JellyfinApi, Jellyfin } from "@jellyfin/sdk";
 import { getUserApi } from "@jellyfin/sdk/lib/utils/api/user-api";
 import { getLibraryApi } from "@jellyfin/sdk/lib/utils/api/library-api";
-import { getUserLibraryApi } from "@jellyfin/sdk/lib/utils/api/user-library-api";
 import { getItemsApi } from "@jellyfin/sdk/lib/utils/api/items-api";
+import {
+  BaseItemKind,
+  type BaseItemDto,
+} from "@jellyfin/sdk/lib/generated-client/models";
 import { error } from "@sveltejs/kit";
 
 import type { Provider } from "./Provider";
@@ -153,44 +156,64 @@ export class JellyfinProvider implements Provider {
     return this._authenticated;
   }
 
-  public setAuthStatus(value: boolean) {
-    this._authenticated = value;
+  public setAuthStatus(item: boolean) {
+    this._authenticated = item;
   }
 
   async indexFiles(): Promise<void> {
     if (this._api) {
       let api = this._api;
 
-      for await (const library of this.getLibraries(api)) {
-        for await (const userLibrary of this.getUserLibraryItems(
-          api,
-          library,
-        )) {
-          for await (const artist of this.getChildren(api, userLibrary)) {
-            console.log(artist);
-          }
-        }
-      }
+      let itemType = BaseItemKind;
+
+      let libraries = this.getLibraryItems(api);
+      let promisedArtists = this.bundlePromises(
+        this.getChildren,
+        api,
+        libraries,
+        itemType.MusicArtist,
+      );
+
+      let promisedAlbums = this.bundlePromises(
+        this.getChildren,
+        api,
+        promisedArtists,
+        itemType.MusicAlbum,
+      );
+
+      let promisedSongs = this.bundlePromises(
+        this.getChildren,
+        api,
+        promisedAlbums,
+        itemType.Audio,
+      );
+
+      console.log(await promisedSongs);
     }
   }
 
-  async *getLibraries(api: JellyfinApi) {
-    let items = (await getLibraryApi(api).getMediaFolders()).data?.Items ?? [];
+  async bundlePromises(
+    func: Function,
+    api: JellyfinApi,
+    items: Promise<BaseItemDto[]>,
+    itemType?: BaseItemKind,
+  ) {
+    let pool: Promise<BaseItemDto[]>[] = [];
 
-    for (const library of items) {
-      if (library.Id) yield library.Id;
+    for (const item of await items) {
+      if (item.Id) pool.push(func(api, item.Id));
     }
+
+    return (await Promise.all(pool))
+      .flat()
+      .filter((item) => item.Type === itemType);
   }
 
-  async *getUserLibraryItems(api: JellyfinApi, ids: string) {
-    let item = (
-      await getUserLibraryApi(api).getItem({ itemId: ids, userId: this.userId })
-    ).data;
-
-    if (item.Id) yield item.Id;
+  async getLibraryItems(api: JellyfinApi) {
+    return (await getLibraryApi(api).getMediaFolders()).data?.Items ?? [];
   }
 
-  async *getChildren(api: JellyfinApi, id: string) {
-    yield (await getItemsApi(api).getItems({ parentId: id })).data.Items;
+  async getChildren(api: JellyfinApi, id: string) {
+    return (await getItemsApi(api).getItems({ parentId: id })).data.Items ?? [];
   }
 }
