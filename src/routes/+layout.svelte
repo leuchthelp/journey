@@ -23,6 +23,7 @@
     displayables.push("JellyfinProvider");
   }
 
+  // ugly, need to change to remove duplicate code
   $effect(() => {
     data.post.forEach((item: ProviderItem) => {
       providerManager.initProvider(item);

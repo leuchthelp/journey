@@ -12,7 +12,7 @@ type IProviderManager = {
   existsProviderWith: (userId: string) => boolean;
 };
 
-export class ProviderManager implements IProviderManager {
+class ProviderManager implements IProviderManager {
   providers: Provider[] = [];
 
   public getProviderByID(serverId: string): Provider {

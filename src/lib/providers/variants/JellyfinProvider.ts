@@ -27,8 +27,8 @@ export class JellyfinProvider implements Provider {
   ) {
     this.client = new Jellyfin({
       clientInfo: {
-        name: import.meta.env.VITE_JOURNEY_NAME,
-        version: import.meta.env.VITE_JOURNEY_VERSION,
+        name: "journey",
+        version: "0.1.0",
       },
       deviceInfo: {
         name: device,
