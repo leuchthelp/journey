@@ -170,21 +170,27 @@ export class JellyfinProvider implements Provider {
 
       let libraries = this.getLibraryItems(api);
       let promisedArtists = this.bundlePromises(
+        this.getChildren,
         api,
         libraries,
         itemType.MusicArtist,
+        this,
       );
 
       let promisedAlbums = this.bundlePromises(
+        this.getChildren,
         api,
         promisedArtists,
         itemType.MusicAlbum,
+        this,
       );
 
       let promisedSongs = this.bundlePromises(
+        this.getChildren,
         api,
         promisedAlbums,
         itemType.Audio,
+        this,
       );
 
       await promisedSongs;
@@ -192,14 +198,16 @@ export class JellyfinProvider implements Provider {
   }
 
   private async bundlePromises(
+    func: Function,
     api: JellyfinApi,
     items: Promise<BaseItemDto[]>,
     itemType: BaseItemKind,
+    provider?: JellyfinProvider,
   ) {
     let pool: Promise<BaseItemDto[]>[] = [];
 
     for (const item of await items) {
-      if (item.Id) pool.push(this.getChildren(api, item.Id, itemType));
+      if (item.Id) pool.push(func(api, item.Id, itemType, provider));
     }
 
     return (await Promise.all(pool)).flat();
@@ -213,31 +221,59 @@ export class JellyfinProvider implements Provider {
     api: JellyfinApi,
     id: string,
     itemType: BaseItemKind,
+    provider?: JellyfinProvider,
   ): Promise<BaseItemDto[]> {
     let tmp =
       (await getItemsApi(api).getItems({ parentId: id })).data.Items ?? [];
-
     tmp.filter((item) => item.Type === itemType);
 
-    for (const item of tmp) {
-      if (mapJellyfinOptions.has(itemType)) {
-        let mediaItem = mapJellyfinOptions.get(itemType)!;
-
-        let init = new mediaItem();
-
-        init.providers = this.serverId;
-
-        let tmp = await getImageApi(api).getItemImageInfos({
-          itemId: item.Id!,
-        });
-
-        if (tmp.data.at(0))
-          init.backgroundImage = `${tmp.config.url}/${tmp.data.at(0)?.ImageType}`;
-
-        console.log(init)
+    if (provider) {
+      for (const item of tmp) {
+        if (mapJellyfinOptions.has(itemType)) {
+          provider.addMediaItemToDb(provider, api, item, itemType);
+        }
       }
     }
 
     return tmp;
+  }
+
+  private async addMediaItemToDb(
+    provider: JellyfinProvider,
+    api: JellyfinApi,
+    item: BaseItemDto,
+    itemType: BaseItemKind,
+  ) {
+    let mediaItem = mapJellyfinOptions.get(itemType)!;
+
+    let init = new mediaItem();
+    let backgroundImage = provider.getImageInfoObject(api, item);
+
+    init.providers = provider.serverId;
+
+    let userData = item.UserData;
+
+    if (userData) {
+      let key = userData.Key ?? "";
+
+      const regex =
+        /[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}/;
+      let musicbrainzId = key.match(regex)?.toString();
+      init.hash = musicbrainzId ?? "";
+    }
+
+    init.backgroundImage = await backgroundImage;
+
+    console.log(init);
+  }
+
+  private async getImageInfoObject(api: JellyfinApi, item: BaseItemDto) {
+    let info = await getImageApi(api).getItemImageInfos({
+      itemId: item.Id!,
+    });
+
+    return info.data.at(0)
+      ? `${info.config.url}/${info.data.at(0)?.ImageType}`
+      : "";
   }
 }
