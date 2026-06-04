@@ -3,10 +3,7 @@ import { defineRelations, type BuildQueryResult } from "drizzle-orm";
 
 export const relations = defineRelations(schema, (r) => ({
   mediaItems: {
-    content: r.many.contentItems({
-      from: r.mediaItems.id,
-      to: r.contentItems.parentId,
-    }),
+    content: r.many.contentItems(),
     providers: r.many.providerItems({
       from: r.mediaItems.id.through(r.mediaItemToProviderItem.mediaItemId),
       to: r.providerItems.id.through(r.mediaItemToProviderItem.providerItemId),
@@ -22,6 +19,13 @@ export const relations = defineRelations(schema, (r) => ({
     parent: r.many.mediaItems({
       from: r.mediaItems.id.through(r.mediaItemChildren.childId),
       to: r.mediaItems.id.through(r.mediaItemChildren.parentId),
+    }),
+  },
+
+  content: {
+    parent: r.one.mediaItems({
+      from: r.contentItems.parentId,
+      to: r.mediaItems.id,
     }),
   },
 
