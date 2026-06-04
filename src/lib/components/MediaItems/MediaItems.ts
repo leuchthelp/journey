@@ -14,9 +14,9 @@ export class SongItem implements MediaItem {
   loaded!: boolean;
   local!: string | null;
 
-  content!: ContentItem[];
-  providers!: ProviderItem[];
-  images!: ImageItem[];
+  content: ContentItem[] = [];
+  providers: ProviderItem[] = [];
+  images: ImageItem[] = [];
 }
 
 export class ArtistItem implements MediaItem {
@@ -28,9 +28,9 @@ export class ArtistItem implements MediaItem {
   loaded!: boolean;
   local!: string | null;
 
-  content!: ContentItem[];
-  providers!: ProviderItem[];
-  images!: ImageItem[];
+  content: ContentItem[] = [];
+  providers: ProviderItem[] = [];
+  images: ImageItem[] = [];
 }
 
 export class GenreItem implements MediaItem {
@@ -42,9 +42,9 @@ export class GenreItem implements MediaItem {
   loaded!: boolean;
   local!: string | null;
 
-  content!: ContentItem[];
-  providers!: ProviderItem[];
-  images!: ImageItem[];
+  content: ContentItem[] = [];
+  providers: ProviderItem[] = [];
+  images: ImageItem[] = [];
 }
 
 export class PlaylistItem implements MediaItem {
@@ -56,7 +56,7 @@ export class PlaylistItem implements MediaItem {
   loaded!: boolean;
   local!: string | null;
 
-  content!: ContentItem[];
-  providers!: ProviderItem[];
-  images!: ImageItem[];
+  content: ContentItem[] = [];
+  providers: ProviderItem[] = [];
+  images: ImageItem[] = [];
 }

@@ -12,6 +12,7 @@ import { error } from "@sveltejs/kit";
 import type { Provider } from "./Provider";
 import { device, uuid } from "../shared";
 import { providerItems } from "$lib/db/schema/schema";
+import type { ContentItem, ImageItem } from "../../db/schema/schema";
 import { db } from "$lib/db/database";
 import { providerManager } from "../ProviderManager";
 import { mapJellyfinOptions } from ".";
@@ -247,7 +248,8 @@ export class JellyfinProvider implements Provider {
     let mediaItem = mapJellyfinOptions.get(itemType)!;
 
     let init = new mediaItem();
-    let backgroundImage = provider.getImageInfoObject(api, item);
+    let images = provider.getImageInfoObject(api, item);
+
 
     let userData = item.UserData;
 
@@ -260,7 +262,10 @@ export class JellyfinProvider implements Provider {
       init.uuid = musicbrainzId ?? "";
     }
 
-    console.log(init);
+    init.providers.push(provider);
+
+    init.images = await images
+    //console.log(init);
   }
 
   private async getImageInfoObject(api: JellyfinApi, item: BaseItemDto) {
@@ -268,8 +273,17 @@ export class JellyfinProvider implements Provider {
       itemId: item.Id!,
     });
 
-    return info.data.at(0)
-      ? `${info.config.url}/${info.data.at(0)?.ImageType}`
-      : "";
+    let images: ImageItem[] = [];
+
+    for (const entry of info.data) {
+      images.push({
+        url: `${info.config.url}/${entry.ImageType}`,
+        type: entry.ImageType ?? "",
+      });
+    }
+
+
+    console.log(images)
+    return images;
   }
 }
