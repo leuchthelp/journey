@@ -25,7 +25,6 @@
     "@videojs/html": "^10.0.0-beta.24",
     "clsx": "^2.1.1",
     "drizzle-orm": "^1.0.0-beta.22",
-    "hls.js": "^1.6.16",
     "lru-cache": "^11.5.1",
     "prettier": "^3.8.3",
     "tailwind-merge": "^3.6.0",
