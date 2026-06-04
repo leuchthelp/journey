@@ -1,18 +1,14 @@
 export const ssr = false;
 
 import { db } from "$lib/db/database";
+import { providerItems } from "$lib/db/schema/schema";
 import type { LayoutLoad } from "./$types";
 
 export const load: LayoutLoad = async () => {
-  //await db.delete(schema.providerItems)
+  //await db.delete(providerItems)
   return {
-    post: await db.query.mediaItems.findMany({
+    post: await db.query.providerItems.findMany({
       columns: { id: false },
-      with: {
-        content: { columns: { id: false, parentId: false } },
-        providers: { columns: { id: false } },
-        images: { columns: { id: false, providerId: false } },
-      },
     }),
   };
 };
