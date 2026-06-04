@@ -85,6 +85,12 @@ pub fn run() {
             sql: include_str!("../migrations/20260601214120_harsh_marvel_apes/migration.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 12,
+            description: "new internal datastructure",
+            sql: include_str!("../migrations/20260604161431_fat_hemingway/migration.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

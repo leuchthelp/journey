@@ -1,0 +1,633 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "id": "a1393168-90dd-43b1-b0dc-b6b130c2e6ef",
+  "prevIds": [
+    "53bafbb9-cf12-4505-a951-1e5a19a3c563",
+    "4d62968d-d5c0-4be3-b746-4f6e78ba0645"
+  ],
+  "ddl": [
+    {
+      "name": "ContentItems",
+      "entityType": "tables"
+    },
+    {
+      "name": "ImageItems",
+      "entityType": "tables"
+    },
+    {
+      "name": "MediaItemChildren",
+      "entityType": "tables"
+    },
+    {
+      "name": "MediaItemToImageItem",
+      "entityType": "tables"
+    },
+    {
+      "name": "ProviderItemToImageItem",
+      "entityType": "tables"
+    },
+    {
+      "name": "MediaItems",
+      "entityType": "tables"
+    },
+    {
+      "name": "ProviderItems",
+      "entityType": "tables"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "ContentItems"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "parentId",
+      "entityType": "columns",
+      "table": "ContentItems"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": "''",
+      "generated": null,
+      "name": "type",
+      "entityType": "columns",
+      "table": "ContentItems"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "description",
+      "entityType": "columns",
+      "table": "ContentItems"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "ImageItems"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "''",
+      "generated": null,
+      "name": "providerId",
+      "entityType": "columns",
+      "table": "ImageItems"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "''",
+      "generated": null,
+      "name": "type",
+      "entityType": "columns",
+      "table": "ImageItems"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "''",
+      "generated": null,
+      "name": "url",
+      "entityType": "columns",
+      "table": "ImageItems"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "parentId",
+      "entityType": "columns",
+      "table": "MediaItemChildren"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "childId",
+      "entityType": "columns",
+      "table": "MediaItemChildren"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "mediaItemId",
+      "entityType": "columns",
+      "table": "MediaItemToImageItem"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "imageItemId",
+      "entityType": "columns",
+      "table": "MediaItemToImageItem"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "mediaItemId",
+      "entityType": "columns",
+      "table": "ProviderItemToImageItem"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "providerItemId",
+      "entityType": "columns",
+      "table": "ProviderItemToImageItem"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "MediaItems"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": "''",
+      "generated": null,
+      "name": "uuid",
+      "entityType": "columns",
+      "table": "MediaItems"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'MediaItem'",
+      "generated": null,
+      "name": "type",
+      "entityType": "columns",
+      "table": "MediaItems"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'ring-[#C2381D]'",
+      "generated": null,
+      "name": "outlineGradient",
+      "entityType": "columns",
+      "table": "MediaItems"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'m-0.5 h-24 w-24 rounded-xl bg-amber-200 ring'",
+      "generated": null,
+      "name": "defaultStyling",
+      "entityType": "columns",
+      "table": "MediaItems"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "false",
+      "generated": null,
+      "name": "loaded",
+      "entityType": "columns",
+      "table": "MediaItems"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": "''",
+      "generated": null,
+      "name": "local",
+      "entityType": "columns",
+      "table": "MediaItems"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "ProviderItems"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "''",
+      "generated": null,
+      "name": "userId",
+      "entityType": "columns",
+      "table": "ProviderItems"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "''",
+      "generated": null,
+      "name": "serverId",
+      "entityType": "columns",
+      "table": "ProviderItems"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "''",
+      "generated": null,
+      "name": "type",
+      "entityType": "columns",
+      "table": "ProviderItems"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "''",
+      "generated": null,
+      "name": "url",
+      "entityType": "columns",
+      "table": "ProviderItems"
+    },
+    {
+      "columns": [
+        "parentId"
+      ],
+      "tableTo": "MediaItems",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "name": "fk_MediaItemChildren_parentId_MediaItems_id_fk",
+      "entityType": "fks",
+      "table": "MediaItemChildren"
+    },
+    {
+      "columns": [
+        "childId"
+      ],
+      "tableTo": "MediaItems",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "name": "fk_MediaItemChildren_childId_MediaItems_id_fk",
+      "entityType": "fks",
+      "table": "MediaItemChildren"
+    },
+    {
+      "columns": [
+        "mediaItemId"
+      ],
+      "tableTo": "MediaItems",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "name": "fk_MediaItemToImageItem_mediaItemId_MediaItems_id_fk",
+      "entityType": "fks",
+      "table": "MediaItemToImageItem"
+    },
+    {
+      "columns": [
+        "imageItemId"
+      ],
+      "tableTo": "ImageItems",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "name": "fk_MediaItemToImageItem_imageItemId_ImageItems_id_fk",
+      "entityType": "fks",
+      "table": "MediaItemToImageItem"
+    },
+    {
+      "columns": [
+        "mediaItemId"
+      ],
+      "tableTo": "MediaItems",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "name": "fk_ProviderItemToImageItem_mediaItemId_MediaItems_id_fk",
+      "entityType": "fks",
+      "table": "ProviderItemToImageItem"
+    },
+    {
+      "columns": [
+        "providerItemId"
+      ],
+      "tableTo": "ProviderItems",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "name": "fk_ProviderItemToImageItem_providerItemId_ProviderItems_id_fk",
+      "entityType": "fks",
+      "table": "ProviderItemToImageItem"
+    },
+    {
+      "columns": [
+        "parentId",
+        "childId"
+      ],
+      "nameExplicit": false,
+      "name": "MediaItemChildren_pk",
+      "entityType": "pks",
+      "table": "MediaItemChildren"
+    },
+    {
+      "columns": [
+        "mediaItemId",
+        "imageItemId"
+      ],
+      "nameExplicit": false,
+      "name": "MediaItemToImageItem_pk",
+      "entityType": "pks",
+      "table": "MediaItemToImageItem"
+    },
+    {
+      "columns": [
+        "mediaItemId",
+        "providerItemId"
+      ],
+      "nameExplicit": false,
+      "name": "ProviderItemToImageItem_pk",
+      "entityType": "pks",
+      "table": "ProviderItemToImageItem"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "ContentItems_pk",
+      "table": "ContentItems",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "ImageItems_pk",
+      "table": "ImageItems",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "MediaItems_pk",
+      "table": "MediaItems",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "ProviderItems_pk",
+      "table": "ProviderItems",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        {
+          "value": "parentId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "ContentToItemId_idx",
+      "entityType": "indexes",
+      "table": "ContentItems"
+    },
+    {
+      "columns": [
+        {
+          "value": "providerId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "ImageProviderId_idx",
+      "entityType": "indexes",
+      "table": "ImageItems"
+    },
+    {
+      "columns": [
+        {
+          "value": "parentId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "ParentsToChildrenParentId_idx",
+      "entityType": "indexes",
+      "table": "MediaItemChildren"
+    },
+    {
+      "columns": [
+        {
+          "value": "childId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "ParentsToChildrenChildId_idx",
+      "entityType": "indexes",
+      "table": "MediaItemChildren"
+    },
+    {
+      "columns": [
+        {
+          "value": "parentId",
+          "isExpression": false
+        },
+        {
+          "value": "childId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "ParentsToChildrenCompositeId_idx",
+      "entityType": "indexes",
+      "table": "MediaItemChildren"
+    },
+    {
+      "columns": [
+        {
+          "value": "mediaItemId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "ItemToImagesItemID_idx",
+      "entityType": "indexes",
+      "table": "MediaItemToImageItem"
+    },
+    {
+      "columns": [
+        {
+          "value": "imageItemId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "ItemToImagesImageID_idx",
+      "entityType": "indexes",
+      "table": "MediaItemToImageItem"
+    },
+    {
+      "columns": [
+        {
+          "value": "mediaItemId",
+          "isExpression": false
+        },
+        {
+          "value": "imageItemId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "ItemToImagesCompositeID_idx",
+      "entityType": "indexes",
+      "table": "MediaItemToImageItem"
+    },
+    {
+      "columns": [
+        {
+          "value": "mediaItemId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "ItemToProvidersItemId_idx",
+      "entityType": "indexes",
+      "table": "ProviderItemToImageItem"
+    },
+    {
+      "columns": [
+        {
+          "value": "providerItemId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "ItemToProvidersProviderId_idx",
+      "entityType": "indexes",
+      "table": "ProviderItemToImageItem"
+    },
+    {
+      "columns": [
+        {
+          "value": "mediaItemId",
+          "isExpression": false
+        },
+        {
+          "value": "providerItemId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "ItemToProvidersCompositeId_idx",
+      "entityType": "indexes",
+      "table": "ProviderItemToImageItem"
+    },
+    {
+      "columns": [
+        "userId"
+      ],
+      "nameExplicit": false,
+      "name": "ProviderItems_userId_unique",
+      "entityType": "uniques",
+      "table": "ProviderItems"
+    }
+  ],
+  "renames": [
+    "MediaItems.hash->MediaItems.uuid"
+  ]
+}

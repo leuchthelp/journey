@@ -17,5 +17,5 @@ export interface Provider extends ProviderItem {
   getServerId: () => string;
   getUserId: () => string;
 
-  indexFiles: () => Promise<void>
+  indexFiles: () => Promise<void>;
 }

@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/sqlite-proxy";
 import Database from "@tauri-apps/plugin-sql";
-import * as schema from "./schema/schema.ts";
+import { relations } from "./relations";
 
 /**
  * Loads the sqlite database via the Tauri Proxy.
@@ -13,7 +13,7 @@ async function getDb() {
 /**
  * The drizzle database instance.
  */
-export const db = drizzle<typeof schema>(
+export const db = drizzle<typeof relations>(
   async (sql, params, method) => {
     const sqlite = await getDb();
     let rows: any = [];
@@ -42,7 +42,7 @@ export const db = drizzle<typeof schema>(
     return { rows: results };
   },
   // Pass the schema to the drizzle instance
-  { schema: schema },
+  { relations: relations },
 );
 
 /**
