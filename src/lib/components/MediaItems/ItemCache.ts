@@ -1,5 +1,5 @@
 import { LRUCache } from "lru-cache";
-import type { MediaItem } from "../../db/schema/schema.ts";
+import type { MediaItem } from "$lib/db/relations.ts";
 import type { ProviderItem } from "../../db/schema/schema.ts";
 
 const options = {

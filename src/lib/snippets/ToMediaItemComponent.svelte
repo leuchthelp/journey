@@ -1,6 +1,6 @@
 <script module lang="ts">
   import { componentOptions } from "$lib/components/MediaItems/ItemComponents";
-  import type { MediaItem } from "$lib/db/schema/schema";
+  import type { MediaItem } from "$lib/db/relations";
   export { toMediaItemComponent };
 </script>
 

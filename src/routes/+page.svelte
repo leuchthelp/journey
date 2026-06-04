@@ -31,7 +31,7 @@
 </audio-player>
 
 {#each data.post as item}
-  {#if itemCache.set(item.hash, item) && homeCache.set(item.hash, item)}
+  {#if itemCache.set(item.uuid!, item) && homeCache.set(item.uuid!, item)}
     {@render toMediaItemComponent(item)}
   {/if}
 {/each}

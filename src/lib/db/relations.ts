@@ -1,5 +1,5 @@
 import * as schema from "./schema/schema";
-import { defineRelations } from "drizzle-orm";
+import { defineRelations, type BuildQueryResult } from "drizzle-orm";
 
 export const relations = defineRelations(schema, (r) => ({
   mediaItems: {
@@ -11,7 +11,7 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.mediaItems.id.through(r.mediaItemToProviderItem.mediaItemId),
       to: r.providerItems.id.through(r.mediaItemToProviderItem.providerItemId),
     }),
-    imageItems: r.many.imageItems({
+    images: r.many.imageItems({
       from: r.mediaItems.id.through(r.mediaItemToImageItem.mediaItemId),
       to: r.imageItems.id.through(r.mediaItemToImageItem.imageItemId),
     }),
@@ -27,14 +27,29 @@ export const relations = defineRelations(schema, (r) => ({
 
   providerItems: {
     mediaItems: r.many.mediaItems(),
-    imageItemItems: r.many.imageItems(),
+    imageItems: r.many.imageItems(),
   },
 
   imageItems: {
     mediaItems: r.many.mediaItems(),
-    imageItem: r.one.providerItems({
+    image: r.one.providerItems({
       from: r.imageItems.providerId,
       to: r.providerItems.id,
     }),
   },
 }));
+
+type Relations = typeof relations;
+
+export type MediaItem = BuildQueryResult<
+  Relations,
+  Relations["mediaItems"],
+  {
+    columns: { id: false };
+    with: {
+      content: { columns: { id: false; parentId: false } };
+      providers: { columns: { id: false } };
+      images: { columns: { id: false; providerId: false } };
+    };
+  }
+>;

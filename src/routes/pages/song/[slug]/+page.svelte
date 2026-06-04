@@ -15,7 +15,7 @@
 
 <enhanced:img
   class="h-48 w-48 object-contain rounded-xl bg-amber-200"
-  src={item.backgroundImage}
+  src={item.images[0]}
   alt="Loading"
 />
 <h1>

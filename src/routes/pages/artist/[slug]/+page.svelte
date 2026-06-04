@@ -11,6 +11,6 @@
 
 <h1>
   {#if data.post[0]}
-    {data.post[0].hash}
+    {data.post[0].uuid}
   {/if}
 </h1>

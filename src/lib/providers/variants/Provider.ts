@@ -1,6 +1,6 @@
 import type { ProviderItem } from "$lib/db/schema/schema";
 
-export interface Provider extends ProviderItem {
+export interface Provider extends Omit<ProviderItem, "id"> {
   readonly client: unknown;
 
   createApi: (url: string, token?: string) => void;

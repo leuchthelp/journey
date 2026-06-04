@@ -1,18 +1,16 @@
 import { db } from "$lib/db/database.ts";
 import { error } from "@sveltejs/kit";
 import type { PageLoad } from "./$types";
-import * as schema from "$lib/db/schema/schema.ts";
-import { SongItem } from "$lib/components/MediaItems/MediaItems.ts";
-import { eq } from "drizzle-orm";
 import { page } from "$app/state";
 import { itemCache } from "$lib/components/MediaItems/ItemCache.ts";
+import { SongItem } from "$lib/components/MediaItems/MediaItems";
 
 export const load: PageLoad = async ({ params }) => {
   // Fastest: try check out parent page if it already posted the item
   let data = page.data.post as SongItem[];
   let res: SongItem | undefined;
   if (data) {
-    let res = data.filter((item) => item.hash === params.slug)[0];
+    res = data.filter((item) => item.uuid === params.slug)[0];
 
     if (res) {
       return {
@@ -32,13 +30,16 @@ export const load: PageLoad = async ({ params }) => {
   }
 
   // Brutal: fallback to database to get item fresh
-  let tmp = await db
-    .select()
-    .from(schema.mediaItems)
-    .where(eq(schema.mediaItems.hash, params.slug))
-    .limit(1);
+  res = await db.query.mediaItems.findFirst({
+    where: { uuid: params.slug },
+    columns: { id: false },
+    with: {
+      content: { columns: { id: false, parentId: false } },
+      providers: { columns: { id: false } },
+      images: { columns: { id: false, providerId: false } },
+    },
+  });
 
-  res = tmp[0];
   if (res) {
     return {
       post: res,

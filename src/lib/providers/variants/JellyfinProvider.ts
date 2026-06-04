@@ -249,8 +249,6 @@ export class JellyfinProvider implements Provider {
     let init = new mediaItem();
     let backgroundImage = provider.getImageInfoObject(api, item);
 
-    init.providers = provider.serverId;
-
     let userData = item.UserData;
 
     if (userData) {
@@ -259,10 +257,8 @@ export class JellyfinProvider implements Provider {
       const regex =
         /[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}/;
       let musicbrainzId = key.match(regex)?.toString();
-      init.hash = musicbrainzId ?? "";
+      init.uuid = musicbrainzId ?? "";
     }
-
-    init.backgroundImage = await backgroundImage;
 
     console.log(init);
   }

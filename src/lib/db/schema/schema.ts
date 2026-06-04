@@ -126,7 +126,13 @@ Type Exports
 
 */
 
-export type MediaItem = typeof mediaItems.$inferSelect;
-export type ContentItems = typeof contentItems.$inferSelect;
-export type ProviderItem = typeof providerItems.$inferSelect;
-export type ImageItems = typeof imageItems.$inferSelect;
+// export type MediaItem = typeof mediaItems.$inferSelect;
+export type ContentItem = Omit<
+  typeof contentItems.$inferSelect,
+  "id" | "parentId"
+>;
+export type ProviderItem = Omit<typeof providerItems.$inferSelect, "id">;
+export type ImageItem = Omit<
+  typeof imageItems.$inferSelect,
+  "id" | "providerId"
+>;

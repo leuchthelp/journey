@@ -1,57 +1,62 @@
-import type { MediaItem } from "../../db/schema/schema.ts";
+import type { MediaItem } from "../../db/relations";
+import type {
+  ContentItem,
+  ProviderItem,
+  ImageItem,
+} from "../../db/schema/schema";
 
-export class SongItem implements Omit<MediaItem, "id"> {
+export class SongItem implements MediaItem {
   type = SongItem.name;
   outlineGradient = "ring-[#C2381D]";
 
-  hash!: string;
-  backgroundImage!: string;
-  content!: string;
+  uuid!: string | null;
   defaultStyling!: string;
-  animation!: string;
   loaded!: boolean;
-  local!: string;
-  providers!: string;
+  local!: string | null;
+
+  content!: ContentItem[];
+  providers!: ProviderItem[];
+  images!: ImageItem[];
 }
 
-export class ArtistItem implements Omit<MediaItem, "id"> {
+export class ArtistItem implements MediaItem {
   type = ArtistItem.name;
   outlineGradient = "ring-[#D42CA4]";
 
-  hash!: string;
-  backgroundImage!: string;
-  content!: string;
+  uuid!: string | null;
   defaultStyling!: string;
-  animation!: string;
   loaded!: boolean;
-  local!: string;
-  providers!: string;
+  local!: string | null;
+
+  content!: ContentItem[];
+  providers!: ProviderItem[];
+  images!: ImageItem[];
 }
 
-export class GenreItem implements Omit<MediaItem, "id"> {
+export class GenreItem implements MediaItem {
   type = GenreItem.name;
   outlineGradient = "ring-[#2C8FD4]";
 
-  hash!: string;
-  backgroundImage!: string;
-  content!: string;
+  uuid!: string | null;
   defaultStyling!: string;
-  animation!: string;
   loaded!: boolean;
-  local!: string;
-  providers!: string;
+  local!: string | null;
+
+  content!: ContentItem[];
+  providers!: ProviderItem[];
+  images!: ImageItem[];
 }
 
-export class PlaylistItem implements Omit<MediaItem, "id"> {
+export class PlaylistItem implements MediaItem {
   type = PlaylistItem.name;
   outlineGradient = "ring-[#42D42C]";
 
-  hash!: string;
-  backgroundImage!: string;
-  content!: string;
+  uuid!: string | null;
   defaultStyling!: string;
-  animation!: string;
   loaded!: boolean;
-  local!: string;
-  providers!: string;
+  local!: string | null;
+
+  content!: ContentItem[];
+  providers!: ProviderItem[];
+  images!: ImageItem[];
 }

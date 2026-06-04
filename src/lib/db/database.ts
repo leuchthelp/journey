@@ -13,7 +13,7 @@ async function getDb() {
 /**
  * The drizzle database instance.
  */
-export const db = drizzle<typeof relations>(
+export const db = drizzle(
   async (sql, params, method) => {
     const sqlite = await getDb();
     let rows: any = [];

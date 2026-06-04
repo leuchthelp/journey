@@ -1,7 +1,7 @@
 import { db } from "$lib/db/database.ts";
-import * as schema from "$lib/db/schema/schema.ts";
 import type { PageLoad } from "./$types";
 import { homeCache } from "$lib/components/MediaItems/ItemCache.ts";
+import type { MediaItem } from "$lib/db/relations";
 
 function toArrayClean<X>(xs: Iterable<X | undefined>): X[] {
   let res: X[] = [];
@@ -14,7 +14,7 @@ function toArrayClean<X>(xs: Iterable<X | undefined>): X[] {
 }
 
 export const load: PageLoad = async () => {
-  let res: schema.MediaItem[];
+  let res: MediaItem[];
 
   // Medium: look in cache if item has been posted already
   if (homeCache) {
@@ -28,6 +28,14 @@ export const load: PageLoad = async () => {
     }
   }
 
-  res = await db.select().from(schema.mediaItems).limit(6);
+  res = await db.query.mediaItems.findMany({
+    limit: 6,
+    columns: { id: false },
+    with: {
+      content: { columns: { id: false, parentId: false } },
+      providers: { columns: { id: false } },
+      images: { columns: { id: false, providerId: false } },
+    },
+  });
   return { post: res };
 };
