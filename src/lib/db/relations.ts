@@ -22,7 +22,7 @@ export const relations = defineRelations(schema, (r) => ({
     }),
   },
 
-  content: {
+  contentItems: {
     parent: r.one.mediaItems({
       from: r.contentItems.parentId,
       to: r.mediaItems.id,
