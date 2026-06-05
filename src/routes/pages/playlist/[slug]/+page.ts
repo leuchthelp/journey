@@ -1,9 +1,9 @@
-import { db } from "$lib/db/database.ts";
 import { error } from "@sveltejs/kit";
 import type { PageLoad } from "./$types";
 import { page } from "$app/state";
 import { itemCache } from "$lib/components/MediaItems/ItemCache.ts";
 import { PlaylistItem } from "$lib/components/MediaItems/MediaItems";
+import { singlePageDataQuery } from "$lib/db/queries";
 
 export const load: PageLoad = async ({ params }) => {
   // Fastest: try check out parent page if it already posted the item
@@ -30,15 +30,7 @@ export const load: PageLoad = async ({ params }) => {
   }
 
   // Brutal: fallback to database to get item fresh
-  res = await db.query.mediaItems.findFirst({
-    where: { uuid: params.slug },
-    columns: { id: false },
-    with: {
-      content: { columns: { id: false, parentId: false } },
-      providers: { columns: { id: false } },
-      images: { columns: { id: false, providerId: false } },
-    },
-  });
+  res = await singlePageDataQuery.execute({ slug: params.slug });
 
   if (res) {
     return {

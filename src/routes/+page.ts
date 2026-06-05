@@ -1,7 +1,7 @@
-import { db } from "$lib/db/database.ts";
 import type { PageLoad } from "./$types";
 import { homeCache } from "$lib/components/MediaItems/ItemCache.ts";
 import type { MediaItem } from "$lib/db/relations";
+import { mainPageDataQuery } from "$lib/db/queries";
 
 function toArrayClean<X>(xs: Iterable<X | undefined>): X[] {
   let res: X[] = [];
@@ -28,14 +28,6 @@ export const load: PageLoad = async () => {
     }
   }
 
-  res = await db.query.mediaItems.findMany({
-    limit: 6,
-    columns: { id: false },
-    with: {
-      content: { columns: { id: false, parentId: false } },
-      providers: { columns: { id: false } },
-      images: { columns: { id: false, providerId: false } },
-    },
-  });
+  res = await mainPageDataQuery.execute({ limit: 6 });
   return { post: res };
 };

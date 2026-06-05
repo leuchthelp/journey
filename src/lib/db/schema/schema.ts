@@ -50,7 +50,7 @@ export const contentItems = sqliteTable(
     type: text("type").default(""),
     description: text("description"),
   },
-  (table) => [index("ContentToItemId_idx").on(table.parentId)],
+  (t) => [index("ContentToItemId_idx").on(t.parentId)],
 );
 
 /*

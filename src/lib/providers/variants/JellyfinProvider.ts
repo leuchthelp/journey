@@ -11,12 +11,15 @@ import { error } from "@sveltejs/kit";
 
 import type { Provider } from "./Provider";
 import { device, uuid } from "../shared";
-import { providerItems } from "$lib/db/schema/schema";
-import type { ContentItem, ImageItem } from "../../db/schema/schema";
-import { db } from "$lib/db/database";
+import {
+  providerItems,
+  type ContentItem,
+  type ImageItem,
+} from "../../db/schema/schema";
 import { providerManager } from "../ProviderManager";
 import { mapJellyfinOptions } from ".";
 import type { MediaItem } from "$lib/db/relations";
+import { db } from "$lib/db/database";
 
 export class JellyfinProvider implements Provider {
   readonly client: Jellyfin;
@@ -255,7 +258,7 @@ export class JellyfinProvider implements Provider {
         console.error(
           `unhandled MediaItem type: ${itemType}, need to create matching Item first`,
         );
-        throw Error
+        throw Error;
       }
     }
 
