@@ -17,6 +17,7 @@ export class SongItem implements MediaItem {
   content: ContentItem[] = [];
   providers: ProviderItem[] = [];
   images: ImageItem[] = [];
+  parent: MediaItem[] = [];
 }
 
 export class ArtistItem implements MediaItem {
@@ -31,6 +32,7 @@ export class ArtistItem implements MediaItem {
   content: ContentItem[] = [];
   providers: ProviderItem[] = [];
   images: ImageItem[] = [];
+  parent: MediaItem[] = [];
 }
 
 export class GenreItem implements MediaItem {
@@ -45,6 +47,7 @@ export class GenreItem implements MediaItem {
   content: ContentItem[] = [];
   providers: ProviderItem[] = [];
   images: ImageItem[] = [];
+  parent: MediaItem[] = [];
 }
 
 export class PlaylistItem implements MediaItem {
@@ -59,4 +62,20 @@ export class PlaylistItem implements MediaItem {
   content: ContentItem[] = [];
   providers: ProviderItem[] = [];
   images: ImageItem[] = [];
+  parent: MediaItem[] = [];
+}
+
+export class AlbumItem implements MediaItem {
+  type = AlbumItem.name;
+  outlineGradient = "ring-[#D42CA4]";
+
+  uuid!: string | null;
+  defaultStyling!: string;
+  loaded!: boolean;
+  local!: string | null;
+
+  content: ContentItem[] = [];
+  providers: ProviderItem[] = [];
+  images: ImageItem[] = [];
+  parent: MediaItem[] = [];
 }

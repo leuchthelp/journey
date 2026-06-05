@@ -1,4 +1,5 @@
 import {
+  AlbumItem,
   ArtistItem,
   GenreItem,
   PlaylistItem,
@@ -15,5 +16,6 @@ export const mapJellyfinOptions = new Map([
   [`${BaseItemKind.Audio}`, SongItem],
   [`${BaseItemKind.Genre}`, GenreItem],
   [`${BaseItemKind.MusicArtist}`, ArtistItem],
+  [`${BaseItemKind.MusicAlbum}`, AlbumItem],
   [`${BaseItemKind.Playlist}`, PlaylistItem],
 ]);

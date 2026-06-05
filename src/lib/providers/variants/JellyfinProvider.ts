@@ -16,6 +16,7 @@ import type { ContentItem, ImageItem } from "../../db/schema/schema";
 import { db } from "$lib/db/database";
 import { providerManager } from "../ProviderManager";
 import { mapJellyfinOptions } from ".";
+import type { MediaItem } from "$lib/db/relations";
 
 export class JellyfinProvider implements Provider {
   readonly client: Jellyfin;
@@ -167,14 +168,20 @@ export class JellyfinProvider implements Provider {
     if (this._api) {
       let api = this._api;
 
-      let itemType = BaseItemKind;
+      let libraries = this.getLibraryItems(api).then((libraries) => {
+        let mappedLibraries: [BaseItemDto, undefined][] = [];
+        for (let i = 0; i < libraries.length; i++) {
+          mappedLibraries.push([libraries[i]!, undefined]);
+        }
 
-      let libraries = this.getLibraryItems(api);
+        return mappedLibraries;
+      });
+
       let promisedArtists = this.bundlePromises(
         this.getChildren,
         api,
         libraries,
-        itemType.MusicArtist,
+        BaseItemKind.MusicArtist,
         this,
       );
 
@@ -182,7 +189,7 @@ export class JellyfinProvider implements Provider {
         this.getChildren,
         api,
         promisedArtists,
-        itemType.MusicAlbum,
+        BaseItemKind.MusicAlbum,
         this,
       );
 
@@ -190,7 +197,7 @@ export class JellyfinProvider implements Provider {
         this.getChildren,
         api,
         promisedAlbums,
-        itemType.Audio,
+        BaseItemKind.Audio,
         this,
       );
 
@@ -201,17 +208,18 @@ export class JellyfinProvider implements Provider {
   private async bundlePromises(
     func: Function,
     api: JellyfinApi,
-    items: Promise<BaseItemDto[]>,
+    items: Promise<[BaseItemDto, MediaItem | undefined][]>,
     itemType: BaseItemKind,
     provider?: JellyfinProvider,
   ) {
-    let pool: Promise<BaseItemDto[]>[] = [];
+    let pool: Promise<[BaseItemDto, MediaItem | undefined][]>[] = [];
 
     for (const item of await items) {
-      if (item.Id) pool.push(func(api, item.Id, itemType, provider));
+      pool.push(func(api, item, itemType, provider));
     }
 
-    return (await Promise.all(pool)).flat();
+    let tmp = await Promise.all(pool);
+    return tmp.flat();
   }
 
   private async getLibraryItems(api: JellyfinApi): Promise<BaseItemDto[]> {
@@ -220,52 +228,76 @@ export class JellyfinProvider implements Provider {
 
   private async getChildren(
     api: JellyfinApi,
-    id: string,
+    parent: [BaseItemDto, MediaItem | undefined],
     itemType: BaseItemKind,
     provider?: JellyfinProvider,
-  ): Promise<BaseItemDto[]> {
+  ): Promise<[BaseItemDto, MediaItem | undefined][]> {
     let tmp =
-      (await getItemsApi(api).getItems({ parentId: id })).data.Items ?? [];
+      (await getItemsApi(api).getItems({ parentId: parent[0].Id })).data
+        .Items ?? [];
     tmp.filter((item) => item.Type === itemType);
 
+    const mediaItemPromises: Promise<MediaItem>[] = [];
     if (provider) {
       for (const item of tmp) {
         if (mapJellyfinOptions.has(itemType)) {
-          provider.addMediaItemToDb(provider, api, item, itemType);
+          mediaItemPromises.push(
+            provider.generateMediaItem(
+              api,
+              item,
+              parent[1],
+              itemType,
+              provider,
+            ),
+          );
+          continue;
         }
+        console.error(
+          `unhandled MediaItem type: ${itemType}, need to create matching Item first`,
+        );
+        throw Error
       }
     }
 
-    return tmp;
+    const mediaItems = await Promise.all(mediaItemPromises);
+    const res: [BaseItemDto, MediaItem | undefined][] = [];
+
+    for (let i = 0; i < tmp.length; i++) {
+      res.push([tmp[i]!, mediaItems[i]]);
+      console.log([tmp[i]!, mediaItems[i]]);
+    }
+
+    return res;
   }
 
-  private async addMediaItemToDb(
-    provider: JellyfinProvider,
+  private async generateMediaItem(
     api: JellyfinApi,
     item: BaseItemDto,
+    parent: MediaItem | undefined,
     itemType: BaseItemKind,
+    provider: JellyfinProvider,
   ) {
     let mediaItem = mapJellyfinOptions.get(itemType)!;
 
     let init = new mediaItem();
     let images = provider.getImageInfoObject(api, item);
 
-
     let userData = item.UserData;
 
     if (userData) {
-      let key = userData.Key ?? "";
+      let i = userData.Key ?? "";
 
       const regex =
         /[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}/;
-      let musicbrainzId = key.match(regex)?.toString();
+      let musicbrainzId = i.match(regex)?.toString();
       init.uuid = musicbrainzId ?? "";
     }
 
+    if (parent) init.parent.push(parent);
     init.providers.push(provider);
-
-    init.images = await images
-    //console.log(init);
+    init.content.push(...provider.getItemContent(item));
+    init.images.push(...(await images));
+    return init;
   }
 
   private async getImageInfoObject(api: JellyfinApi, item: BaseItemDto) {
@@ -281,9 +313,21 @@ export class JellyfinProvider implements Provider {
         type: entry.ImageType ?? "",
       });
     }
-
-
-    console.log(images)
     return images;
+  }
+
+  private getItemContent(item: BaseItemDto) {
+    let info: ContentItem[] = [];
+
+    if (item.Name) info.push({ type: "Name", description: item.Name });
+    if (item.Album) info.push({ type: "Album", description: item.Album });
+    if (item.AlbumArtist)
+      info.push({ type: "Artists", description: item.AlbumArtist });
+    if (item.Container)
+      info.push({ type: "Container", description: item.Container });
+    if (item.PremiereDate)
+      info.push({ type: "Release-Date", description: item.PremiereDate });
+
+    return info;
   }
 }

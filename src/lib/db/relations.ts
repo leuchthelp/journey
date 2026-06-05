@@ -54,6 +54,7 @@ export type MediaItem = BuildQueryResult<
       content: { columns: { id: false; parentId: false } };
       providers: { columns: { id: false } };
       images: { columns: { id: false; providerId: false } };
+      parent: { columns: { id: false } };
     };
   }
 >;
