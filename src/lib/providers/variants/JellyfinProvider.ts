@@ -12,6 +12,7 @@ import { error } from "@sveltejs/kit";
 import type { Provider } from "./Provider";
 import { device, uuid } from "../shared";
 import {
+  mediaItems,
   providerItems,
   type ContentItem,
   type ImageItem,
@@ -267,7 +268,6 @@ export class JellyfinProvider implements Provider {
 
     for (let i = 0; i < tmp.length; i++) {
       res.push([tmp[i]!, mediaItems[i]]);
-      console.log([tmp[i]!, mediaItems[i]]);
     }
 
     return res;
@@ -300,6 +300,8 @@ export class JellyfinProvider implements Provider {
     init.providers.push(provider);
     init.content.push(...provider.getItemContent(item));
     init.images.push(...(await images));
+
+    
     return init;
   }
 
