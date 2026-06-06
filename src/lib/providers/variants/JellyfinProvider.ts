@@ -182,7 +182,7 @@ export class JellyfinProvider implements Provider {
         return mappedLibraries;
       });
 
-      const promisedArtists = await this.bundlePromises(
+      const promisedArtists = this.bundlePromises(
         this.getChildren,
         api,
         libraries,
@@ -190,28 +190,30 @@ export class JellyfinProvider implements Provider {
         this,
       );
 
-      for (const [_, item] of promisedArtists) {
-        console.log(item)
+      const promisedAlbums = this.bundlePromises(
+        this.getChildren,
+        api,
+        promisedArtists,
+        BaseItemKind.MusicAlbum,
+        this,
+      );
+
+      const promisedSongs = this.bundlePromises(
+        this.getChildren,
+        api,
+        promisedAlbums,
+        BaseItemKind.Audio,
+        this,
+      );
+
+      const combined = [];
+      combined.push(...(await promisedArtists));
+      combined.push(...(await promisedAlbums));
+      combined.push(...(await promisedSongs));
+      for (const [_, item] of combined) {
+        console.log(item);
         if (item) await insertMediaItem(item);
       }
-
-      // const promisedAlbums = this.bundlePromises(
-      //   this.getChildren,
-      //   api,
-      //   promisedArtists,
-      //   BaseItemKind.MusicAlbum,
-      //   this,
-      // );
-
-      // const promisedSongs = this.bundlePromises(
-      //   this.getChildren,
-      //   api,
-      //   promisedAlbums,
-      //   BaseItemKind.Audio,
-      //   this,
-      // );
-
-      // await promisedSongs;
     }
   }
 
@@ -306,7 +308,6 @@ export class JellyfinProvider implements Provider {
     init.content.push(...provider.getItemContent(item));
     init.images.push(...(await images));
 
-    //console.log(init);
     return init;
   }
 

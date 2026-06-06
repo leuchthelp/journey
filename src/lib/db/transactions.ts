@@ -24,6 +24,7 @@ export const insertMediaItem = async (item: MediaItem) => {
     const [newItemId] = await tx
       .insert(mediaItems)
       .values(item)
+      .onConflictDoNothing()
       .returning({ id: mediaItems.id });
 
     if (newItemId) {
@@ -44,23 +45,23 @@ export const insertMediaItem = async (item: MediaItem) => {
           });
       }
 
-      // // Add reference to provider junction table
-      // // of which providers the Item can be got from.
-      // // Since providers are added to the DB before indexing
-      // // we just have to search for the required provider &
-      // // reference their Id.
-      // await tx.transaction(async (tx2) => {
-      //   await providerTransaction(tx2, item, newItemId.id);
-      // });
+      // Add reference to provider junction table
+      // of which providers the Item can be got from.
+      // Since providers are added to the DB before indexing
+      // we just have to search for the required provider &
+      // reference their Id.
+      await tx.transaction(async (tx2) => {
+        await providerTransaction(tx2, item, newItemId.id);
+      });
 
-      // // Add add images and reference to image junction table.
-      // // Also need to add providers for image in a additional step
-      // // as a separate transaction.
-      // await tx.transaction(async (tx2) => {
-      //   await imageTransaction(tx2, item, newItemId.id);
-      // });
+      // Add add images and reference to image junction table.
+      // Also need to add providers for image in a additional step
+      // as a separate transaction.
+      await tx.transaction(async (tx2) => {
+        await imageTransaction(tx2, item, newItemId.id);
+      });
     }
-  }, {behavior: "immediate"});
+  });
 };
 
 const providerTransaction = async (
