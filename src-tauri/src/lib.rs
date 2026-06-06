@@ -91,6 +91,12 @@ pub fn run() {
             sql: include_str!("../migrations/20260604161431_fat_hemingway/migration.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 13,
+            description: "fix some attributes",
+            sql: include_str!("../migrations/20260606115628_many_blacklash/migration.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

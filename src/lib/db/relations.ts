@@ -16,7 +16,7 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.mediaItems.id.through(r.mediaItemChildren.parentId),
       to: r.mediaItems.id.through(r.mediaItemChildren.childId),
     }),
-    parent: r.many.mediaItems({
+    parents: r.many.mediaItems({
       from: r.mediaItems.id.through(r.mediaItemChildren.childId),
       to: r.mediaItems.id.through(r.mediaItemChildren.parentId),
     }),
@@ -37,7 +37,7 @@ export const relations = defineRelations(schema, (r) => ({
   imageItems: {
     mediaItems: r.many.mediaItems(),
     image: r.one.providerItems({
-      from: r.imageItems.providerId,
+      from: r.imageItems.serverId,
       to: r.providerItems.id,
     }),
   },
@@ -54,7 +54,7 @@ export type MediaItem = BuildQueryResult<
       content: { columns: { id: false; parentId: false } };
       providers: { columns: { id: false } };
       images: { columns: { id: false; providerId: false } };
-      parent: { columns: { id: false } };
+      parents: { columns: { id: false } };
     };
   }
 >;

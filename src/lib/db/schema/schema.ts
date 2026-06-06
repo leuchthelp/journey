@@ -8,7 +8,7 @@ import {
 
 export const mediaItems = sqliteTable("MediaItems", {
   id: integer("id").primaryKey(),
-  uuid: text("uuid").default(""),
+  uuid: text("uuid").unique(),
   type: text("type").default("MediaItem").notNull(),
   outlineGradient: text("outlineGradient").default("ring-[#C2381D]").notNull(),
   defaultStyling: text("defaultStyling")
@@ -95,11 +95,11 @@ export const imageItems = sqliteTable(
   "ImageItems",
   {
     id: integer("id").primaryKey(),
-    providerId: text("providerId").default("").notNull(),
+    serverId: text("serverId").default("").notNull(),
     type: text("type").default("").notNull(),
     url: text("url").default("").notNull(),
   },
-  (t) => [index("ImageProviderId_idx").on(t.providerId)],
+  (t) => [index("ImageProviderId_idx").on(t.serverId)],
 );
 
 export const mediaItemToImageItem = sqliteTable(
@@ -132,7 +132,4 @@ export type ContentItem = Omit<
   "id" | "parentId"
 >;
 export type ProviderItem = Omit<typeof providerItems.$inferSelect, "id">;
-export type ImageItem = Omit<
-  typeof imageItems.$inferSelect,
-  "id" | "providerId"
->;
+export type ImageItem = Omit<typeof imageItems.$inferSelect, "id">;
