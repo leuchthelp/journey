@@ -1,14 +1,14 @@
 CREATE TABLE `ContentItems` (
 	`id` integer PRIMARY KEY,
 	`parentId` text NOT NULL,
-	`type` text DEFAULT '' NOT NULL,
+	`type` text NOT NULL UNIQUE,
 	`description` text DEFAULT '' NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `ImageItems` (
 	`id` integer PRIMARY KEY,
 	`serverId` text DEFAULT '' NOT NULL,
-	`type` text DEFAULT '' NOT NULL,
+	`type` text NOT NULL UNIQUE,
 	`url` text DEFAULT '' NOT NULL
 );
 --> statement-breakpoint

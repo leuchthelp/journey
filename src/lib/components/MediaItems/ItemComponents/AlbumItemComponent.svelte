@@ -10,7 +10,7 @@
   let styling = $derived(item.defaultStyling + " " + item.outlineGradient);
   let content = $derived(item.content.at(0));
 
-  $inspect(content)
+  $inspect(content);
 </script>
 
 <Button {styling}><a href="/pages/album/{item.uuid}">{content}</a></Button>

@@ -4,7 +4,7 @@ import { defineRelations, type BuildQueryResult } from "drizzle-orm";
 export const relations = defineRelations(schema, (r) => ({
   mediaItems: {
     content: r.many.contentItems({
-      from: r.mediaItems.id,
+      from: r.mediaItems.uuid,
       to: r.contentItems.parentId,
     }),
     providers: r.many.providerItems({
@@ -28,7 +28,7 @@ export const relations = defineRelations(schema, (r) => ({
   providerItems: {
     mediaItems: r.many.mediaItems(),
     imageItems: r.many.imageItems({
-      from: r.providerItems.id,
+      from: r.providerItems.serverId,
       to: r.imageItems.serverId,
     }),
   },
@@ -48,7 +48,7 @@ export type MediaItem = BuildQueryResult<
     with: {
       content: { columns: { id: false } };
       providers: { columns: { id: false } };
-      images: { columns: { id: false; providerId: false } };
+      images: { columns: { id: false } };
       parents: { columns: { uuid: true } };
     };
   }
