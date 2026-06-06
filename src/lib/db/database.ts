@@ -6,8 +6,8 @@ import { relations } from "./relations";
  * Loads the sqlite database via the Tauri Proxy.
  */
 
-async function getDb() {
-  return Database.load("sqlite:dev.db");
+function getDb() {
+  return Database.get("sqlite:dev.db");
 }
 
 /**
@@ -15,7 +15,7 @@ async function getDb() {
  */
 export const db = drizzle(
   async (sql, params, method) => {
-    const sqlite = await getDb();
+    const sqlite = getDb();
     let rows: any = [];
     let results = [];
     // If the query is a SELECT, use the select method

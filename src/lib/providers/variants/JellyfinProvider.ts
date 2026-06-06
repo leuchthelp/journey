@@ -77,14 +77,14 @@ export class JellyfinProvider implements Provider {
       return;
     }
 
-    const auth = await getUserApi(this._api || error(404)).authenticateUserByName(
-      {
-        authenticateUserByName: {
-          Username: uname,
-          Pw: psw,
-        },
+    const auth = await getUserApi(
+      this._api || error(404),
+    ).authenticateUserByName({
+      authenticateUserByName: {
+        Username: uname,
+        Pw: psw,
       },
-    );
+    });
 
     if (auth.data.AccessToken && auth.data.ServerId && auth.data.User?.Id) {
       this.setServerId(auth.data.ServerId);
@@ -173,7 +173,7 @@ export class JellyfinProvider implements Provider {
     if (this._api) {
       const api = this._api;
 
-      const libraries = this.getLibraryItems(api).then((libraries) => {
+      const libraries = await this.getLibraryItems(api).then((libraries) => {
         let mappedLibraries: [BaseItemDto, undefined][] = [];
         for (let i = 0; i < libraries.length; i++) {
           mappedLibraries.push([libraries[i]!, undefined]);
@@ -182,7 +182,7 @@ export class JellyfinProvider implements Provider {
         return mappedLibraries;
       });
 
-      const promisedArtists = this.bundlePromises(
+      const promisedArtists = await this.bundlePromises(
         this.getChildren,
         api,
         libraries,
@@ -190,7 +190,7 @@ export class JellyfinProvider implements Provider {
         this,
       );
 
-      const promisedAlbums = this.bundlePromises(
+      const promisedAlbums = await this.bundlePromises(
         this.getChildren,
         api,
         promisedArtists,
@@ -198,7 +198,7 @@ export class JellyfinProvider implements Provider {
         this,
       );
 
-      const promisedSongs = this.bundlePromises(
+      const promisedSongs = await this.bundlePromises(
         this.getChildren,
         api,
         promisedAlbums,
@@ -206,20 +206,26 @@ export class JellyfinProvider implements Provider {
         this,
       );
 
-      await promisedSongs;
+      const combined = [];
+      combined.push(...promisedArtists);
+      combined.push(...promisedAlbums);
+      combined.push(...promisedSongs);
+      for (const [_, item] of combined) {
+        if (item) await insertMediaItem(item);
+      }
     }
   }
 
   private async bundlePromises(
     func: Function,
     api: JellyfinApi,
-    items: Promise<[BaseItemDto, MediaItem | undefined][]>,
+    items: [BaseItemDto, MediaItem | undefined][],
     itemType: BaseItemKind,
     provider?: JellyfinProvider,
   ) {
     const pool: Promise<[BaseItemDto, MediaItem | undefined][]>[] = [];
 
-    for (const item of await items) {
+    for (const item of items) {
       pool.push(func(api, item, itemType, provider));
     }
 
@@ -298,11 +304,9 @@ export class JellyfinProvider implements Provider {
 
     if (parent) init.parents.push(parent);
     init.providers.push(provider);
-    init.content.push(...provider.getItemContent(item));
+    init.content.push(...provider.getItemContent(item, init));
     init.images.push(...(await images));
 
-    console.log(init);
-    await insertMediaItem(init);
     return init;
   }
 
@@ -327,17 +331,35 @@ export class JellyfinProvider implements Provider {
     return images;
   }
 
-  private getItemContent(item: BaseItemDto) {
+  private getItemContent(item: BaseItemDto, init: MediaItem) {
     const info: ContentItem[] = [];
 
-    if (item.Name) info.push({ type: "Name", description: item.Name });
-    if (item.Album) info.push({ type: "Album", description: item.Album });
+    if (item.Name)
+      info.push({ type: "Name", description: item.Name, parentId: init.uuid });
+    if (item.Album)
+      info.push({
+        type: "Album",
+        description: item.Album,
+        parentId: init.uuid,
+      });
     if (item.AlbumArtist)
-      info.push({ type: "Artists", description: item.AlbumArtist });
+      info.push({
+        type: "Artists",
+        description: item.AlbumArtist,
+        parentId: init.uuid,
+      });
     if (item.Container)
-      info.push({ type: "Container", description: item.Container });
+      info.push({
+        type: "Container",
+        description: item.Container,
+        parentId: init.uuid,
+      });
     if (item.PremiereDate)
-      info.push({ type: "Release-Date", description: item.PremiereDate });
+      info.push({
+        type: "Release-Date",
+        description: item.PremiereDate,
+        parentId: init.uuid,
+      });
 
     return info;
   }

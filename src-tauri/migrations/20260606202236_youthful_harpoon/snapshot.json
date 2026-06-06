@@ -1,9 +1,9 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "09847f01-9c19-4d49-837b-f0bea7c4c516",
+  "id": "b1a4f407-1f75-4fa0-99ef-a29ba9b1eafa",
   "prevIds": [
-    "a1393168-90dd-43b1-b0dc-b6b130c2e6ef"
+    "00000000-0000-0000-0000-000000000000"
   ],
   "ddl": [
     {
@@ -45,7 +45,7 @@
       "table": "ContentItems"
     },
     {
-      "type": "integer",
+      "type": "text",
       "notNull": true,
       "autoincrement": false,
       "default": null,
@@ -56,7 +56,7 @@
     },
     {
       "type": "text",
-      "notNull": false,
+      "notNull": true,
       "autoincrement": false,
       "default": "''",
       "generated": null,
@@ -66,9 +66,9 @@
     },
     {
       "type": "text",
-      "notNull": false,
+      "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "''",
       "generated": null,
       "name": "description",
       "entityType": "columns",
@@ -186,7 +186,7 @@
     },
     {
       "type": "text",
-      "notNull": false,
+      "notNull": true,
       "autoincrement": false,
       "default": null,
       "generated": null,
@@ -236,7 +236,7 @@
     },
     {
       "type": "text",
-      "notNull": false,
+      "notNull": true,
       "autoincrement": false,
       "default": "''",
       "generated": null,
@@ -635,7 +635,5 @@
       "table": "ProviderItems"
     }
   ],
-  "renames": [
-    "ImageItems.providerId->ImageItems.serverId"
-  ]
+  "renames": []
 }

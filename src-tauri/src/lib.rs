@@ -22,81 +22,9 @@ pub fn run() {
         Migration {
             version: 1,
             description: "create_initial_tables",
-            sql: include_str!("../migrations/20260516160712_married_switch/migration.sql"),
+            sql: include_str!("../migrations/20260606202236_youthful_harpoon/migration.sql"),
             kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 2,
-            description: "add item type",
-            sql: include_str!("../migrations/20260517092712_mushy_giant_man/migration.sql"),
-            kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 3,
-            description: "make all none null",
-            sql: include_str!("../migrations/20260517102756_loose_pandemic/migration.sql"),
-            kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 4,
-            description: "integrate betterauth",
-            sql: include_str!("../migrations/20260527141800_last_black_tom/migration.sql"),
-            kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 5,
-            description: "add server table",
-            sql: include_str!("../migrations/20260531090213_dear_random/migration.sql"),
-            kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 6,
-            description: "change type of server id",
-            sql: include_str!("../migrations/20260531091022_dark_mentallo/migration.sql"),
-            kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 7,
-            description: "add provider type",
-            sql: include_str!("../migrations/20260531095232_gifted_mariko_yashida/migration.sql"),
-            kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 8,
-            description: "rename",
-            sql: include_str!("../migrations/20260531111218_thin_sersi/migration.sql"),
-            kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 9,
-            description: "add provider user",
-            sql: include_str!("../migrations/20260601151022_material_timeslip/migration.sql"),
-            kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 10,
-            description: "separate serverId & userId",
-            sql: include_str!("../migrations/20260601202016_tranquil_mephisto/migration.sql"),
-            kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 11,
-            description: "confused",
-            sql: include_str!("../migrations/20260601214120_harsh_marvel_apes/migration.sql"),
-            kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 12,
-            description: "new internal datastructure",
-            sql: include_str!("../migrations/20260604161431_fat_hemingway/migration.sql"),
-            kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 13,
-            description: "fix some attributes",
-            sql: include_str!("../migrations/20260606115628_many_blacklash/migration.sql"),
-            kind: MigrationKind::Up,
-        },
+        }    
     ];
 
     tauri::Builder::default()

@@ -21,7 +21,7 @@ class BaseItem implements MediaItem {
 }
 
 export class SongItem extends BaseItem {
-  override type = BaseItem.name;
+  override type = SongItem.name;
   override outlineGradient = "ring-[#C2381D]";
 }
 
