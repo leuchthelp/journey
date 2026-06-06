@@ -1,1 +1,0 @@
-ALTER TABLE `MediaItems` ADD `type` text DEFAULT 'MediaItem';

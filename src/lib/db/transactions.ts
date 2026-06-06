@@ -21,17 +21,18 @@ type TransactionType = SQLiteTransaction<
 
 export const insertMediaItem = async (item: MediaItem) => {
   await db.transaction(async (tx) => {
-    const [newItemId] = await tx
-      .insert(mediaItems)
-      .values(item)
-      .onConflictDoNothing()
-      .returning({ id: mediaItems.id });
+    await tx.insert(mediaItems).values(item);
 
+    const newItemId = await tx.query.mediaItems.findFirst({
+      where: { uuid: item.uuid },
+      columns: { id: true },
+    });
+
+    console.log(newItemId);
     if (newItemId) {
       // Add reference to parents from child
       // Will also tell the parent which children it has
       // via the junction table
-      console.log(item.parents);
       for (const parent of item.parents) {
         const parentId = await tx.query.mediaItems.findFirst({
           where: { uuid: parent.uuid },
@@ -74,7 +75,6 @@ const providerTransaction = async (
       where: { serverId: provider.serverId },
       columns: { id: true },
     });
-
     if (providerId)
       await tx.insert(mediaItemToProviderItem).values({
         mediaItemId: newItemId,
@@ -89,11 +89,12 @@ const imageTransaction = async (
   newItemId: number,
 ) => {
   for (const image of item.images) {
-    const [imageId] = await tx
-      .insert(imageItems)
-      .values(image)
-      .onConflictDoNothing()
-      .returning({ id: imageItems.id });
+    await tx.insert(imageItems).values(image);
+
+    const imageId = await tx.query.imageItems.findFirst({
+      where: { url: image.url },
+      columns: { id: true },
+    });
 
     if (imageId)
       await tx.insert(mediaItemToImageItem).values({

@@ -173,7 +173,7 @@ export class JellyfinProvider implements Provider {
     if (this._api) {
       const api = this._api;
 
-      const libraries = this.getLibraryItems(api).then((libraries) => {
+      const libraries = await this.getLibraryItems(api).then((libraries) => {
         let mappedLibraries: [BaseItemDto, undefined][] = [];
         for (let i = 0; i < libraries.length; i++) {
           mappedLibraries.push([libraries[i]!, undefined]);
@@ -182,7 +182,7 @@ export class JellyfinProvider implements Provider {
         return mappedLibraries;
       });
 
-      const promisedArtists = this.bundlePromises(
+      const promisedArtists = await this.bundlePromises(
         this.getChildren,
         api,
         libraries,
@@ -190,43 +190,46 @@ export class JellyfinProvider implements Provider {
         this,
       );
 
-      const promisedAlbums = this.bundlePromises(
-        this.getChildren,
-        api,
-        promisedArtists,
-        BaseItemKind.MusicAlbum,
-        this,
-      );
+      // const promisedAlbums = await this.bundlePromises(
+      //   this.getChildren,
+      //   api,
+      //   promisedArtists,
+      //   BaseItemKind.MusicAlbum,
+      //   this,
+      // );
 
-      const promisedSongs = this.bundlePromises(
-        this.getChildren,
-        api,
-        promisedAlbums,
-        BaseItemKind.Audio,
-        this,
-      );
+      // const promisedSongs = await this.bundlePromises(
+      //   this.getChildren,
+      //   api,
+      //   promisedAlbums,
+      //   BaseItemKind.Audio,
+      //   this,
+      // );
 
       const combined = [];
-      combined.push(...(await promisedArtists));
-      combined.push(...(await promisedAlbums));
-      combined.push(...(await promisedSongs));
-      for (const [_, item] of combined) {
-        console.log(item);
-        if (item) await insertMediaItem(item);
-      }
+      //combined.push(promisedArtists);
+      // combined.push(...promisedAlbums);
+      // combined.push(...promisedSongs);
+      // for (const [_, item] of combined) {
+      //   console.log(item);
+      //   if (item) await insertMediaItem(item);
+      // }
+      const test = promisedArtists.at(0);
+      const test2 = test?.at(1);
+      if (test) await insertMediaItem(test2);
     }
   }
 
   private async bundlePromises(
     func: Function,
     api: JellyfinApi,
-    items: Promise<[BaseItemDto, MediaItem | undefined][]>,
+    items: [BaseItemDto, MediaItem | undefined][],
     itemType: BaseItemKind,
     provider?: JellyfinProvider,
   ) {
     const pool: Promise<[BaseItemDto, MediaItem | undefined][]>[] = [];
 
-    for (const item of await items) {
+    for (const item of items) {
       pool.push(func(api, item, itemType, provider));
     }
 
