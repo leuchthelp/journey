@@ -7,7 +7,7 @@ import type { LayoutLoad } from "./$types";
 
 export const load: LayoutLoad = async () => {
   //await db.delete(providerItems)
-  //await db.delete(mediaItems)
+  await db.delete(mediaItems)
   return {
     post: await providerDataQuery.execute(),
   };

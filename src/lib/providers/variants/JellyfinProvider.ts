@@ -77,14 +77,14 @@ export class JellyfinProvider implements Provider {
       return;
     }
 
-    const auth = await getUserApi(this._api || error(404)).authenticateUserByName(
-      {
-        authenticateUserByName: {
-          Username: uname,
-          Pw: psw,
-        },
+    const auth = await getUserApi(
+      this._api || error(404),
+    ).authenticateUserByName({
+      authenticateUserByName: {
+        Username: uname,
+        Pw: psw,
       },
-    );
+    });
 
     if (auth.data.AccessToken && auth.data.ServerId && auth.data.User?.Id) {
       this.setServerId(auth.data.ServerId);
@@ -182,7 +182,7 @@ export class JellyfinProvider implements Provider {
         return mappedLibraries;
       });
 
-      const promisedArtists = this.bundlePromises(
+      const promisedArtists = await this.bundlePromises(
         this.getChildren,
         api,
         libraries,
@@ -190,23 +190,28 @@ export class JellyfinProvider implements Provider {
         this,
       );
 
-      const promisedAlbums = this.bundlePromises(
-        this.getChildren,
-        api,
-        promisedArtists,
-        BaseItemKind.MusicAlbum,
-        this,
-      );
+      for (const [_, item] of promisedArtists) {
+        console.log(item)
+        if (item) await insertMediaItem(item);
+      }
 
-      const promisedSongs = this.bundlePromises(
-        this.getChildren,
-        api,
-        promisedAlbums,
-        BaseItemKind.Audio,
-        this,
-      );
+      // const promisedAlbums = this.bundlePromises(
+      //   this.getChildren,
+      //   api,
+      //   promisedArtists,
+      //   BaseItemKind.MusicAlbum,
+      //   this,
+      // );
 
-      await promisedSongs;
+      // const promisedSongs = this.bundlePromises(
+      //   this.getChildren,
+      //   api,
+      //   promisedAlbums,
+      //   BaseItemKind.Audio,
+      //   this,
+      // );
+
+      // await promisedSongs;
     }
   }
 
@@ -301,8 +306,7 @@ export class JellyfinProvider implements Provider {
     init.content.push(...provider.getItemContent(item));
     init.images.push(...(await images));
 
-    console.log(init);
-    await insertMediaItem(init);
+    //console.log(init);
     return init;
   }
 

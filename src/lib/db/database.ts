@@ -20,16 +20,21 @@ export const db = drizzle(
     let results = [];
     // If the query is a SELECT, use the select method
     if (isSelectQuery(sql)) {
-      rows = await sqlite.select(sql, params).catch((e) => {
-        console.error("SQL Error:", e);
-        throw e;
-      });
+      rows = await sqlite
+        .select(sql, params)
+        .catch((e) => {
+          console.error("SQL Error:", e);
+          throw e;
+        }).finally(() => console.warn("SQL warn:", sql, params));
     } else {
       // Otherwise, use the execute method
-      rows = await sqlite.execute(sql, params).catch((e) => {
-        console.error("SQL Error:", e);
-        throw e;
-      });
+      rows = await sqlite
+        .execute(sql, params)
+        .catch((e) => {
+          console.error("SQL Error:", e);
+          throw e;
+        })
+        .finally(() => console.warn("SQL warn:", sql, params));
       return { rows: [] };
     }
 
