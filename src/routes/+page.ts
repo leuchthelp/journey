@@ -29,5 +29,7 @@ export const load: PageLoad = async () => {
   }
 
   res = await mainPageDataQuery.execute({ limit: 6 });
+
+  console.log(res)
   return { post: res };
 };

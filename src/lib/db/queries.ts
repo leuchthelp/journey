@@ -8,7 +8,7 @@ export const singlePageDataQuery = db.query.mediaItems
     with: {
       content: { columns: { id: false } },
       providers: { columns: { id: false } },
-      images: { columns: { id: false, providerId: false } },
+      images: { columns: { id: false } },
       parents: {
         columns: { uuid: true },
       },
@@ -23,7 +23,7 @@ export const mainPageDataQuery = db.query.mediaItems
     with: {
       content: { columns: { id: false } },
       providers: { columns: { id: false } },
-      images: { columns: { id: false, providerId: false } },
+      images: { columns: { id: false } },
       parents: { columns: { uuid: true } },
     },
   })
