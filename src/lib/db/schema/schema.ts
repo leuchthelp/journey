@@ -15,7 +15,7 @@ export const mediaItems = sqliteTable("MediaItems", {
     .default("m-0.5 h-24 w-24 rounded-xl bg-amber-200 ring")
     .notNull(),
   loaded: integer("loaded", { mode: "boolean" }).default(false).notNull(),
-  local: text("local").default(""),
+  local: text("local").default("").notNull(),
 });
 
 export const mediaItemChildren = sqliteTable(

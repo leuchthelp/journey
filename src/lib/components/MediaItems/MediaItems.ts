@@ -5,14 +5,14 @@ import type {
   ImageItem,
 } from "../../db/schema/schema";
 
-export class SongItem implements MediaItem {
-  type = SongItem.name;
-  outlineGradient = "ring-[#C2381D]";
+class BaseItem implements MediaItem {
+  type!: string;
+  outlineGradient!: string;
 
   uuid!: string;
   defaultStyling!: string;
   loaded!: boolean;
-  local!: string | null;
+  local!: string;
 
   content: ContentItem[] = [];
   providers: ProviderItem[] = [];
@@ -20,62 +20,27 @@ export class SongItem implements MediaItem {
   parents: ParentItem[] = [];
 }
 
-export class ArtistItem implements MediaItem {
-  type = ArtistItem.name;
-  outlineGradient = "ring-[#D42CA4]";
-
-  uuid!: string;
-  defaultStyling!: string;
-  loaded!: boolean;
-  local!: string | null;
-
-  content: ContentItem[] = [];
-  providers: ProviderItem[] = [];
-  images: ImageItem[] = [];
-  parents: ParentItem[] = [];
+export class SongItem extends BaseItem {
+  override type = BaseItem.name;
+  override outlineGradient = "ring-[#C2381D]";
 }
 
-export class GenreItem implements MediaItem {
-  type = GenreItem.name;
-  outlineGradient = "ring-[#2C8FD4]";
-
-  uuid!: string;
-  defaultStyling!: string;
-  loaded!: boolean;
-  local!: string | null;
-
-  content: ContentItem[] = [];
-  providers: ProviderItem[] = [];
-  images: ImageItem[] = [];
-  parents: ParentItem[] = [];
+export class ArtistItem extends BaseItem {
+  override type = ArtistItem.name;
+  override outlineGradient = "ring-[#D42CA4]";
 }
 
-export class PlaylistItem implements MediaItem {
-  type = PlaylistItem.name;
-  outlineGradient = "ring-[#42D42C]";
-
-  uuid!: string;
-  defaultStyling!: string;
-  loaded!: boolean;
-  local!: string | null;
-
-  content: ContentItem[] = [];
-  providers: ProviderItem[] = [];
-  images: ImageItem[] = [];
-  parents: ParentItem[] = [];
+export class GenreItem extends BaseItem {
+  override type = GenreItem.name;
+  override outlineGradient = "ring-[#2C8FD4]";
 }
 
-export class AlbumItem implements MediaItem {
-  type = AlbumItem.name;
-  outlineGradient = "ring-[#D42CA4]";
+export class PlaylistItem extends BaseItem {
+  override type = PlaylistItem.name;
+  override outlineGradient = "ring-[#42D42C]";
+}
 
-  uuid!: string;
-  defaultStyling!: string;
-  loaded!: boolean;
-  local!: string | null;
-
-  content: ContentItem[] = [];
-  providers: ProviderItem[] = [];
-  images: ImageItem[] = [];
-  parents: ParentItem[] = [];
+export class AlbumItem extends BaseItem {
+  override type = AlbumItem.name;
+  override outlineGradient = "ring-[#D42CA4]";
 }
