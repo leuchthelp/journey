@@ -30,7 +30,7 @@ class ProviderManager implements IProviderManager {
   }
 
   public existsProviderWith(userId: string): boolean {
-    let tmp = this.providers.filter((provider) => provider.userId === userId);
+    const tmp = this.providers.filter((provider) => provider.userId === userId);
     return tmp.length > 0 ? true : false;
   }
 
@@ -39,18 +39,18 @@ class ProviderManager implements IProviderManager {
   }
 
   public removeProvider(provider: Provider) {
-    let index = this.providers.indexOf(provider);
+    const index = this.providers.indexOf(provider);
     delete this.providers[index];
   }
 
   public initProvider(providerItems: ProviderItem[]) {
     providerItems.forEach((providerItem) => {
       if (providerOptions.has(providerItem.type)) {
-        let accessToken =
+        const accessToken =
           localStorage.getItem(`${providerItem.serverId}Token`) || undefined;
 
-        let provider = providerOptions.get(providerItem.type)!;
-        let init = new provider(
+        const provider = providerOptions.get(providerItem.type)!;
+        const init = new provider(
           providerItem.serverId,
           providerItem.url,
           providerItem.userId,

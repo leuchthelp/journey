@@ -1,4 +1,3 @@
-import { eq } from "drizzle-orm";
 import { db } from "./database";
 import type { MediaItem } from "./relations";
 import {
@@ -7,7 +6,6 @@ import {
   mediaItems,
   mediaItemToImageItem,
   mediaItemToProviderItem,
-  providerItems,
 } from "./schema/schema";
 
 import { SQLiteTransaction } from "drizzle-orm/sqlite-core";
@@ -34,18 +32,16 @@ export const insertMediaItem = async (item: MediaItem) => {
       // Will also tell the parent which children it has
       // via the junction table
       for (const parent of item.parents) {
-        if (parent.uuid) {
-          const [parentId] = await tx
-            .select({ id: mediaItems.id })
-            .from(mediaItems)
-            .where(eq(mediaItems.uuid, parent.uuid));
+        const parentId = await tx.query.mediaItems.findFirst({
+          where: { uuid: parent.uuid },
+          columns: { id: true },
+        });
 
-          if (parentId)
-            await tx.insert(mediaItemChildren).values({
-              childId: newItemId.id,
-              parentId: parentId.id,
-            });
-        }
+        if (parentId)
+          await tx.insert(mediaItemChildren).values({
+            childId: newItemId.id,
+            parentId: parentId.id,
+          });
       }
 
       // Add reference to provider junction table
@@ -73,10 +69,10 @@ const providerTransaction = async (
   newItemId: number,
 ) => {
   for (const provider of item.providers) {
-    const [providerId] = await tx
-      .select({ id: providerItems.id })
-      .from(providerItems)
-      .where(eq(providerItems.serverId, provider.serverId));
+    const providerId = await tx.query.providerItems.findFirst({
+      where: { serverId: provider.serverId },
+      columns: { id: true },
+    });
 
     if (providerId)
       await tx.insert(mediaItemToProviderItem).values({

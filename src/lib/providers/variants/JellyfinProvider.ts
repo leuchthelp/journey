@@ -8,6 +8,7 @@ import {
   type BaseItemDto,
 } from "@jellyfin/sdk/lib/generated-client/models";
 import { error } from "@sveltejs/kit";
+import { v7 as uuidv7 } from "uuid";
 
 import type { Provider } from "./Provider";
 import { device, uuid } from "../shared";
@@ -20,6 +21,7 @@ import { providerManager } from "../ProviderManager";
 import { mapJellyfinOptions } from ".";
 import type { MediaItem } from "$lib/db/relations";
 import { db } from "$lib/db/database";
+import { insertMediaItem } from "$lib/db/transactions";
 
 export class JellyfinProvider implements Provider {
   readonly client: Jellyfin;
@@ -75,7 +77,7 @@ export class JellyfinProvider implements Provider {
       return;
     }
 
-    let auth = await getUserApi(this._api || error(404)).authenticateUserByName(
+    const auth = await getUserApi(this._api || error(404)).authenticateUserByName(
       {
         authenticateUserByName: {
           Username: uname,
@@ -169,9 +171,9 @@ export class JellyfinProvider implements Provider {
 
   async indexFiles(): Promise<void> {
     if (this._api) {
-      let api = this._api;
+      const api = this._api;
 
-      let libraries = this.getLibraryItems(api).then((libraries) => {
+      const libraries = this.getLibraryItems(api).then((libraries) => {
         let mappedLibraries: [BaseItemDto, undefined][] = [];
         for (let i = 0; i < libraries.length; i++) {
           mappedLibraries.push([libraries[i]!, undefined]);
@@ -180,7 +182,7 @@ export class JellyfinProvider implements Provider {
         return mappedLibraries;
       });
 
-      let promisedArtists = this.bundlePromises(
+      const promisedArtists = this.bundlePromises(
         this.getChildren,
         api,
         libraries,
@@ -188,7 +190,7 @@ export class JellyfinProvider implements Provider {
         this,
       );
 
-      let promisedAlbums = this.bundlePromises(
+      const promisedAlbums = this.bundlePromises(
         this.getChildren,
         api,
         promisedArtists,
@@ -196,7 +198,7 @@ export class JellyfinProvider implements Provider {
         this,
       );
 
-      let promisedSongs = this.bundlePromises(
+      const promisedSongs = this.bundlePromises(
         this.getChildren,
         api,
         promisedAlbums,
@@ -215,14 +217,13 @@ export class JellyfinProvider implements Provider {
     itemType: BaseItemKind,
     provider?: JellyfinProvider,
   ) {
-    let pool: Promise<[BaseItemDto, MediaItem | undefined][]>[] = [];
+    const pool: Promise<[BaseItemDto, MediaItem | undefined][]>[] = [];
 
     for (const item of await items) {
       pool.push(func(api, item, itemType, provider));
     }
 
-    let tmp = await Promise.all(pool);
-    return tmp.flat();
+    return (await Promise.all(pool)).flat();
   }
 
   private async getLibraryItems(api: JellyfinApi): Promise<BaseItemDto[]> {
@@ -235,7 +236,7 @@ export class JellyfinProvider implements Provider {
     itemType: BaseItemKind,
     provider?: JellyfinProvider,
   ): Promise<[BaseItemDto, MediaItem | undefined][]> {
-    let tmp =
+    const tmp =
       (await getItemsApi(api).getItems({ parentId: parent[0].Id })).data
         .Items ?? [];
     tmp.filter((item) => item.Type === itemType);
@@ -279,20 +280,20 @@ export class JellyfinProvider implements Provider {
     itemType: BaseItemKind,
     provider: JellyfinProvider,
   ) {
-    let mediaItem = mapJellyfinOptions.get(itemType)!;
+    const mediaItem = mapJellyfinOptions.get(itemType)!;
 
-    let init = new mediaItem();
-    let images = provider.getImageInfoObject(api, item, provider);
+    const init = new mediaItem();
+    const images = provider.getImageInfoObject(api, item, provider);
 
-    let userData = item.UserData;
+    const userData = item.UserData;
 
     if (userData) {
-      let i = userData.Key ?? "";
+      const key = userData.Key ?? "";
 
       const regex =
         /[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}/;
-      let musicbrainzId = i.match(regex)?.toString();
-      init.uuid = musicbrainzId ?? "";
+      const musicbrainzId = key.match(regex)?.toString();
+      init.uuid = musicbrainzId ?? uuidv7() + "-tmp";
     }
 
     if (parent) init.parents.push(parent);
@@ -300,6 +301,8 @@ export class JellyfinProvider implements Provider {
     init.content.push(...provider.getItemContent(item));
     init.images.push(...(await images));
 
+    console.log(init);
+    await insertMediaItem(init);
     return init;
   }
 
@@ -308,11 +311,11 @@ export class JellyfinProvider implements Provider {
     item: BaseItemDto,
     provider: JellyfinProvider,
   ) {
-    let info = await getImageApi(api).getItemImageInfos({
+    const info = await getImageApi(api).getItemImageInfos({
       itemId: item.Id!,
     });
 
-    let images: ImageItem[] = [];
+    const images: ImageItem[] = [];
 
     for (const entry of info.data) {
       images.push({
@@ -325,7 +328,7 @@ export class JellyfinProvider implements Provider {
   }
 
   private getItemContent(item: BaseItemDto) {
-    let info: ContentItem[] = [];
+    const info: ContentItem[] = [];
 
     if (item.Name) info.push({ type: "Name", description: item.Name });
     if (item.Album) info.push({ type: "Album", description: item.Album });

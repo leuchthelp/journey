@@ -9,7 +9,7 @@ export class SongItem implements MediaItem {
   type = SongItem.name;
   outlineGradient = "ring-[#C2381D]";
 
-  uuid!: string | null;
+  uuid!: string;
   defaultStyling!: string;
   loaded!: boolean;
   local!: string | null;
@@ -24,7 +24,7 @@ export class ArtistItem implements MediaItem {
   type = ArtistItem.name;
   outlineGradient = "ring-[#D42CA4]";
 
-  uuid!: string | null;
+  uuid!: string;
   defaultStyling!: string;
   loaded!: boolean;
   local!: string | null;
@@ -39,7 +39,7 @@ export class GenreItem implements MediaItem {
   type = GenreItem.name;
   outlineGradient = "ring-[#2C8FD4]";
 
-  uuid!: string | null;
+  uuid!: string;
   defaultStyling!: string;
   loaded!: boolean;
   local!: string | null;
@@ -54,7 +54,7 @@ export class PlaylistItem implements MediaItem {
   type = PlaylistItem.name;
   outlineGradient = "ring-[#42D42C]";
 
-  uuid!: string | null;
+  uuid!: string;
   defaultStyling!: string;
   loaded!: boolean;
   local!: string | null;
@@ -69,7 +69,7 @@ export class AlbumItem implements MediaItem {
   type = AlbumItem.name;
   outlineGradient = "ring-[#D42CA4]";
 
-  uuid!: string | null;
+  uuid!: string;
   defaultStyling!: string;
   loaded!: boolean;
   local!: string | null;

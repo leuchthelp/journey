@@ -8,7 +8,7 @@ import {
 
 export const mediaItems = sqliteTable("MediaItems", {
   id: integer("id").primaryKey(),
-  uuid: text("uuid").unique(),
+  uuid: text("uuid").unique().notNull(),
   type: text("type").default("MediaItem").notNull(),
   outlineGradient: text("outlineGradient").default("ring-[#C2381D]").notNull(),
   defaultStyling: text("defaultStyling")
