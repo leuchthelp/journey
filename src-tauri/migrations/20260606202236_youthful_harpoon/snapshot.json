@@ -1,7 +1,7 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "b7732147-1f82-4bbc-a66d-9b15571149af",
+  "id": "b1a4f407-1f75-4fa0-99ef-a29ba9b1eafa",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -45,7 +45,7 @@
       "table": "ContentItems"
     },
     {
-      "type": "integer",
+      "type": "text",
       "notNull": true,
       "autoincrement": false,
       "default": null,
@@ -56,7 +56,7 @@
     },
     {
       "type": "text",
-      "notNull": false,
+      "notNull": true,
       "autoincrement": false,
       "default": "''",
       "generated": null,
@@ -66,9 +66,9 @@
     },
     {
       "type": "text",
-      "notNull": false,
+      "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "''",
       "generated": null,
       "name": "description",
       "entityType": "columns",

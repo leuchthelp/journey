@@ -46,9 +46,9 @@ export const contentItems = sqliteTable(
   "ContentItems",
   {
     id: integer("id").primaryKey(),
-    parentId: integer("parentId").notNull(),
-    type: text("type").default(""),
-    description: text("description"),
+    parentId: text("parentId").notNull(),
+    type: text("type").default("").notNull(),
+    description: text("description").default("").notNull(),
   },
   (t) => [index("ContentToItemId_idx").on(t.parentId)],
 );
@@ -127,9 +127,6 @@ Type Exports
 */
 
 // export type MediaItem = typeof mediaItems.$inferSelect;
-export type ContentItem = Omit<
-  typeof contentItems.$inferSelect,
-  "id" | "parentId"
->;
+export type ContentItem = Omit<typeof contentItems.$inferSelect, "id">;
 export type ProviderItem = Omit<typeof providerItems.$inferSelect, "id">;
 export type ImageItem = Omit<typeof imageItems.$inferSelect, "id">;

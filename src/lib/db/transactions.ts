@@ -1,6 +1,7 @@
 import { db } from "./database";
 import type { MediaItem } from "./relations";
 import {
+  contentItems,
   imageItems,
   mediaItemChildren,
   mediaItems,
@@ -21,14 +22,13 @@ type TransactionType = SQLiteTransaction<
 
 export const insertMediaItem = async (item: MediaItem) => {
   await db.transaction(async (tx) => {
-    await tx.insert(mediaItems).values(item);
+    await tx.insert(mediaItems).values(item).onConflictDoNothing();
 
     const newItemId = await tx.query.mediaItems.findFirst({
       where: { uuid: item.uuid },
       columns: { id: true },
     });
 
-    console.log(newItemId);
     if (newItemId) {
       // Add reference to parents from child
       // Will also tell the parent which children it has
@@ -40,11 +40,18 @@ export const insertMediaItem = async (item: MediaItem) => {
         });
 
         if (parentId)
-          await tx.insert(mediaItemChildren).values({
-            childId: newItemId.id,
-            parentId: parentId.id,
-          });
+          await tx
+            .insert(mediaItemChildren)
+            .values({
+              childId: newItemId.id,
+              parentId: parentId.id,
+            })
+            .onConflictDoNothing();
       }
+
+      await tx.transaction(async (tx2) => {
+        await contentTransaction(tx2, item);
+      });
 
       // Add reference to provider junction table
       // of which providers the Item can be got from.
@@ -65,6 +72,12 @@ export const insertMediaItem = async (item: MediaItem) => {
   });
 };
 
+const contentTransaction = async (tx: TransactionType, item: MediaItem) => {
+  for (const content of item.content) {
+    await tx.insert(contentItems).values(content).onConflictDoNothing();
+  }
+};
+
 const providerTransaction = async (
   tx: TransactionType,
   item: MediaItem,
@@ -76,10 +89,13 @@ const providerTransaction = async (
       columns: { id: true },
     });
     if (providerId)
-      await tx.insert(mediaItemToProviderItem).values({
-        mediaItemId: newItemId,
-        providerItemId: providerId.id,
-      });
+      await tx
+        .insert(mediaItemToProviderItem)
+        .values({
+          mediaItemId: newItemId,
+          providerItemId: providerId.id,
+        })
+        .onConflictDoNothing();
   }
 };
 
@@ -89,7 +105,7 @@ const imageTransaction = async (
   newItemId: number,
 ) => {
   for (const image of item.images) {
-    await tx.insert(imageItems).values(image);
+    await tx.insert(imageItems).values(image).onConflictDoNothing();
 
     const imageId = await tx.query.imageItems.findFirst({
       where: { url: image.url },
@@ -97,9 +113,12 @@ const imageTransaction = async (
     });
 
     if (imageId)
-      await tx.insert(mediaItemToImageItem).values({
-        mediaItemId: newItemId,
-        imageItemId: imageId.id,
-      });
+      await tx
+        .insert(mediaItemToImageItem)
+        .values({
+          mediaItemId: newItemId,
+          imageItemId: imageId.id,
+        })
+        .onConflictDoNothing();
   }
 };

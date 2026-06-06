@@ -1,8 +1,8 @@
 CREATE TABLE `ContentItems` (
 	`id` integer PRIMARY KEY,
-	`parentId` integer NOT NULL,
-	`type` text DEFAULT '',
-	`description` text
+	`parentId` text NOT NULL,
+	`type` text DEFAULT '' NOT NULL,
+	`description` text DEFAULT '' NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `ImageItems` (

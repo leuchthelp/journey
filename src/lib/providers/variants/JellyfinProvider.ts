@@ -190,33 +190,29 @@ export class JellyfinProvider implements Provider {
         this,
       );
 
-      // const promisedAlbums = await this.bundlePromises(
-      //   this.getChildren,
-      //   api,
-      //   promisedArtists,
-      //   BaseItemKind.MusicAlbum,
-      //   this,
-      // );
+      const promisedAlbums = await this.bundlePromises(
+        this.getChildren,
+        api,
+        promisedArtists,
+        BaseItemKind.MusicAlbum,
+        this,
+      );
 
-      // const promisedSongs = await this.bundlePromises(
-      //   this.getChildren,
-      //   api,
-      //   promisedAlbums,
-      //   BaseItemKind.Audio,
-      //   this,
-      // );
+      const promisedSongs = await this.bundlePromises(
+        this.getChildren,
+        api,
+        promisedAlbums,
+        BaseItemKind.Audio,
+        this,
+      );
 
       const combined = [];
-      //combined.push(promisedArtists);
-      // combined.push(...promisedAlbums);
-      // combined.push(...promisedSongs);
-      // for (const [_, item] of combined) {
-      //   console.log(item);
-      //   if (item) await insertMediaItem(item);
-      // }
-      const test = promisedArtists.at(0);
-      const test2 = test?.at(1);
-      if (test) await insertMediaItem(test2);
+      combined.push(...promisedArtists);
+      combined.push(...promisedAlbums);
+      combined.push(...promisedSongs);
+      for (const [_, item] of combined) {
+        if (item) await insertMediaItem(item);
+      }
     }
   }
 
@@ -308,7 +304,7 @@ export class JellyfinProvider implements Provider {
 
     if (parent) init.parents.push(parent);
     init.providers.push(provider);
-    init.content.push(...provider.getItemContent(item));
+    init.content.push(...provider.getItemContent(item, init));
     init.images.push(...(await images));
 
     return init;
@@ -335,17 +331,35 @@ export class JellyfinProvider implements Provider {
     return images;
   }
 
-  private getItemContent(item: BaseItemDto) {
+  private getItemContent(item: BaseItemDto, init: MediaItem) {
     const info: ContentItem[] = [];
 
-    if (item.Name) info.push({ type: "Name", description: item.Name });
-    if (item.Album) info.push({ type: "Album", description: item.Album });
+    if (item.Name)
+      info.push({ type: "Name", description: item.Name, parentId: init.uuid });
+    if (item.Album)
+      info.push({
+        type: "Album",
+        description: item.Album,
+        parentId: init.uuid,
+      });
     if (item.AlbumArtist)
-      info.push({ type: "Artists", description: item.AlbumArtist });
+      info.push({
+        type: "Artists",
+        description: item.AlbumArtist,
+        parentId: init.uuid,
+      });
     if (item.Container)
-      info.push({ type: "Container", description: item.Container });
+      info.push({
+        type: "Container",
+        description: item.Container,
+        parentId: init.uuid,
+      });
     if (item.PremiereDate)
-      info.push({ type: "Release-Date", description: item.PremiereDate });
+      info.push({
+        type: "Release-Date",
+        description: item.PremiereDate,
+        parentId: init.uuid,
+      });
 
     return info;
   }
