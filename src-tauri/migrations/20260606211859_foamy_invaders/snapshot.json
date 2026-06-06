@@ -1,7 +1,7 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "1328b1ba-5d8c-4bc2-bee7-fa1870ce9ea5",
+  "id": "14135973-94bf-45c0-91d5-87c77f474467",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -68,7 +68,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": "''",
+      "default": null,
       "generated": null,
       "name": "description",
       "entityType": "columns",
@@ -108,7 +108,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": "''",
+      "default": null,
       "generated": null,
       "name": "url",
       "entityType": "columns",
@@ -618,19 +618,19 @@
     },
     {
       "columns": [
-        "type"
+        "description"
       ],
       "nameExplicit": false,
-      "name": "ContentItems_type_unique",
+      "name": "ContentItems_description_unique",
       "entityType": "uniques",
       "table": "ContentItems"
     },
     {
       "columns": [
-        "type"
+        "url"
       ],
       "nameExplicit": false,
-      "name": "ImageItems_type_unique",
+      "name": "ImageItems_url_unique",
       "entityType": "uniques",
       "table": "ImageItems"
     },

@@ -47,8 +47,8 @@ export const contentItems = sqliteTable(
   {
     id: integer("id").primaryKey(),
     parentId: text("parentId").notNull(),
-    type: text("type").unique().notNull(),
-    description: text("description").default("").notNull(),
+    type: text("type").notNull(),
+    description: text("description").unique().notNull(),
   },
   (t) => [index("ContentToItemId_idx").on(t.parentId)],
 );
@@ -96,8 +96,8 @@ export const imageItems = sqliteTable(
   {
     id: integer("id").primaryKey(),
     serverId: text("serverId").default("").notNull(),
-    type: text("type").unique().notNull(),
-    url: text("url").default("").notNull(),
+    type: text("type").notNull(),
+    url: text("url").unique().notNull(),
   },
   (t) => [index("ImageProviderId_idx").on(t.serverId)],
 );

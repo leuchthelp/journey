@@ -1,15 +1,15 @@
 CREATE TABLE `ContentItems` (
 	`id` integer PRIMARY KEY,
 	`parentId` text NOT NULL,
-	`type` text NOT NULL UNIQUE,
-	`description` text DEFAULT '' NOT NULL
+	`type` text NOT NULL,
+	`description` text NOT NULL UNIQUE
 );
 --> statement-breakpoint
 CREATE TABLE `ImageItems` (
 	`id` integer PRIMARY KEY,
 	`serverId` text DEFAULT '' NOT NULL,
-	`type` text NOT NULL UNIQUE,
-	`url` text DEFAULT '' NOT NULL
+	`type` text NOT NULL,
+	`url` text NOT NULL UNIQUE
 );
 --> statement-breakpoint
 CREATE TABLE `MediaItemChildren` (
