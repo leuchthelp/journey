@@ -7,7 +7,7 @@ import { singlePageDataQuery } from "$lib/db/queries";
 
 export const load: PageLoad = async ({ params }) => {
   // Fastest: try check out parent page if it already posted the item
-  let data = page.data.post as GenreItem[];
+  const data = page.data.post as GenreItem[];
   let res: GenreItem | undefined;
   if (data) {
     res = data.filter((item) => item.uuid === params.slug)[0];

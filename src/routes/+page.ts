@@ -4,9 +4,9 @@ import type { MediaItem } from "$lib/db/relations";
 import { mainPageDataQuery } from "$lib/db/queries";
 
 function toArrayClean<X>(xs: Iterable<X | undefined>): X[] {
-  let res: X[] = [];
+  const res: X[] = [];
 
-  for (let entry of xs) {
+  for (const entry of xs) {
     if (entry) res.push(entry);
   }
 
@@ -18,7 +18,7 @@ export const load: PageLoad = async () => {
 
   // Medium: look in cache if item has been posted already
   if (homeCache) {
-    let tmp = homeCache.rvalues();
+    const tmp = homeCache.rvalues();
     res = toArrayClean(tmp);
 
     if (res.length !== 0) {
