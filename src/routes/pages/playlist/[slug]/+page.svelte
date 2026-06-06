@@ -10,7 +10,7 @@
 </script>
 
 <h1>
-  {#if data.post[0]}
-    {data.post[0].uuid}
+  {#if data.post}
+    {data.post.uuid}
   {/if}
 </h1>

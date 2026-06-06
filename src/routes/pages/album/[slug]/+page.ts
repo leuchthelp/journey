@@ -2,7 +2,7 @@ import { error } from "@sveltejs/kit";
 import type { PageLoad } from "./$types";
 import { page } from "$app/state";
 import { itemCache } from "$lib/components/MediaItems/ItemCache.ts";
-import { AlbumItem } from "$lib/components/MediaItems/MediaItems";
+import { AlbumItem, GenreItem } from "$lib/components/MediaItems/MediaItems";
 import { singlePageDataQuery } from "$lib/db/queries";
 
 export const load: PageLoad = async ({ params }) => {
@@ -24,7 +24,7 @@ export const load: PageLoad = async ({ params }) => {
     let tmp = itemCache.get(params.slug);
     if (tmp) {
       return {
-        post: [tmp],
+        post: tmp as GenreItem,
       };
     }
   }

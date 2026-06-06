@@ -1,4 +1,4 @@
-import type { MediaItem } from "../../db/relations";
+import type { ParentItem, MediaItem } from "../../db/relations";
 import type {
   ContentItem,
   ProviderItem,
@@ -17,7 +17,7 @@ export class SongItem implements MediaItem {
   content: ContentItem[] = [];
   providers: ProviderItem[] = [];
   images: ImageItem[] = [];
-  parents: MediaItem[] = [];
+  parents: ParentItem[] = [];
 }
 
 export class ArtistItem implements MediaItem {
@@ -32,7 +32,7 @@ export class ArtistItem implements MediaItem {
   content: ContentItem[] = [];
   providers: ProviderItem[] = [];
   images: ImageItem[] = [];
-  parents: MediaItem[] = [];
+  parents: ParentItem[] = [];
 }
 
 export class GenreItem implements MediaItem {
@@ -47,7 +47,7 @@ export class GenreItem implements MediaItem {
   content: ContentItem[] = [];
   providers: ProviderItem[] = [];
   images: ImageItem[] = [];
-  parents: MediaItem[] = [];
+  parents: ParentItem[] = [];
 }
 
 export class PlaylistItem implements MediaItem {
@@ -62,7 +62,7 @@ export class PlaylistItem implements MediaItem {
   content: ContentItem[] = [];
   providers: ProviderItem[] = [];
   images: ImageItem[] = [];
-  parents: MediaItem[] = [];
+  parents: ParentItem[] = [];
 }
 
 export class AlbumItem implements MediaItem {
@@ -77,5 +77,5 @@ export class AlbumItem implements MediaItem {
   content: ContentItem[] = [];
   providers: ProviderItem[] = [];
   images: ImageItem[] = [];
-  parents: MediaItem[] = [];
+  parents: ParentItem[] = [];
 }

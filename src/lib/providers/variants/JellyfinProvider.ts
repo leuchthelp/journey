@@ -302,7 +302,7 @@ export class JellyfinProvider implements Provider {
     init.images.push(...(await images));
 
     console.log(init);
-    await insertMediaItem(init);
+    //await insertMediaItem(init);
     return init;
   }
 

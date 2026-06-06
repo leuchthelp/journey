@@ -24,7 +24,7 @@ export const load: PageLoad = async ({ params }) => {
     let tmp = itemCache.get(params.slug);
     if (tmp) {
       return {
-        post: tmp,
+        post: tmp as SongItem,
       };
     }
   }

@@ -10,13 +10,7 @@ export const singlePageDataQuery = db.query.mediaItems
       providers: { columns: { id: false } },
       images: { columns: { id: false, providerId: false } },
       parents: {
-        columns: { id: false },
-        with: {
-          content: { columns: { id: false, parentId: false } },
-          providers: { columns: { id: false } },
-          images: { columns: { id: false, providerId: false } },
-          parents: true,
-        },
+        columns: { uuid: true },
       },
     },
   })
@@ -30,7 +24,7 @@ export const mainPageDataQuery = db.query.mediaItems
       content: { columns: { id: false, parentId: false } },
       providers: { columns: { id: false } },
       images: { columns: { id: false, providerId: false } },
-      parents: { columns: { id: false } },
+      parents: { columns: { uuid: true } },
     },
   })
   .prepare();

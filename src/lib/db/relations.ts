@@ -49,7 +49,15 @@ export type MediaItem = BuildQueryResult<
       content: { columns: { id: false; parentId: false } };
       providers: { columns: { id: false } };
       images: { columns: { id: false; providerId: false } };
-      parents: { columns: { id: false } };
+      parents: { columns: { uuid: true } };
     };
+  }
+>;
+
+export type ParentItem = BuildQueryResult<
+  Relations,
+  Relations["mediaItems"],
+  {
+    columns: { uuid: true };
   }
 >;
