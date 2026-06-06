@@ -6,7 +6,7 @@ export const singlePageDataQuery = db.query.mediaItems
     where: { uuid: sql.placeholder("slug") },
     columns: { id: false },
     with: {
-      content: { columns: { id: false, parentId: false } },
+      content: { columns: { id: false } },
       providers: { columns: { id: false } },
       images: { columns: { id: false, providerId: false } },
       parents: {
@@ -21,7 +21,7 @@ export const mainPageDataQuery = db.query.mediaItems
     limit: sql.placeholder("limit"),
     columns: { id: false },
     with: {
-      content: { columns: { id: false, parentId: false } },
+      content: { columns: { id: false } },
       providers: { columns: { id: false } },
       images: { columns: { id: false, providerId: false } },
       parents: { columns: { uuid: true } },
