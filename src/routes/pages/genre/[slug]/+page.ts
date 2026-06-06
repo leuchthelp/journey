@@ -9,25 +9,25 @@ export const load: PageLoad = async ({ params }) => {
   // Fastest: try check out parent page if it already posted the item
   const data = page.data.post as GenreItem[];
   let res: GenreItem | undefined;
-  // if (data) {
-  //   res = data.filter((item) => item.uuid === params.slug)[0];
+  if (data) {
+    res = data.filter((item) => item.uuid === params.slug)[0];
 
-  //   if (res) {
-  //     return {
-  //       post: res,
-  //     };
-  //   }
-  // }
+    if (res) {
+      return {
+        post: res,
+      };
+    }
+  }
 
-  // // Medium: look in cache if item has been posted already
-  // if (itemCache) {
-  //   let tmp = itemCache.get(params.slug);
-  //   if (tmp) {
-  //     return {
-  //       post: tmp as GenreItem,
-  //     };
-  //   }
-  // }
+  // Medium: look in cache if item has been posted already
+  if (itemCache) {
+    let tmp = itemCache.get(params.slug);
+    if (tmp) {
+      return {
+        post: tmp as GenreItem,
+      };
+    }
+  }
 
   // Brutal: fallback to database to get item fresh
   res = await singlePageDataQuery.execute({ slug: params.slug });
