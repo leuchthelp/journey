@@ -5,6 +5,7 @@ export const singlePageDataQuery = db.query.mediaItems
   .findFirst({
     where: { uuid: sql.placeholder("slug") },
     with: {
+      original: { columns: { id: false } },
       content: { columns: { id: false } },
       providers: true,
       images: true,
@@ -19,6 +20,7 @@ export const mainPageDataQuery = db.query.mediaItems
   .findMany({
     limit: sql.placeholder("limit"),
     with: {
+      original: { columns: { id: false } },
       content: { columns: { id: false } },
       providers: true,
       images: true,

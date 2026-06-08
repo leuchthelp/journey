@@ -97,7 +97,6 @@ export class JellyfinProvider implements Provider {
             auth.data.AccessToken,
           );
           this.setAuthStatus(true);
-          this.indexFiles()
           return;
         }
       }
@@ -110,6 +109,7 @@ export class JellyfinProvider implements Provider {
         this.addToDb();
         providerManager.addProvider(this);
         this.setAuthStatus(true);
+        this.indexFiles();
         return;
       }
 
@@ -241,11 +241,15 @@ export class JellyfinProvider implements Provider {
     api: JellyfinApi,
     parent: [BaseItemDto, MediaItem | undefined],
     itemType: BaseItemKind,
-    provider?: JellyfinProvider,
+    provider: JellyfinProvider,
   ): Promise<[BaseItemDto, MediaItem | undefined][]> {
     const tmp =
-      (await getItemsApi(api).getItems({ parentId: parent[0].Id })).data
-        .Items ?? [];
+      (
+        await getItemsApi(api).getItems({
+          parentId: parent[0].Id,
+          userId: provider.userId,
+        })
+      ).data.Items ?? [];
     tmp.filter((item) => item.Type === itemType);
 
     const mediaItemPromises: Promise<MediaItem>[] = [];
