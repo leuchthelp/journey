@@ -97,6 +97,7 @@ export class JellyfinProvider implements Provider {
             auth.data.AccessToken,
           );
           this.setAuthStatus(true);
+          this.indexFiles()
           return;
         }
       }
@@ -305,6 +306,12 @@ export class JellyfinProvider implements Provider {
     if (parent) init.parents.push(parent);
     init.providers.push(provider);
     init.content.push(...provider.getItemContent(item, init));
+    if (item.Id)
+      init.original.push({
+        uuid: item.Id,
+        parentId: init.uuid,
+        serverId: provider.serverId,
+      });
     init.images.push(...(await images));
 
     return init;

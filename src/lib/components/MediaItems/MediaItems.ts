@@ -3,6 +3,7 @@ import type {
   ContentItem,
   ProviderItem,
   ImageItem,
+  OriginalItem,
 } from "../../db/schema/schema";
 
 class BaseItem implements MediaItem {
@@ -14,6 +15,7 @@ class BaseItem implements MediaItem {
   loaded!: boolean;
   local!: string;
 
+  original: OriginalItem[] = [];
   content: ContentItem[] = [];
   providers: ProviderItem[] = [];
   images: ImageItem[] = [];

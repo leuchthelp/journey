@@ -3,25 +3,31 @@ import { defineRelations, type BuildQueryResult } from "drizzle-orm";
 
 export const relations = defineRelations(schema, (r) => ({
   mediaItems: {
+    original: r.many.originalItems({
+      from: r.mediaItems.uuid,
+      to: r.originalItems.parentId,
+    }),
     content: r.many.contentItems({
       from: r.mediaItems.uuid,
       to: r.contentItems.parentId,
     }),
     providers: r.many.providerItems({
-      from: r.mediaItems.id.through(r.mediaItemToProviderItem.mediaItemId),
-      to: r.providerItems.id.through(r.mediaItemToProviderItem.providerItemId),
+      from: r.mediaItems.uuid.through(r.mediaItemToProviderItem.mediaItemId),
+      to: r.providerItems.userId.through(
+        r.mediaItemToProviderItem.providerItemId,
+      ),
     }),
     images: r.many.imageItems({
-      from: r.mediaItems.id.through(r.mediaItemToImageItem.mediaItemId),
-      to: r.imageItems.id.through(r.mediaItemToImageItem.imageItemId),
+      from: r.mediaItems.uuid.through(r.mediaItemToImageItem.mediaItemId),
+      to: r.imageItems.url.through(r.mediaItemToImageItem.imageItemId),
     }),
     children: r.many.mediaItems({
-      from: r.mediaItems.id.through(r.mediaItemChildren.parentId),
-      to: r.mediaItems.id.through(r.mediaItemChildren.childId),
+      from: r.mediaItems.uuid.through(r.mediaItemChildren.parentId),
+      to: r.mediaItems.uuid.through(r.mediaItemChildren.childId),
     }),
     parents: r.many.mediaItems({
-      from: r.mediaItems.id.through(r.mediaItemChildren.childId),
-      to: r.mediaItems.id.through(r.mediaItemChildren.parentId),
+      from: r.mediaItems.uuid.through(r.mediaItemChildren.childId),
+      to: r.mediaItems.uuid.through(r.mediaItemChildren.parentId),
     }),
   },
 
@@ -44,11 +50,11 @@ export type MediaItem = BuildQueryResult<
   Relations,
   Relations["mediaItems"],
   {
-    columns: { id: false };
     with: {
+      original: { columns: { id: false } };
       content: { columns: { id: false } };
-      providers: { columns: { id: false } };
-      images: { columns: { id: false } };
+      providers: true;
+      images: true;
       parents: { columns: { uuid: true } };
     };
   }

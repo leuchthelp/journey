@@ -8,7 +8,11 @@
 
   let { item }: Props = $props();
   let styling = $derived(item.defaultStyling + " " + item.outlineGradient);
-  let content = $derived(item.content.filter((item) => item.type === "Name").at(0));
+  let content = $derived(
+    item.content.filter((item) => item.type === "Name").at(0),
+  );
 </script>
 
-<Button {styling}><a href="/pages/artist/{item.uuid}">{content?.description}</a></Button>
+<Button {styling}
+  ><a href="/pages/artist/{item.uuid}">{content?.description}</a></Button
+>

@@ -7,8 +7,7 @@ import {
 } from "drizzle-orm/sqlite-core";
 
 export const mediaItems = sqliteTable("MediaItems", {
-  id: integer("id").primaryKey(),
-  uuid: text("uuid").unique().notNull(),
+  uuid: text("uuid").primaryKey().unique(),
   type: text("type").default("MediaItem").notNull(),
   outlineGradient: text("outlineGradient").default("ring-[#C2381D]").notNull(),
   defaultStyling: text("defaultStyling")
@@ -21,12 +20,12 @@ export const mediaItems = sqliteTable("MediaItems", {
 export const mediaItemChildren = sqliteTable(
   "MediaItemChildren",
   {
-    parentId: integer("parentId")
+    parentId: text("parentId")
       .notNull()
-      .references(() => mediaItems.id),
-    childId: integer("childId")
+      .references(() => mediaItems.uuid),
+    childId: text("childId")
       .notNull()
-      .references(() => mediaItems.id),
+      .references(() => mediaItems.uuid),
   },
   (t) => [
     primaryKey({ columns: [t.parentId, t.childId] }),
@@ -34,6 +33,23 @@ export const mediaItemChildren = sqliteTable(
     index("ParentsToChildrenChildId_idx").on(t.childId),
     index("ParentsToChildrenCompositeId_idx").on(t.parentId, t.childId),
   ],
+);
+
+/*
+
+MediaItem OriginalItem Mapping
+
+*/
+
+export const originalItems = sqliteTable(
+  "OriginalItems",
+  {
+    id: integer("id").primaryKey(),
+    parentId: text("parentId").notNull(),
+    serverId: text("serverId").notNull(),
+    uuid: text("uuid").notNull(),
+  },
+  (t) => [index("OrignalToItemId_idx").on(t.parentId)],
 );
 
 /*
@@ -48,7 +64,7 @@ export const contentItems = sqliteTable(
     id: integer("id").primaryKey(),
     parentId: text("parentId").notNull(),
     type: text("type").notNull(),
-    description: text("description").unique().notNull(),
+    description: text("description").notNull(),
   },
   (t) => [index("ContentToItemId_idx").on(t.parentId)],
 );
@@ -60,8 +76,7 @@ Provider Mapping
 */
 
 export const providerItems = sqliteTable("ProviderItems", {
-  id: integer("id").primaryKey(),
-  userId: text("userId").default("").unique().notNull(),
+  userId: text("userId").primaryKey().unique().notNull(),
   serverId: text("serverId").default("").notNull(),
   type: text("type").default("").notNull(),
   url: text("url").default("").notNull(),
@@ -70,12 +85,12 @@ export const providerItems = sqliteTable("ProviderItems", {
 export const mediaItemToProviderItem = sqliteTable(
   "ProviderItemToImageItem",
   {
-    mediaItemId: integer("mediaItemId")
+    mediaItemId: text("mediaItemId")
       .notNull()
-      .references(() => mediaItems.id),
-    providerItemId: integer("providerItemId")
+      .references(() => mediaItems.uuid),
+    providerItemId: text("providerItemId")
       .notNull()
-      .references(() => providerItems.id),
+      .references(() => providerItems.userId),
   },
   (t) => [
     primaryKey({ columns: [t.mediaItemId, t.providerItemId] }),
@@ -94,10 +109,9 @@ Image Mapping
 export const imageItems = sqliteTable(
   "ImageItems",
   {
-    id: integer("id").primaryKey(),
+    url: text("url").primaryKey().unique().notNull(),
     serverId: text("serverId").default("").notNull(),
     type: text("type").notNull(),
-    url: text("url").unique().notNull(),
   },
   (t) => [index("ImageProviderId_idx").on(t.serverId)],
 );
@@ -105,12 +119,12 @@ export const imageItems = sqliteTable(
 export const mediaItemToImageItem = sqliteTable(
   "MediaItemToImageItem",
   {
-    mediaItemId: integer("mediaItemId")
+    mediaItemId: text("mediaItemId")
       .notNull()
-      .references(() => mediaItems.id),
-    imageItemId: integer("imageItemId")
+      .references(() => mediaItems.uuid),
+    imageItemId: text("imageItemId")
       .notNull()
-      .references(() => imageItems.id),
+      .references(() => imageItems.url),
   },
   (t) => [
     primaryKey({ columns: [t.mediaItemId, t.imageItemId] }),
@@ -126,6 +140,7 @@ Type Exports
 
 */
 
+export type OriginalItem = Omit<typeof originalItems.$inferSelect, "id">;
 export type ContentItem = Omit<typeof contentItems.$inferSelect, "id">;
-export type ProviderItem = Omit<typeof providerItems.$inferSelect, "id">;
-export type ImageItem = Omit<typeof imageItems.$inferSelect, "id">;
+export type ProviderItem = typeof providerItems.$inferSelect;
+export type ImageItem = typeof imageItems.$inferSelect;

@@ -1,7 +1,7 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "14135973-94bf-45c0-91d5-87c77f474467",
+  "id": "188e03fd-449d-4f7a-9163-f51019a8c7d7",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -28,6 +28,10 @@
     },
     {
       "name": "MediaItems",
+      "entityType": "tables"
+    },
+    {
+      "name": "OriginalItems",
       "entityType": "tables"
     },
     {
@@ -75,12 +79,12 @@
       "table": "ContentItems"
     },
     {
-      "type": "integer",
+      "type": "text",
       "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "id",
+      "name": "url",
       "entityType": "columns",
       "table": "ImageItems"
     },
@@ -110,22 +114,12 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "url",
-      "entityType": "columns",
-      "table": "ImageItems"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
       "name": "parentId",
       "entityType": "columns",
       "table": "MediaItemChildren"
     },
     {
-      "type": "integer",
+      "type": "text",
       "notNull": true,
       "autoincrement": false,
       "default": null,
@@ -135,7 +129,7 @@
       "table": "MediaItemChildren"
     },
     {
-      "type": "integer",
+      "type": "text",
       "notNull": true,
       "autoincrement": false,
       "default": null,
@@ -145,7 +139,7 @@
       "table": "MediaItemToImageItem"
     },
     {
-      "type": "integer",
+      "type": "text",
       "notNull": true,
       "autoincrement": false,
       "default": null,
@@ -155,7 +149,7 @@
       "table": "MediaItemToImageItem"
     },
     {
-      "type": "integer",
+      "type": "text",
       "notNull": true,
       "autoincrement": false,
       "default": null,
@@ -165,7 +159,7 @@
       "table": "ProviderItemToImageItem"
     },
     {
-      "type": "integer",
+      "type": "text",
       "notNull": true,
       "autoincrement": false,
       "default": null,
@@ -175,18 +169,8 @@
       "table": "ProviderItemToImageItem"
     },
     {
-      "type": "integer",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "id",
-      "entityType": "columns",
-      "table": "MediaItems"
-    },
-    {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
@@ -252,13 +236,43 @@
       "generated": null,
       "name": "id",
       "entityType": "columns",
-      "table": "ProviderItems"
+      "table": "OriginalItems"
     },
     {
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": "''",
+      "default": null,
+      "generated": null,
+      "name": "parentId",
+      "entityType": "columns",
+      "table": "OriginalItems"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "serverId",
+      "entityType": "columns",
+      "table": "OriginalItems"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "uuid",
+      "entityType": "columns",
+      "table": "OriginalItems"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
       "generated": null,
       "name": "userId",
       "entityType": "columns",
@@ -300,12 +314,12 @@
       ],
       "tableTo": "MediaItems",
       "columnsTo": [
-        "id"
+        "uuid"
       ],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_MediaItemChildren_parentId_MediaItems_id_fk",
+      "name": "fk_MediaItemChildren_parentId_MediaItems_uuid_fk",
       "entityType": "fks",
       "table": "MediaItemChildren"
     },
@@ -315,12 +329,12 @@
       ],
       "tableTo": "MediaItems",
       "columnsTo": [
-        "id"
+        "uuid"
       ],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_MediaItemChildren_childId_MediaItems_id_fk",
+      "name": "fk_MediaItemChildren_childId_MediaItems_uuid_fk",
       "entityType": "fks",
       "table": "MediaItemChildren"
     },
@@ -330,12 +344,12 @@
       ],
       "tableTo": "MediaItems",
       "columnsTo": [
-        "id"
+        "uuid"
       ],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_MediaItemToImageItem_mediaItemId_MediaItems_id_fk",
+      "name": "fk_MediaItemToImageItem_mediaItemId_MediaItems_uuid_fk",
       "entityType": "fks",
       "table": "MediaItemToImageItem"
     },
@@ -345,12 +359,12 @@
       ],
       "tableTo": "ImageItems",
       "columnsTo": [
-        "id"
+        "url"
       ],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_MediaItemToImageItem_imageItemId_ImageItems_id_fk",
+      "name": "fk_MediaItemToImageItem_imageItemId_ImageItems_url_fk",
       "entityType": "fks",
       "table": "MediaItemToImageItem"
     },
@@ -360,12 +374,12 @@
       ],
       "tableTo": "MediaItems",
       "columnsTo": [
-        "id"
+        "uuid"
       ],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_ProviderItemToImageItem_mediaItemId_MediaItems_id_fk",
+      "name": "fk_ProviderItemToImageItem_mediaItemId_MediaItems_uuid_fk",
       "entityType": "fks",
       "table": "ProviderItemToImageItem"
     },
@@ -375,12 +389,12 @@
       ],
       "tableTo": "ProviderItems",
       "columnsTo": [
-        "id"
+        "userId"
       ],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_ProviderItemToImageItem_providerItemId_ProviderItems_id_fk",
+      "name": "fk_ProviderItemToImageItem_providerItemId_ProviderItems_userId_fk",
       "entityType": "fks",
       "table": "ProviderItemToImageItem"
     },
@@ -425,7 +439,7 @@
     },
     {
       "columns": [
-        "id"
+        "url"
       ],
       "nameExplicit": false,
       "name": "ImageItems_pk",
@@ -434,7 +448,7 @@
     },
     {
       "columns": [
-        "id"
+        "uuid"
       ],
       "nameExplicit": false,
       "name": "MediaItems_pk",
@@ -444,6 +458,15 @@
     {
       "columns": [
         "id"
+      ],
+      "nameExplicit": false,
+      "name": "OriginalItems_pk",
+      "table": "OriginalItems",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "userId"
       ],
       "nameExplicit": false,
       "name": "ProviderItems_pk",
@@ -618,12 +641,17 @@
     },
     {
       "columns": [
-        "description"
+        {
+          "value": "parentId",
+          "isExpression": false
+        }
       ],
-      "nameExplicit": false,
-      "name": "ContentItems_description_unique",
-      "entityType": "uniques",
-      "table": "ContentItems"
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "OrignalToItemId_idx",
+      "entityType": "indexes",
+      "table": "OriginalItems"
     },
     {
       "columns": [
