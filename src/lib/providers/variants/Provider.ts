@@ -1,4 +1,4 @@
-import type { ProviderItem } from "$lib/db/schema/schema";
+import type { ProviderItem } from "$lib/db/schema/schema.ts";
 
 export interface Provider extends Omit<ProviderItem, "id"> {
   readonly client: unknown;

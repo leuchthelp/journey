@@ -107,7 +107,7 @@ const parentTransaction = async (
 ) => {
   for (const parent of item.parents) {
     const parentId = await tx.query.mediaItems.findFirst({
-      where: { uuid: parent.uuid },
+      where: { original: { uuid: parent.uuid } },
       columns: { uuid: true },
     });
 

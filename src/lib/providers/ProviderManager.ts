@@ -44,7 +44,7 @@ class ProviderManager implements IProviderManager {
   }
 
   public initProvider(providerItems: ProviderItem[]) {
-    providerItems.forEach((providerItem) => {
+    for (const providerItem of providerItems) {
       if (providerOptions.has(providerItem.type)) {
         const accessToken =
           localStorage.getItem(`${providerItem.serverId}Token`) || undefined;
@@ -62,7 +62,7 @@ class ProviderManager implements IProviderManager {
           this.indexPromises.push(init.indexFiles());
         }
       }
-    });
+    }
 
     Promise.allSettled(this.indexPromises).finally(() =>
       console.log("indexing finished"),

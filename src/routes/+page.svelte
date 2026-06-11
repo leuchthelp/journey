@@ -6,6 +6,8 @@
   import "@videojs/html/audio/minimal-skin";
 
   let { data }: PageProps = $props();
+
+  $inspect(data);
 </script>
 
 <audio-player>
