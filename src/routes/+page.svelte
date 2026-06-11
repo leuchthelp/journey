@@ -27,8 +27,8 @@
   </media-container>
 </audio-player>
 
-<!-- {#each data.post as item}
+{#each data.post as item}
   {#if itemCache.set(item.uuid!, item) && homeCache.set(item.uuid!, item)}
     {@render toMediaItemComponent(item)}
   {/if}
-{/each} -->
+{/each}

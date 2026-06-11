@@ -1,7 +1,7 @@
-import type { PageLoad } from "./$types";
+import type { PageLoad } from "./$types.d.ts";
 import { homeCache } from "$lib/components/MediaItems/ItemCache.ts";
-import type { MediaItem } from "$lib/db/relations";
-import { mainPageDataQuery } from "$lib/db/queries";
+import type { MediaItem } from "$lib/db/relations.ts";
+import { mainPageDataQuery } from "$lib/db/queries.ts";
 
 function toArrayClean<X>(xs: Iterable<X | undefined>): X[] {
   const res: X[] = [];

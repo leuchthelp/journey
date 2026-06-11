@@ -1,7 +1,7 @@
 export const ssr = false;
 
-import { providerDataQuery } from "$lib/db/queries";
-import type { LayoutLoad } from "./$types";
+import { providerDataQuery } from "$lib/db/queries.ts";
+import type { LayoutLoad } from "./$types.d.ts";
 import Database from "@tauri-apps/plugin-sql";
 
 export const load: LayoutLoad = async () => {
