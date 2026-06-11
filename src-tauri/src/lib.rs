@@ -22,7 +22,7 @@ pub fn run() {
         Migration {
             version: 1,
             description: "create_initial_tables",
-            sql: include_str!("../migrations/20260608160840_flowery_the_captain/migration.sql"),
+            sql: include_str!("../migrations/20260611125609_nifty_rictor/migration.sql"),
             kind: MigrationKind::Up,
         }    
     ];

@@ -8,20 +8,19 @@ import {
   type BaseItemDto,
 } from "@jellyfin/sdk/lib/generated-client/models";
 import { error } from "@sveltejs/kit";
-import { v7 as uuidv7 } from "uuid";
 
-import type { Provider } from "./Provider";
-import { device, uuid } from "../shared";
+import type { Provider } from "./Provider.ts";
+import { device, uuid } from "../shared.ts";
 import {
   providerItems,
   type ContentItem,
   type ImageItem,
-} from "../../db/schema/schema";
-import { providerManager } from "../ProviderManager";
+} from "$lib/db/schema/schema.ts";
+import { providerManager } from "../ProviderManager.ts";
 import { mapJellyfinOptions } from ".";
-import type { MediaItem } from "$lib/db/relations";
-import { db } from "$lib/db/database";
-import { insertMediaItem } from "$lib/db/transactions";
+import type { MediaItem } from "$lib/db/relations.ts";
+import { db } from "$lib/db/database.ts";
+import { insertMediaItem } from "$lib/db/transactions.ts";
 
 export class JellyfinProvider implements Provider {
   readonly client: Jellyfin;

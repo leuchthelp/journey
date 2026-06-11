@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/sqlite-proxy";
 import Database from "@tauri-apps/plugin-sql";
-import { relations } from "./relations";
+import { relations } from "./relations.ts";
 
 /**
  * Loads the sqlite database via the Tauri Proxy.

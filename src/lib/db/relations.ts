@@ -1,4 +1,4 @@
-import * as schema from "./schema/schema";
+import * as schema from "./schema/schema.ts";
 import { defineRelations, type BuildQueryResult } from "drizzle-orm";
 
 export const relations = defineRelations(schema, (r) => ({

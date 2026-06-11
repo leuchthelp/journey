@@ -1,6 +1,6 @@
-import { providerOptions } from "./variants";
-import type { ProviderItem } from "$lib/db/schema/schema";
-import type { Provider } from "./variants/Provider";
+import { providerOptions } from "./variants/index.ts";
+import type { ProviderItem } from "$lib/db/schema/schema.ts";
+import type { Provider } from "./variants/Provider.ts";
 
 type IProviderManager = {
   providers: Provider[];

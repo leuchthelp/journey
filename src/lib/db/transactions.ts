@@ -1,5 +1,5 @@
-import { db } from "./database";
-import type { MediaItem } from "./relations";
+import { db } from "./database.ts";
+import type { MediaItem } from "./relations.ts";
 import {
   contentItems,
   imageItems,
@@ -8,7 +8,7 @@ import {
   mediaItemToImageItem,
   mediaItemToProviderItem,
   originalItems,
-} from "./schema/schema";
+} from "./schema/schema.ts";
 
 import { SQLiteTransaction } from "drizzle-orm/sqlite-core";
 import type { SqliteRemoteResult } from "drizzle-orm/sqlite-proxy";

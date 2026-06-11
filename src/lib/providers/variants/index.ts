@@ -4,8 +4,8 @@ import {
   GenreItem,
   PlaylistItem,
   SongItem,
-} from "../../components/MediaItems/MediaItems";
-import { JellyfinProvider } from "./JellyfinProvider";
+} from "$lib/components/MediaItems/MediaItems.ts";
+import { JellyfinProvider } from "./JellyfinProvider.ts";
 import { BaseItemKind } from "@jellyfin/sdk/lib/generated-client/models";
 
 export const providerOptions = new Map([
