@@ -1,14 +1,9 @@
 <script lang="ts">
   import { error } from "@sveltejs/kit";
-  import type { PageData, PageProps, Snapshot } from "./$types";
+  import type { PageProps } from "./$types";
 
   // Seems to always get wrapped into an array
   let { data }: PageProps = $props();
-
-  export const snapshot: Snapshot<PageData> = {
-    capture: () => data,
-    restore: (value) => (data = value),
-  };
 
   let item = $derived(data.post);
 </script>

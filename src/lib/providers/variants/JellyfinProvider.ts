@@ -304,7 +304,7 @@ export class JellyfinProvider implements Provider {
       const regex =
         /[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}/;
       const musicbrainzId = key.match(regex)?.toString();
-      init.uuid = musicbrainzId ?? uuidv7() + "-tmp";
+      init.uuid = musicbrainzId ?? item.Id + "-tmp";
     }
 
     if (parent) init.parents.push(parent);

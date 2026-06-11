@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { PageData, PageProps, Snapshot } from "./$types";
+  import type { PageProps } from "./$types";
   import { itemCache, homeCache } from "$lib/components/MediaItems/ItemCache";
   import { toMediaItemComponent } from "$lib/snippets/ToMediaItemComponent.svelte";
   import "@videojs/html/audio/player";
@@ -7,10 +7,7 @@
 
   let { data }: PageProps = $props();
 
-  export const snapshot: Snapshot<PageData> = {
-    capture: () => data,
-    restore: (value) => (data = value),
-  };
+  $inspect(data);
 </script>
 
 <audio-player>
@@ -30,8 +27,8 @@
   </media-container>
 </audio-player>
 
-{#each data.post as item}
+<!-- {#each data.post as item}
   {#if itemCache.set(item.uuid!, item) && homeCache.set(item.uuid!, item)}
     {@render toMediaItemComponent(item)}
   {/if}
-{/each}
+{/each} -->

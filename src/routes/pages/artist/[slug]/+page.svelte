@@ -1,12 +1,7 @@
 <script lang="ts">
-  import type { PageData, PageProps, Snapshot } from "./$types";
+  import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();
-
-  export const snapshot: Snapshot<PageData> = {
-    capture: () => data,
-    restore: (value) => (data = value),
-  };
 </script>
 
 <h1>
