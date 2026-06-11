@@ -2,12 +2,29 @@ import { defineConfig } from "vite";
 import { enhancedImages } from "@sveltejs/enhanced-img";
 import { sveltekit } from "@sveltejs/kit/vite";
 import tailwindcss from "@tailwindcss/vite";
+import adapter from "@sveltejs/adapter-static";
+import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vite.dev/config/
 export default defineConfig(async () => ({
-  plugins: [tailwindcss(), enhancedImages(), sveltekit()],
+  plugins: [
+    tailwindcss(),
+    enhancedImages(),
+    sveltekit({
+      preprocess: vitePreprocess(),
+      compilerOptions: {
+        experimental: {
+          async: true,
+        },
+      },
+
+      adapter: adapter({
+        fallback: "index.html",
+      }),
+    }),
+  ],
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
