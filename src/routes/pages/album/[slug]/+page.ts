@@ -1,9 +1,9 @@
 import { error } from "@sveltejs/kit";
-import type { PageLoad } from "./$types";
+import type { PageLoad } from "./$types.d.ts";
 import { page } from "$app/state";
 import { itemCache } from "$lib/components/MediaItems/ItemCache.ts";
-import { AlbumItem } from "$lib/components/MediaItems/MediaItems";
-import { singlePageDataQuery } from "$lib/db/queries";
+import { AlbumItem } from "$lib/components/MediaItems/MediaItems.ts";
+import { singlePageDataQuery } from "$lib/db/queries.ts";
 
 export const load: PageLoad = async ({ params }) => {
   // Fastest: try check out parent page if it already posted the item
