@@ -13,7 +13,9 @@ function toArrayClean<X>(xs: Iterable<X | undefined>): X[] {
   return res;
 }
 
-export const load: PageLoad = async () => {
+export const load: PageLoad = async ({ parent }) => {
+  await parent();
+
   let res: MediaItem[];
 
   // Medium: look in cache if item has been posted already
@@ -29,7 +31,5 @@ export const load: PageLoad = async () => {
   }
 
   res = await mainPageDataQuery.execute({ limit: 6 });
-
-  console.log(res);
   return { post: res };
 };

@@ -9,7 +9,8 @@ export const load: LayoutLoad = async () => {
   // await tmp.execute("DELETE FROM MediaItems")
   // await tmp.execute("DELETE FROM ProviderItems")
 
+  const res = await providerDataQuery.execute();
   return {
-    post: await providerDataQuery.execute(),
+    post: res,
   };
 };
