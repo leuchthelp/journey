@@ -1,6 +1,7 @@
 {
   "version": "5",
   "specifiers": {
+    "npm:@electric-sql/pglite@~0.5.2": "0.5.2",
     "npm:@jellyfin/sdk@0.13": "0.13.0_axios@1.16.1",
     "npm:@sveltejs/adapter-static@4.0.0-next.0": "4.0.0-next.0_@sveltejs+kit@2.65.0__@sveltejs+vite-plugin-svelte@7.1.2___svelte@5.56.3___vite@8.0.16____@types+node@25.9.2__svelte@5.56.3__typescript@6.0.3__vite@8.0.16___@types+node@25.9.2",
     "npm:@sveltejs/enhanced-img@~0.10.4": "0.10.4_@sveltejs+vite-plugin-svelte@7.1.2__svelte@5.56.3__vite@8.0.16___@types+node@25.9.2_svelte@5.56.3_vite@8.0.16__@types+node@25.9.2",
@@ -9,6 +10,7 @@
     "npm:@tailwindcss/vite@^4.3.0": "4.3.0_vite@8.0.16__@types+node@25.9.2_@types+node@25.9.2",
     "npm:@tauri-apps/api@^2.11.0": "2.11.0",
     "npm:@tauri-apps/cli@^2.11.2": "2.11.2",
+    "npm:@tauri-apps/plugin-fs@~2.5.1": "2.5.1",
     "npm:@tauri-apps/plugin-opener@^2.5.4": "2.5.4",
     "npm:@tauri-apps/plugin-os@~2.3.2": "2.3.2",
     "npm:@tauri-apps/plugin-sql@2.4": "2.4.0",
@@ -17,7 +19,7 @@
     "npm:@videojs/html@^10.0.0-beta.24": "10.0.0-beta.24_@svta+cml-cta@1.0.1__@svta+cml-structured-field-values@1.0.1___@svta+cml-utils@1.0.1__@svta+cml-utils@1.0.1_@svta+cml-structured-field-values@1.0.1__@svta+cml-utils@1.0.1_@svta+cml-utils@1.0.1",
     "npm:clsx@^2.1.1": "2.1.1",
     "npm:drizzle-kit@^1.0.0-rc.4-ca0f029": "1.0.0-rc.4-ca0f029",
-    "npm:drizzle-orm@^1.0.0-rc.4-5d5b77c": "1.0.0-rc.4-5d5b77c",
+    "npm:drizzle-orm@^1.0.0-rc.4-5d5b77c": "1.0.0-rc.4-5d5b77c_@electric-sql+pglite@0.5.2",
     "npm:lru-cache@^11.5.1": "11.5.1",
     "npm:prettier-plugin-svelte@^4.1.0": "4.1.0_prettier@3.8.4_svelte@5.56.3",
     "npm:prettier-plugin-tailwindcss@0.8": "0.8.0_prettier@3.8.4_prettier-plugin-svelte@4.1.0__prettier@3.8.4__svelte@5.56.3",
@@ -35,6 +37,9 @@
   "npm": {
     "@drizzle-team/brocli@0.11.0": {
       "integrity": "sha512-hD3pekGiPg0WPCCGAZmusBBJsDqGUR66Y452YgQsZOnkdQ7ViEPKuyP4huUGEZQefp8g34RRodXYmJ2TbCH+tg=="
+    },
+    "@electric-sql/pglite@0.5.2": {
+      "integrity": "sha512-y6ySdFE7FQB7BkVaSNaPINgY7mXCyvi+3GQB5ySX9WGwgrdh31WXMP5RM40oAyYff47lIr7xdcW8UbCW5NHDmw=="
     },
     "@emnapi/core@1.10.0": {
       "integrity": "sha512-yq6OkJ4p82CAfPl0u9mQebQHKPJkY7WrIuk205cTYnYe+k2Z8YBh11FrbRG/H6ihirqcacOgl2BIO8oyMQLeXw==",
@@ -819,6 +824,12 @@
       ],
       "bin": true
     },
+    "@tauri-apps/plugin-fs@2.5.1": {
+      "integrity": "sha512-9Lz+Jopp6QyeEWhlpkMx4R/+P9HgR+AVAI4vOZhlT8Xaymtz8iVI/Ov984/XTqgJz/5gz5NretqPB/XEMS3NhQ==",
+      "dependencies": [
+        "@tauri-apps/api"
+      ]
+    },
     "@tauri-apps/plugin-opener@2.5.4": {
       "integrity": "sha512-1HnPkb+AmgO29HBazm4uPLKB+r7zzcTBW1d0fyYp1uP+jwtpoiNDGKMMzz58SFp49nOIrxdE3aUJtT57lfO9CQ==",
       "dependencies": [
@@ -1095,8 +1106,14 @@
       ],
       "bin": true
     },
-    "drizzle-orm@1.0.0-rc.4-5d5b77c": {
-      "integrity": "sha512-Oq9W4B11PracWY9cuCLTFT+JA5kXqR6rBmWcM8oh0xwLgCviVl9wh6ZuWX7Zpv1Jir/8W+M37syvjSYtj1f5iA=="
+    "drizzle-orm@1.0.0-rc.4-5d5b77c_@electric-sql+pglite@0.5.2": {
+      "integrity": "sha512-Oq9W4B11PracWY9cuCLTFT+JA5kXqR6rBmWcM8oh0xwLgCviVl9wh6ZuWX7Zpv1Jir/8W+M37syvjSYtj1f5iA==",
+      "dependencies": [
+        "@electric-sql/pglite"
+      ],
+      "optionalPeers": [
+        "@electric-sql/pglite"
+      ]
     },
     "dunder-proto@1.0.1": {
       "integrity": "sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==",
@@ -1775,6 +1792,7 @@
   "workspace": {
     "packageJson": {
       "dependencies": [
+        "npm:@electric-sql/pglite@~0.5.2",
         "npm:@jellyfin/sdk@0.13",
         "npm:@sveltejs/adapter-static@4.0.0-next.0",
         "npm:@sveltejs/enhanced-img@~0.10.4",
@@ -1783,6 +1801,7 @@
         "npm:@tailwindcss/vite@^4.3.0",
         "npm:@tauri-apps/api@^2.11.0",
         "npm:@tauri-apps/cli@^2.11.2",
+        "npm:@tauri-apps/plugin-fs@~2.5.1",
         "npm:@tauri-apps/plugin-opener@^2.5.4",
         "npm:@tauri-apps/plugin-os@~2.3.2",
         "npm:@tauri-apps/plugin-sql@2.4",
