@@ -5,6 +5,8 @@ import type { LayoutLoad } from "./$types.d.ts";
 import { migrate_pglite } from "../lib/db/migrate.ts";
 
 export const load: LayoutLoad = async () => {
+  //indexedDB.deleteDatabase("/pglite/dev")
+
   migrate_pglite().catch((e) => {
     console.error("migration success", e);
   });

@@ -259,6 +259,7 @@ export class JellyfinProvider implements Provider {
         uuid: item.Id,
         parentId: init.uuid,
         serverId: provider.serverId,
+        url: `${provider.url}/Items/${item.Id}`,
       });
 
     init.parents.push(...provider.getParents(item));

@@ -33,7 +33,6 @@ CREATE TABLE "MediaItems" (
 	"uuid" text PRIMARY KEY UNIQUE,
 	"type" text DEFAULT 'MediaItem' NOT NULL,
 	"outlineGradient" text DEFAULT 'ring-[#C2381D]' NOT NULL,
-	"defaultStyling" text DEFAULT 'm-0.5 h-24 w-24 rounded-xl bg-amber-200 ring' NOT NULL,
 	"loaded" boolean DEFAULT false NOT NULL,
 	"local" text DEFAULT '' NOT NULL
 );
@@ -42,7 +41,8 @@ CREATE TABLE "OriginalItems" (
 	"id" serial PRIMARY KEY,
 	"parentId" text NOT NULL,
 	"serverId" text NOT NULL,
-	"uuid" text NOT NULL
+	"uuid" text NOT NULL,
+	"url" text NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "ProviderItems" (

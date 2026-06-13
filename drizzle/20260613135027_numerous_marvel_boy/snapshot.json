@@ -1,7 +1,7 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "6cd8b582-b95d-4c74-a0f3-c719810acddb",
+  "id": "d47f67e1-b593-45d2-a748-cf2d2e66dea3",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -263,19 +263,6 @@
       "table": "MediaItems"
     },
     {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "'m-0.5 h-24 w-24 rounded-xl bg-amber-200 ring'",
-      "generated": null,
-      "identity": null,
-      "name": "defaultStyling",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "MediaItems"
-    },
-    {
       "type": "boolean",
       "typeSchema": null,
       "notNull": true,
@@ -349,6 +336,19 @@
       "generated": null,
       "identity": null,
       "name": "uuid",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "OriginalItems"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "url",
       "entityType": "columns",
       "schema": "public",
       "table": "OriginalItems"

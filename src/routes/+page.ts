@@ -30,6 +30,6 @@ export const load: PageLoad = async ({ parent }) => {
     }
   }
 
-  res = await mainPageDataQuery.execute({ limit: 6 });
+  res = await mainPageDataQuery.execute({ limit: 6, type: "SongItem" });
   return { post: res };
 };

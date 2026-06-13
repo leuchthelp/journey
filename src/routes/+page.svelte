@@ -12,7 +12,7 @@
 
 <audio-player>
   <media-container>
-    <audio></audio>
+    <audio src="https://music.leuchtapp.com/Audio/07d497d9910f1016ae24263e8bb2262e/stream?static=true"></audio>
     <media-play-button class="media-play-button">
       <span class="paused">Play</span>
     </media-play-button>

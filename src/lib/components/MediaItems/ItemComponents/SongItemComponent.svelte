@@ -7,8 +7,17 @@
   };
 
   let { item }: Props = $props();
-  let styling = $derived(item.defaultStyling + " " + item.outlineGradient);
-  let content = $derived(item.content);
+  $inspect(item)
+
+  let url = $derived(item.providers.at(0)?.url)
+  let test = $derived(`${url}/Audio/${item.original.at(0)?.uuid}/stream?static=true`)
+
+  $inspect(test)
 </script>
 
-<Button {styling}><a href="/pages/song/{item}">{content}</a></Button>
+<div>
+  <a href="/pages/song/{item.uuid}">
+    <Button {item}></Button>
+  </a>
+</div>
+
