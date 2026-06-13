@@ -11,9 +11,6 @@ export const mediaItems = pgTable("MediaItems", {
   uuid: text("uuid").primaryKey().unique(),
   type: text("type").default("MediaItem").notNull(),
   outlineGradient: text("outlineGradient").default("ring-[#C2381D]").notNull(),
-  defaultStyling: text("defaultStyling")
-    .default("m-0.5 h-24 w-24 rounded-xl bg-amber-200 ring")
-    .notNull(),
   loaded: boolean("loaded").default(false).notNull(),
   local: text("local").default("").notNull(),
 });
