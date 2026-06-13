@@ -13,7 +13,6 @@
     "npm:@tauri-apps/plugin-fs@~2.5.1": "2.5.1",
     "npm:@tauri-apps/plugin-opener@^2.5.4": "2.5.4",
     "npm:@tauri-apps/plugin-os@~2.3.2": "2.3.2",
-    "npm:@tauri-apps/plugin-sql@2.4": "2.4.0",
     "npm:@tauri-apps/plugin-window-state@~2.4.1": "2.4.1",
     "npm:@types/node@25.9.2": "25.9.2",
     "npm:@videojs/html@^10.0.0-beta.24": "10.0.0-beta.24_@svta+cml-cta@1.0.1__@svta+cml-structured-field-values@1.0.1___@svta+cml-utils@1.0.1__@svta+cml-utils@1.0.1_@svta+cml-structured-field-values@1.0.1__@svta+cml-utils@1.0.1_@svta+cml-utils@1.0.1",
@@ -838,12 +837,6 @@
     },
     "@tauri-apps/plugin-os@2.3.2": {
       "integrity": "sha512-n+nXWeuSeF9wcEsSPmRnBEGrRgOy6jjkSU+UVCOV8YUGKb2erhDOxis7IqRXiRVHhY8XMKks00BJ0OAdkpf6+A==",
-      "dependencies": [
-        "@tauri-apps/api"
-      ]
-    },
-    "@tauri-apps/plugin-sql@2.4.0": {
-      "integrity": "sha512-SIICc5JlnK6OrBZzOw7MmhXHPlmASpt5zLWIu10WW4kLr5cDYOXHdV2MoCgYQkgZLQfyBYgF3SQa5XCisUiQkw==",
       "dependencies": [
         "@tauri-apps/api"
       ]
@@ -1804,7 +1797,6 @@
         "npm:@tauri-apps/plugin-fs@~2.5.1",
         "npm:@tauri-apps/plugin-opener@^2.5.4",
         "npm:@tauri-apps/plugin-os@~2.3.2",
-        "npm:@tauri-apps/plugin-sql@2.4",
         "npm:@tauri-apps/plugin-window-state@~2.4.1",
         "npm:@types/node@25.9.2",
         "npm:@videojs/html@^10.0.0-beta.24",
