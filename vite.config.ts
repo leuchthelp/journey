@@ -1,13 +1,30 @@
 import { defineConfig } from "vite";
-import { enhancedImages } from '@sveltejs/enhanced-img'
+import { enhancedImages } from "@sveltejs/enhanced-img";
 import { sveltekit } from "@sveltejs/kit/vite";
 import tailwindcss from "@tailwindcss/vite";
+import adapter from "@sveltejs/adapter-static";
+import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vite.dev/config/
-export default defineConfig(async () => ({
-  plugins: [tailwindcss(), enhancedImages(), sveltekit()],
+export default defineConfig(() => ({
+  plugins: [
+    tailwindcss(),
+    enhancedImages(),
+    sveltekit({
+      preprocess: vitePreprocess(),
+      compilerOptions: {
+        experimental: {
+          async: true,
+        },
+      },
+
+      adapter: adapter({
+        fallback: "index.html",
+      }),
+    }),
+  ],
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
@@ -28,6 +45,13 @@ export default defineConfig(async () => ({
     watch: {
       // 3. tell Vite to ignore watching `src-tauri`
       ignored: ["**/src-tauri/**"],
+    },
+    envPrefix: ["VITE_", "TAURI_ENV_*"],
+    optimizeDeps: {
+      exclude: ["@electric-sql/pglite"],
+    },
+    worker: {
+      format: "es",
     },
   },
 }));

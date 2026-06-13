@@ -1,55 +1,35 @@
-import { db } from "$lib/db/database";
-import * as schema from "$lib/db/schema";
-import type { PageLoad } from "./$types";
-import { homeCache } from "$lib/components/MediaItems/ItemCache";
+import type { PageLoad } from "./$types.d.ts";
+import { homeCache } from "$lib/components/MediaItems/ItemCache.ts";
+import type { MediaItem } from "$lib/db/relations.ts";
+import { mainPageDataQuery } from "$lib/db/queries.ts";
 
-// import {
-//   ArtistItem,
-//   GenreItem,
-//   PlaylistItem,
-//   SongItem,
-// } from "$lib/components/MediaItems/MediaItems";
-
-// const test = new SongItem();
-// const test2 = new ArtistItem();
-// const test3 = new GenreItem();
-// const test4 = new PlaylistItem();
-
-// test.hash = "SongItem";
-// test2.hash = "ArtistItem";
-// test3.hash = "GenreItem";
-// test4.hash = "PlaylistItem";
-
-// test.content = "SongItem";
-// test2.content = "ArtistItem";
-// test3.content = "GenreItem";
-// test4.content = "PlaylistItem";
-// await db.insert(schema.mediaItems).values([test, test2, test3, test4])
-//await db.delete(schema.mediaItems)
 function toArrayClean<X>(xs: Iterable<X | undefined>): X[] {
-  let res: X[] = [];
+  const res: X[] = [];
 
-  for (let entry of xs) {
+  for (const entry of xs) {
     if (entry) res.push(entry);
   }
 
   return res;
 }
 
-export const load: PageLoad = async () => {
-  let res: schema.MediaItems[];
+export const load: PageLoad = async ({ parent }) => {
+  await parent();
+
+  let res: MediaItem[];
 
   // Medium: look in cache if item has been posted already
   if (homeCache) {
-    let tmp = homeCache.rvalues();
+    const tmp = homeCache.rvalues();
     res = toArrayClean(tmp);
 
-    if (res.length !== 0)
+    if (res.length !== 0) {
       return {
         post: res,
       };
+    }
   }
 
-  res = await db.select().from(schema.mediaItems).limit(6);
+  res = await mainPageDataQuery.execute({ limit: 6 });
   return { post: res };
 };

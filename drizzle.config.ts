@@ -1,14 +1,10 @@
 import { defineConfig } from "drizzle-kit";
 
 export default defineConfig({
-  dialect: "sqlite",
-  schema: "./src/db/schema.ts",
-  out: "./src-tauri/migrations",
-  dbCredentials: {
-    url: "sqlite:dev.db",
-  },
+  dialect: "postgresql",
+  driver: "pglite",
+  schema: "./src/lib/db/schema",
+  out: "./drizzle",
   verbose: false,
   strict: true,
-  casing: "snake_case",
-  migrations: { prefix: "supabase" },
 });

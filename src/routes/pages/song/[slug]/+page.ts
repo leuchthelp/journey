@@ -1,46 +1,42 @@
-import { db } from "$lib/db/database";
 import { error } from "@sveltejs/kit";
-import type { PageLoad } from "./$types";
-import * as schema from "$lib/db/schema";
-import { SongItem } from "$lib/components/MediaItems/MediaItems";
-import { eq } from "drizzle-orm";
+import type { PageLoad } from "./$types.d.ts";
 import { page } from "$app/state";
-import { itemCache } from "$lib/components/MediaItems/ItemCache";
+import { itemCache } from "$lib/components/MediaItems/ItemCache.ts";
+import { SongItem } from "$lib/components/MediaItems/MediaItems.ts";
+import { singlePageDataQuery } from "$lib/db/queries.ts";
 
 export const load: PageLoad = async ({ params }) => {
   // Fastest: try check out parent page if it already posted the item
-  let data = page.data.post as SongItem[];
+  const data = page.data.post as SongItem[];
   let res: SongItem | undefined;
   if (data) {
-    let res = data.filter((item) => item.hash === params.slug)[0];
+    res = data.filter((item) => item.uuid === params.slug)[0];
 
-    if (res)
+    if (res) {
       return {
         post: res,
       };
+    }
   }
 
   // Medium: look in cache if item has been posted already
   if (itemCache) {
-    res = itemCache.get(params.slug);
-    if (res)
+    let tmp = itemCache.get(params.slug);
+    if (tmp) {
       return {
-        post: res,
+        post: tmp as SongItem,
       };
+    }
   }
 
   // Brutal: fallback to database to get item fresh
-  let tmp = await db
-    .select()
-    .from(schema.mediaItems)
-    .where(eq(schema.mediaItems.hash, params.slug))
-    .limit(1);
+  res = await singlePageDataQuery.execute({ slug: params.slug });
 
-  res = tmp[0];
-  if (res)
+  if (res) {
     return {
       post: res,
     };
+  }
 
   error(404, "Not found");
 };
