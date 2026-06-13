@@ -7,12 +7,12 @@
   };
 
   let { item }: Props = $props();
-  let styling = $derived(item.defaultStyling + " " + item.outlineGradient);
-  let content = $derived(
-    item.content.filter((item) => item.type === "Name").at(0),
-  );
+
+  $inspect(item)
 </script>
 
-<Button {styling}
-  ><a href="/pages/album/{item.uuid}">{content?.description}</a></Button
->
+<div>
+  <a href="/pages/album/{item.uuid}">
+    <Button {item}></Button>
+  </a>
+</div>

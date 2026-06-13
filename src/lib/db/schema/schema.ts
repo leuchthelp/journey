@@ -1,23 +1,21 @@
 import {
-  integer,
-  sqliteTable,
+  serial,
+  boolean,
+  pgTable,
   text,
   primaryKey,
   index,
-} from "drizzle-orm/sqlite-core";
+} from "drizzle-orm/pg-core";
 
-export const mediaItems = sqliteTable("MediaItems", {
+export const mediaItems = pgTable("MediaItems", {
   uuid: text("uuid").primaryKey().unique(),
   type: text("type").default("MediaItem").notNull(),
   outlineGradient: text("outlineGradient").default("ring-[#C2381D]").notNull(),
-  defaultStyling: text("defaultStyling")
-    .default("m-0.5 h-24 w-24 rounded-xl bg-amber-200 ring")
-    .notNull(),
-  loaded: integer("loaded", { mode: "boolean" }).default(false).notNull(),
+  loaded: boolean("loaded").default(false).notNull(),
   local: text("local").default("").notNull(),
 });
 
-export const mediaItemChildren = sqliteTable(
+export const mediaItemChildren = pgTable(
   "MediaItemChildren",
   {
     parentId: text("parentId")
@@ -41,10 +39,10 @@ MediaItem OriginalItem Mapping
 
 */
 
-export const originalItems = sqliteTable(
+export const originalItems = pgTable(
   "OriginalItems",
   {
-    id: integer("id").primaryKey(),
+    id: serial("id").primaryKey(),
     parentId: text("parentId").notNull(),
     serverId: text("serverId").notNull(),
     uuid: text("uuid").notNull(),
@@ -58,10 +56,10 @@ MediaItem Content Mapping
 
 */
 
-export const contentItems = sqliteTable(
+export const contentItems = pgTable(
   "ContentItems",
   {
-    id: integer("id").primaryKey(),
+    id: serial("id").primaryKey(),
     parentId: text("parentId").notNull(),
     type: text("type").notNull(),
     description: text("description").notNull(),
@@ -75,14 +73,14 @@ Provider Mapping
 
 */
 
-export const providerItems = sqliteTable("ProviderItems", {
+export const providerItems = pgTable("ProviderItems", {
   userId: text("userId").primaryKey().unique().notNull(),
   serverId: text("serverId").default("").notNull(),
   type: text("type").default("").notNull(),
   url: text("url").default("").notNull(),
 });
 
-export const mediaItemToProviderItem = sqliteTable(
+export const mediaItemToProviderItem = pgTable(
   "ProviderItemToImageItem",
   {
     mediaItemId: text("mediaItemId")
@@ -106,7 +104,7 @@ Image Mapping
 
 */
 
-export const imageItems = sqliteTable(
+export const imageItems = pgTable(
   "ImageItems",
   {
     url: text("url").primaryKey().unique().notNull(),
@@ -116,7 +114,7 @@ export const imageItems = sqliteTable(
   (t) => [index("ImageProviderId_idx").on(t.serverId)],
 );
 
-export const mediaItemToImageItem = sqliteTable(
+export const mediaItemToImageItem = pgTable(
   "MediaItemToImageItem",
   {
     mediaItemId: text("mediaItemId")

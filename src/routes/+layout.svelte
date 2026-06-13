@@ -28,9 +28,10 @@
   });
 </script>
 
-<main class="mt-5 h-full">
+<main class="mt-5">
   {@render children()}
 </main>
+
 <Playbar>
   <PlaybarButton>1</PlaybarButton>
   <PlaybarButton>2</PlaybarButton>

@@ -5,9 +5,12 @@
   "windows": ["main"],
   "permissions": [
     "core:default",
+    "fs:default",
+    {
+      "identifier": "fs:allow-exists",
+      "allow": [{ "path": "$APPDATA/*" }]
+    },
     "opener:default",
-    "sql:default",
-    "sql:allow-execute",
     "os:default",
     "os:allow-hostname"
   ]

@@ -8,7 +8,7 @@ import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vite.dev/config/
-export default defineConfig(async () => ({
+export default defineConfig(() => ({
   plugins: [
     tailwindcss(),
     enhancedImages(),
@@ -47,5 +47,11 @@ export default defineConfig(async () => ({
       ignored: ["**/src-tauri/**"],
     },
     envPrefix: ["VITE_", "TAURI_ENV_*"],
+    optimizeDeps: {
+      exclude: ["@electric-sql/pglite"],
+    },
+    worker: {
+      format: "es",
+    },
   },
 }));

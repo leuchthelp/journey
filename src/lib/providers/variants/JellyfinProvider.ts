@@ -216,9 +216,12 @@ export class JellyfinProvider implements Provider {
           );
         }
 
+        const toDbPromises: Promise<void>[] = [];
         for (const item of await Promise.all(newMediaItemPromises)) {
-          await insertMediaItem(item);
+          toDbPromises.push(insertMediaItem(item));
         }
+
+        await Promise.all(toDbPromises);
 
         if (tmp.length < batchsize) run = false;
       } while (run);

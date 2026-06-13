@@ -11,7 +11,6 @@ class BaseItem implements MediaItem {
   outlineGradient!: string;
 
   uuid!: string;
-  defaultStyling!: string;
   loaded!: boolean;
   local!: string;
 

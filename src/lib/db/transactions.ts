@@ -10,25 +10,22 @@ import {
   originalItems,
 } from "./schema/schema.ts";
 
-import { SQLiteTransaction } from "drizzle-orm/sqlite-core";
-import type { SqliteRemoteResult } from "drizzle-orm/sqlite-proxy";
+import type { PgAsyncTransaction } from "drizzle-orm/pg-core";
+import type { PgliteQueryResultHKT } from "drizzle-orm/pglite";
 import { relations } from "./relations.ts";
 
-type TransactionType = SQLiteTransaction<
-  "async",
-  SqliteRemoteResult,
-  Record<string, never>,
+type TransactionType = PgAsyncTransaction<
+  PgliteQueryResultHKT,
   typeof relations
 >;
 
 export const insertMediaItem = async (item: MediaItem) => {
   await db.transaction(async (tx) => {
-    await tx.insert(mediaItems).values(item).onConflictDoNothing();
-
-    const newItemId = await tx.query.mediaItems.findFirst({
-      where: { uuid: item.uuid },
-      columns: { uuid: true },
-    });
+    const [newItemId] = await tx
+      .insert(mediaItems)
+      .values(item)
+      .onConflictDoNothing()
+      .returning({ uuid: mediaItems.uuid });
 
     if (newItemId) {
       if (item.original.length !== 0)
@@ -149,12 +146,11 @@ const imageTransaction = async (
   newItemId: string,
 ) => {
   for (const image of item.images) {
-    await tx.insert(imageItems).values(image).onConflictDoNothing();
-
-    const imageId = await tx.query.imageItems.findFirst({
-      where: { url: image.url },
-      columns: { url: true },
-    });
+    const [imageId] = await tx
+      .insert(imageItems)
+      .values(image)
+      .onConflictDoNothing()
+      .returning({ url: imageItems.url });
 
     if (imageId)
       await tx
