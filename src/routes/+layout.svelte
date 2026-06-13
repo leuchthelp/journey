@@ -28,15 +28,25 @@
   });
 </script>
 
-<main class="mt-5">
+<main class="mt-5 h-full">
   {@render children()}
 </main>
 
-<Playbar>
-  <PlaybarButton>1</PlaybarButton>
-  <PlaybarButton>2</PlaybarButton>
-  <PlaybarButton>3</PlaybarButton>
-</Playbar>
+<div></div>
+
+<audio-player>
+  <media-container>
+    <Playbar>
+      <PlaybarButton>1</PlaybarButton>
+      <PlaybarButton>2</PlaybarButton>
+      <PlaybarButton>3</PlaybarButton>
+    </Playbar>
+
+    <audio
+      src="https://music.leuchtapp.com/Audio/07d497d9910f1016ae24263e8bb2262e/stream?static=true"
+    ></audio>
+  </media-container>
+</audio-player>
 
 <div class="fixed flex flex-row h-full place-self-start" class:w-full={visible}>
   <Navbar>
