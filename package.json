@@ -14,12 +14,12 @@
     "generate": "dx drizzle-kit generate && deno ./src/lib/db/compile-migrations.ts"
   },
   "dependencies": {
-    "@electric-sql/pglite": "^0.5.2",
+    "@electric-sql/pglite": "^0.5.3",
     "@jellyfin/sdk": "^0.13.0",
     "@sveltejs/adapter-static": "4.0.0-next.0",
     "@sveltejs/kit": "3.0.0-next.2",
     "@tailwindcss/vite": "^4.3.1",
-    "@tauri-apps/api": "^2.11.0",
+    "@tauri-apps/api": "^2.11.1",
     "@tauri-apps/plugin-fs": "~2.5.1",
     "@tauri-apps/plugin-opener": "^2.5.4",
     "@tauri-apps/plugin-os": "~2.3.2",
@@ -41,7 +41,7 @@
     "@sveltejs/enhanced-img": "^0.10.4",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@tauri-apps/cli": "^2.11.2",
-    "prettier-plugin-svelte": "^4.1.0",
+    "prettier-plugin-svelte": "^4.1.1",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "svelte": "^5.56.3",
     "svelte-check": "^4.6.0",
