@@ -1,9 +1,8 @@
 /// take from https://github.com/drizzle-team/drizzle-orm/discussions/2532#discussioncomment-11729397
 
-
 import { db } from "./database.ts";
 // @ts-ignore will be created automatically
-import migrations from "./migrations.json" with { type: 'json' };
+import migrations from "./migrations.json" with { type: "json" };
 
 async function ensureMigrationsTable() {
   await db.execute(`
@@ -42,7 +41,7 @@ export async function migrate_pglite() {
 
   // Filter and execute pending migrations
   const pendingMigrations = migrations.filter(
-    (migration: any) => !executedHashes.includes(migration.hash),
+    (migration) => !executedHashes.includes(migration.hash),
   );
 
   if (pendingMigrations.length === 0) {

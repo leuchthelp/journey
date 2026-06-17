@@ -21,7 +21,7 @@ export const load: PageLoad = async ({ params }) => {
 
   // Medium: look in cache if item has been posted already
   if (itemCache) {
-    let tmp = itemCache.get(params.slug);
+    const tmp = itemCache.get(params.slug);
     if (tmp) {
       return {
         post: tmp as GenreItem,

@@ -8,7 +8,12 @@
   let { item }: Props = $props();
 
   let image = $derived(item.images.at(0)?.url!);
-  let styling = $derived("m-0.5 h-24 w-24 rounded-xl bg-amber-200 ring" + " " + item.outlineGradient + " overflow-hidden");
+  let styling = $derived(
+    "m-0.5 h-24 w-24 rounded-xl bg-amber-200 ring" +
+      " " +
+      item.outlineGradient +
+      " overflow-hidden",
+  );
   let name = $derived(
     item.content.filter((item) => item.type === "Name").at(0),
   );

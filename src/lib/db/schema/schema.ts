@@ -46,7 +46,7 @@ export const originalItems = pgTable(
     parentId: text("parentId").notNull(),
     serverId: text("serverId").notNull(),
     uuid: text("uuid").notNull(),
-    url: text("url").notNull()
+    url: text("url").notNull(),
   },
   (t) => [index("OrignalToItemId_idx").on(t.parentId)],
 );

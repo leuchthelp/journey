@@ -2,9 +2,7 @@
   "version": "8",
   "dialect": "postgres",
   "id": "d47f67e1-b593-45d2-a748-cf2d2e66dea3",
-  "prevIds": [
-    "00000000-0000-0000-0000-000000000000"
-  ],
+  "prevIds": ["00000000-0000-0000-0000-000000000000"],
   "ddl": [
     {
       "isRlsEnabled": false,
@@ -680,14 +678,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "parentId"
-      ],
+      "columns": ["parentId"],
       "schemaTo": "public",
       "tableTo": "MediaItems",
-      "columnsTo": [
-        "uuid"
-      ],
+      "columnsTo": ["uuid"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "MediaItemChildren_parentId_MediaItems_uuid_fkey",
@@ -697,14 +691,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "childId"
-      ],
+      "columns": ["childId"],
       "schemaTo": "public",
       "tableTo": "MediaItems",
-      "columnsTo": [
-        "uuid"
-      ],
+      "columnsTo": ["uuid"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "MediaItemChildren_childId_MediaItems_uuid_fkey",
@@ -714,14 +704,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "mediaItemId"
-      ],
+      "columns": ["mediaItemId"],
       "schemaTo": "public",
       "tableTo": "MediaItems",
-      "columnsTo": [
-        "uuid"
-      ],
+      "columnsTo": ["uuid"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "MediaItemToImageItem_mediaItemId_MediaItems_uuid_fkey",
@@ -731,14 +717,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "imageItemId"
-      ],
+      "columns": ["imageItemId"],
       "schemaTo": "public",
       "tableTo": "ImageItems",
-      "columnsTo": [
-        "url"
-      ],
+      "columnsTo": ["url"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "MediaItemToImageItem_imageItemId_ImageItems_url_fkey",
@@ -748,14 +730,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "mediaItemId"
-      ],
+      "columns": ["mediaItemId"],
       "schemaTo": "public",
       "tableTo": "MediaItems",
-      "columnsTo": [
-        "uuid"
-      ],
+      "columnsTo": ["uuid"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "ProviderItemToImageItem_mediaItemId_MediaItems_uuid_fkey",
@@ -765,14 +743,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "providerItemId"
-      ],
+      "columns": ["providerItemId"],
       "schemaTo": "public",
       "tableTo": "ProviderItems",
-      "columnsTo": [
-        "userId"
-      ],
+      "columnsTo": ["userId"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "ProviderItemToImageItem_WHTl5eN0AHNE_fkey",
@@ -781,10 +755,7 @@
       "table": "ProviderItemToImageItem"
     },
     {
-      "columns": [
-        "parentId",
-        "childId"
-      ],
+      "columns": ["parentId", "childId"],
       "nameExplicit": false,
       "name": "MediaItemChildren_pkey",
       "entityType": "pks",
@@ -792,10 +763,7 @@
       "table": "MediaItemChildren"
     },
     {
-      "columns": [
-        "mediaItemId",
-        "imageItemId"
-      ],
+      "columns": ["mediaItemId", "imageItemId"],
       "nameExplicit": false,
       "name": "MediaItemToImageItem_pkey",
       "entityType": "pks",
@@ -803,10 +771,7 @@
       "table": "MediaItemToImageItem"
     },
     {
-      "columns": [
-        "mediaItemId",
-        "providerItemId"
-      ],
+      "columns": ["mediaItemId", "providerItemId"],
       "nameExplicit": false,
       "name": "ProviderItemToImageItem_pkey",
       "entityType": "pks",
@@ -814,9 +779,7 @@
       "table": "ProviderItemToImageItem"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "ContentItems_pkey",
       "schema": "public",
@@ -824,9 +787,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "url"
-      ],
+      "columns": ["url"],
       "nameExplicit": false,
       "name": "ImageItems_pkey",
       "schema": "public",
@@ -834,9 +795,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "uuid"
-      ],
+      "columns": ["uuid"],
       "nameExplicit": false,
       "name": "MediaItems_pkey",
       "schema": "public",
@@ -844,9 +803,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "OriginalItems_pkey",
       "schema": "public",
@@ -854,9 +811,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "userId"
-      ],
+      "columns": ["userId"],
       "nameExplicit": false,
       "name": "ProviderItems_pkey",
       "schema": "public",
@@ -865,9 +820,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "url"
-      ],
+      "columns": ["url"],
       "nullsNotDistinct": false,
       "name": "ImageItems_url_key",
       "schema": "public",
@@ -876,9 +829,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "uuid"
-      ],
+      "columns": ["uuid"],
       "nullsNotDistinct": false,
       "name": "MediaItems_uuid_key",
       "schema": "public",
@@ -887,9 +838,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "userId"
-      ],
+      "columns": ["userId"],
       "nullsNotDistinct": false,
       "name": "ProviderItems_userId_key",
       "schema": "public",

@@ -19,7 +19,7 @@ export const singlePageDataQuery = db.query.mediaItems
 export const mainPageDataQuery = db.query.mediaItems
   .findMany({
     limit: sql.placeholder("limit"),
-    where: {type: sql.placeholder("type")},
+    where: { type: sql.placeholder("type") },
     with: {
       original: { columns: { id: false } },
       content: { columns: { id: false } },
