@@ -43,7 +43,7 @@
     </Playbar>
 
     <audio
-      src="https://music.leuchtapp.com/Audio/07d497d9910f1016ae24263e8bb2262e/stream?static=true"
+      src="https://music.leuchtapp.com/Audio/dbc3af6e79261a0429c7c666f7a8031b/stream?static=true"
     ></audio>
   </media-container>
 </audio-player>
