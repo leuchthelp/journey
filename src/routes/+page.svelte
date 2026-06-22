@@ -2,7 +2,6 @@
   import { itemCache } from "$lib/components/MediaItems/ItemCache.ts";
   import ItemComponent from "$lib/components/MediaItems/ItemComponent.svelte";
   import type { MediaItem } from "$lib/db/relations.ts";
-  import { page } from "$app/state";
   import { getIndexing } from "$lib/signals/index.svelte";
   import { mainPageDataQuery } from "$lib/db/queries";
 
@@ -10,13 +9,11 @@
   let type = $state("SongItem");
   let limit = $state(6);
 
-  $inspect(page);
+  let signal = getIndexing();
+  $inspect(signal);
 
   $effect(() => {
     async () => {
-      let signal = getIndexing();
-      console.log(signal)
-
       if (signal.type === type) {
         data = await mainPageDataQuery.execute({ limit, type });
       }

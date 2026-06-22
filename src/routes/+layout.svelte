@@ -9,9 +9,13 @@
   import { toAuthComponent } from "$lib/snippets/ToAuthComponent.svelte";
   import type { LayoutProps } from "./$types";
   import { providerManager } from "$lib/providers/ProviderManager";
+  import { setIndexing } from "$lib/signals/index.svelte";
 
   let { data, children }: LayoutProps = $props();
   let visible = $state(false);
+
+  let signal = $state({ type: "", uuid: "" });
+  setIndexing(signal);
 
   function toggleVisible() {
     visible = !visible;
@@ -23,7 +27,7 @@
   }
 
   $effect(() => {
-    providerManager.initProvider(data.post);
+    providerManager.initProvider(data.post, signal);
   });
 </script>
 

@@ -1,6 +1,7 @@
 import { providerOptions } from "./variants/index.ts";
 import type { ProviderItem } from "$lib/db/schema/schema.ts";
 import type { Provider } from "./variants/Provider.ts";
+import type { Indexing } from "../signals/index.svelte.ts";
 
 type IProviderManager = {
   providers: Provider[];
@@ -9,7 +10,7 @@ type IProviderManager = {
   getProviderByServerId: (serverId: string) => Provider;
   addProvider: (provider: Provider) => void;
   removeProvider: (provider: Provider) => void;
-  initProvider: (providerItems: Provider[]) => void;
+  initProvider: (providerItems: Provider[], signal: Indexing) => void;
   existsProviderWith: (userId: string) => boolean;
 };
 
@@ -43,7 +44,7 @@ class ProviderManager implements IProviderManager {
     delete this.providers[index];
   }
 
-  public initProvider(providerItems: ProviderItem[]) {
+  public initProvider(providerItems: ProviderItem[], signal: Indexing) {
     for (const providerItem of providerItems) {
       if (providerOptions.has(providerItem.type)) {
         const accessToken =
@@ -59,7 +60,7 @@ class ProviderManager implements IProviderManager {
         this.addProvider(init);
 
         if (init.authStatus()) {
-          this.indexPromises.push(init.indexFiles());
+          this.indexPromises.push(init.indexFiles(signal));
         }
       }
     }

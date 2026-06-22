@@ -13,58 +13,63 @@ import {
 import type { PgAsyncTransaction } from "drizzle-orm/pg-core";
 import type { PgliteQueryResultHKT } from "drizzle-orm/pglite";
 import { relations } from "./relations.ts";
+import type { Indexing } from "../signals/index.svelte.ts";
 
 type TransactionType = PgAsyncTransaction<
   PgliteQueryResultHKT,
   typeof relations
 >;
 
-export const insertMediaItem = async (item: MediaItem) => {
-  await db.transaction(async (tx) => {
-    const [newItemId] = await tx
-      .insert(mediaItems)
-      .values(item)
-      .onConflictDoNothing()
-      .returning({ uuid: mediaItems.uuid });
+export const insertMediaItem = async (item: MediaItem, signal: Indexing) => {
+  await db
+    .transaction(async (tx) => {
+      const [newItemId] = await tx
+        .insert(mediaItems)
+        .values(item)
+        .onConflictDoNothing()
+        .returning({ uuid: mediaItems.uuid });
 
-    if (newItemId) {
-      if (item.original.length !== 0)
-        await tx.transaction(async (tx2) => {
-          await originalTransaction(tx2, item);
-        });
+      if (newItemId) {
+        if (item.original.length !== 0)
+          await tx.transaction(async (tx2) => {
+            await originalTransaction(tx2, item);
+          });
 
-      if (item.content.length !== 0)
-        await tx.transaction(async (tx2) => {
-          await contentTransaction(tx2, item);
-        });
+        if (item.content.length !== 0)
+          await tx.transaction(async (tx2) => {
+            await contentTransaction(tx2, item);
+          });
 
-      // Add reference to parents from child
-      // Will also tell the parent which children it has
-      // via the junction table
-      if (item.parents.length !== 0)
-        await tx.transaction(async (tx2) => {
-          await parentTransaction(tx2, item, newItemId.uuid);
-        });
+        // Add reference to parents from child
+        // Will also tell the parent which children it has
+        // via the junction table
+        if (item.parents.length !== 0)
+          await tx.transaction(async (tx2) => {
+            await parentTransaction(tx2, item, newItemId.uuid);
+          });
 
-      // Add reference to provider junction table
-      // of which providers the Item can be got from.
-      // Since providers are added to the DB before indexing
-      // we just have to search for the required provider &
-      // reference their Id.
-      if (item.providers.length !== 0)
-        await tx.transaction(async (tx2) => {
-          await providerTransaction(tx2, item, newItemId.uuid);
-        });
+        // Add reference to provider junction table
+        // of which providers the Item can be got from.
+        // Since providers are added to the DB before indexing
+        // we just have to search for the required provider &
+        // reference their Id.
+        if (item.providers.length !== 0)
+          await tx.transaction(async (tx2) => {
+            await providerTransaction(tx2, item, newItemId.uuid);
+          });
 
-      // Add add images and reference to image junction table.
-      // Also need to add providers for image in a additional step
-      // as a separate transaction.
-      if (item.images.length !== 0)
-        await tx.transaction(async (tx2) => {
-          await imageTransaction(tx2, item, newItemId.uuid);
-        });
-    }
-  });
+        // Add add images and reference to image junction table.
+        // Also need to add providers for image in a additional step
+        // as a separate transaction.
+        if (item.images.length !== 0)
+          await tx.transaction(async (tx2) => {
+            await imageTransaction(tx2, item, newItemId.uuid);
+          });
+      }
+    })
+    .then(() => {
+      [signal.type, signal.uuid] = [item.type, item.uuid];
+    });
 };
 
 const originalTransaction = async (tx: TransactionType, item: MediaItem) => {

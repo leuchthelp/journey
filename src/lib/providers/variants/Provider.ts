@@ -1,4 +1,5 @@
 import type { ProviderItem } from "$lib/db/schema/schema.ts";
+import type { Indexing } from "../../signals/index.svelte.ts";
 
 export interface Provider extends Omit<ProviderItem, "id"> {
   readonly client: unknown;
@@ -17,5 +18,5 @@ export interface Provider extends Omit<ProviderItem, "id"> {
   getServerId: () => string;
   getUserId: () => string;
 
-  indexFiles: () => Promise<void>;
+  indexFiles: (signal: Indexing) => Promise<void>;
 }

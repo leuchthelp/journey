@@ -20,6 +20,7 @@ import { mapJellyfinOptions } from ".";
 import type { MediaItem, ParentItem } from "$lib/db/relations.ts";
 import { db } from "$lib/db/database.ts";
 import { insertMediaItem } from "$lib/db/transactions.ts";
+import type { Indexing } from "$lib/signals/index.svelte.ts";
 
 export class JellyfinProvider implements Provider {
   readonly client: Jellyfin;
@@ -107,7 +108,6 @@ export class JellyfinProvider implements Provider {
         this.addToDb();
         providerManager.addProvider(this);
         this.setAuthStatus(true);
-        this.indexFiles();
         return;
       }
 
@@ -168,14 +168,26 @@ export class JellyfinProvider implements Provider {
     this._authenticated = item;
   }
 
-  async indexFiles() {
+  async indexFiles(signal: Indexing) {
     if (this._api) {
       const api = this._api;
       const batchsize = 100;
 
-      await this.getByType(api, BaseItemKind.MusicAlbum, batchsize, this);
-      await this.getByType(api, BaseItemKind.MusicArtist, batchsize, this);
-      await this.getByType(api, BaseItemKind.Audio, batchsize, this);
+      await this.getByType(
+        api,
+        BaseItemKind.MusicAlbum,
+        batchsize,
+        this,
+        signal,
+      );
+      await this.getByType(
+        api,
+        BaseItemKind.MusicArtist,
+        batchsize,
+        this,
+        signal,
+      );
+      await this.getByType(api, BaseItemKind.Audio, batchsize, this, signal);
     }
   }
 
@@ -198,6 +210,7 @@ export class JellyfinProvider implements Provider {
     type: BaseItemKind,
     batchsize: number,
     provider: JellyfinProvider,
+    signal: Indexing,
   ) {
     const res = await this.getChildren(api, [type], this, batchsize);
     const newItems = res.data.Items;
@@ -218,7 +231,7 @@ export class JellyfinProvider implements Provider {
 
         const toDbPromises: Promise<void>[] = [];
         for (const item of await Promise.all(newMediaItemPromises)) {
-          toDbPromises.push(insertMediaItem(item));
+          toDbPromises.push(insertMediaItem(item, signal));
         }
 
         await Promise.all(toDbPromises);
