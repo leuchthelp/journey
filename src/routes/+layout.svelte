@@ -17,12 +17,11 @@
     visible = !visible;
   }
 
-  let displayables: string[] = $state([]);
+  let displayable: string[] = $state([]);
   function addComponent() {
-    displayables.push("JellyfinProvider");
+    displayable.push("JellyfinProvider");
   }
 
-  // ugly, need to change to remove duplicate code
   $effect(() => {
     providerManager.initProvider(data.post);
   });
@@ -58,7 +57,7 @@
       <ProviderAccordion title={"Providers"}>
         <ProviderAccordion title={"Jellyfin"}>
           <button onclick={() => addComponent()}>Add Jellyfin Provider</button>
-          {#each displayables as type}
+          {#each displayable as type}
             {@render toAuthComponent(type)}
           {/each}
           {#each data.post as item}

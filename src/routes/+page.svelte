@@ -1,18 +1,32 @@
 <script lang="ts">
-  import type { PageProps } from "./$types";
-  import { itemCache, homeCache } from "$lib/components/MediaItems/ItemCache";
+  import { itemCache } from "$lib/components/MediaItems/ItemCache.ts";
   import ItemComponent from "$lib/components/MediaItems/ItemComponent.svelte";
-  import "@videojs/html/audio/player";
-  import "@videojs/html/audio/minimal-skin";
+  import type { MediaItem } from "$lib/db/relations.ts";
+  import { page } from "$app/state";
+  import { getIndexing } from "$lib/signals/index.svelte";
+  import { mainPageDataQuery } from "$lib/db/queries";
 
-  let { data }: PageProps = $props();
+  let data: MediaItem[] = $state([]);
+  let type = $state("SongItem");
+  let limit = $state(6);
 
-  $inspect(data);
+  $inspect(page);
+
+  $effect(() => {
+    async () => {
+      let signal = getIndexing();
+      console.log(signal)
+
+      if (signal.type === type) {
+        data = await mainPageDataQuery.execute({ limit, type });
+      }
+    };
+  });
 </script>
 
 <div class="flex">
-  {#each data.post as item}
-    {#if itemCache.set(item.uuid!, item) && homeCache.set(item.uuid!, item)}
+  {#each data as item}
+    {#if itemCache.set(item.uuid!, item)}
       <ItemComponent {item}></ItemComponent>
     {/if}
   {/each}

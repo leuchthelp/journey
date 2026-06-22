@@ -1,7 +1,7 @@
 import { db } from "./database.ts";
 import { sql } from "drizzle-orm";
 
-export const singlePageDataQuery = db.query.mediaItems
+const singlePageDataQuery = db.query.mediaItems
   .findFirst({
     where: { uuid: sql.placeholder("slug") },
     with: {
@@ -16,7 +16,7 @@ export const singlePageDataQuery = db.query.mediaItems
   })
   .prepare();
 
-export const mainPageDataQuery = db.query.mediaItems
+const mainPageDataQuery = db.query.mediaItems
   .findMany({
     limit: sql.placeholder("limit"),
     where: { type: sql.placeholder("type") },
@@ -30,4 +30,6 @@ export const mainPageDataQuery = db.query.mediaItems
   })
   .prepare();
 
-export const providerDataQuery = db.query.providerItems.findMany().prepare();
+const providerDataQuery = db.query.providerItems.findMany().prepare();
+
+export { singlePageDataQuery, mainPageDataQuery, providerDataQuery };
