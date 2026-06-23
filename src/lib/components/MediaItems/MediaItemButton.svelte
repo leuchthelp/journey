@@ -18,7 +18,7 @@
 
 <div class="flex flex-col md:size-44 size-24">
   <button
-    class={`m-0.5 rounded-xl bg-amber-200 ring-4 overflow-clip aspect-square  ${item.outlineGradient}`}
+    class={`m-0.5 rounded-xl bg-amber-200 ring-4 aspect-square overflow-x-clip  ${item.outlineGradient}`}
     aria-labelledby={name?.description}
   >
     <enhanced:img
