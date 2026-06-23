@@ -3,6 +3,25 @@
   import { JellyfinProvider } from "$lib/providers/variants/JellyfinProvider";
   import { getIndexing } from "$lib/signals/index.svelte";
 
+  async function addConnection() {
+    if (!provider.authStatus()) {
+      provider.createApi(serverURL);
+      await provider.authApiWithPw(uname, psw);
+      if (provider.authStatus()) {
+        provider
+          .indexFiles(signal)
+          .finally(() => console.log("auth indexing finished"));
+        success = true;
+      }
+    }
+  }
+
+  function removeConnection() {
+    provider.removeConnection();
+    psw = "";
+    success = false;
+  }
+
   type Props = {
     serverId?: string;
   };
@@ -14,42 +33,18 @@
 
   let signal = getIndexing();
 
-  let provider: JellyfinProvider;
-
-  if (!serverId) {
-    provider = new JellyfinProvider();
-  } else {
-    provider = providerManager.getProviderByServerId(
-      serverId,
-    ) as JellyfinProvider;
-  }
-
-  let success = $state(provider.authStatus());
-  let serverURL = $state(provider.url);
-
-  function addConnection() {
-    if (!provider.authStatus()) {
-      provider.createApi(serverURL);
-      provider.authApiWithPw(uname, psw).then(() => {
-        if (provider.authStatus()) {
-          provider
-            .indexFiles(signal)
-            .finally(() => console.log("auth indexing finished"));
-          success = true;
-        }
-      });
+  let provider = $derived.by(() => {
+    if (!serverId) {
+      return new JellyfinProvider();
+    } else {
+      return providerManager.getProviderByServerId(
+        serverId,
+      ) as JellyfinProvider;
     }
-  }
+  });
 
-  function removeConnection() {
-    provider.removeConnection();
-    psw = "";
-    success = false;
-  }
-
-  // $inspect(
-  //   `success: ${success}, uname: ${uname}, psw: ${psw}, url: ${serverURL}, serverId: ${serverId}`,
-  // );
+  let success = $derived(provider.authStatus());
+  let serverURL = $derived(provider.url);
 </script>
 
 <div class="">
@@ -67,7 +62,7 @@
       <label for="psw">Password</label>
       <input type="password" required bind:value={psw} />
 
-      <button onclick={() => addConnection()}>Connect</button>
+      <button onclick={async () => addConnection()}>Connect</button>
     </form>
   {/if}
 </div>
