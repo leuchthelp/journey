@@ -7,10 +7,8 @@ async function tauriDevice() {
   return (await hostname()) + "-" + platform() + "-" + arch() + "-" + version();
 }
 
-console.log("__TAURI__" in window)
-
 const uuid = uuidv7();
 const device: string =
-  "__TAURI__" in window ? await tauriDevice() : navigator.platform;
+  "__TAURI_INTERNALS__" in window ? await tauriDevice() : navigator.platform;
 
 export { uuid, device };
