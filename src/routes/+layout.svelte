@@ -14,7 +14,7 @@
   let { data, children }: LayoutProps = $props();
   let visible = $state(false);
 
-  let signal = $state({ type: "", uuid: "" });
+  let signal = $state({ value: { type: "", uuid: "" } });
   setIndexing(signal);
 
   function toggleVisible() {
@@ -45,9 +45,7 @@
       <PlaybarButton>3</PlaybarButton>
     </Playbar>
 
-    <audio
-      src="https://music.leuchtapp.com/Audio/dbc3af6e79261a0429c7c666f7a8031b/stream?static=true"
-    ></audio>
+    <audio></audio>
   </media-container>
 </audio-player>
 
