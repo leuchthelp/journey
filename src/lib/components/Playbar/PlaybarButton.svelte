@@ -11,9 +11,6 @@
   });
 </script>
 
-<button
-  class={`${action} playbar-styled-button`}
-  onclick={() => console.log(`${action} playbar-styled-button`)}
->
+<media-play-button class={`${action} playbar-styled-button`}>
   {@render children?.()}
-</button>
+</media-play-button>

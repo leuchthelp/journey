@@ -2,6 +2,6 @@
   let { children } = $props();
 </script>
 
-<media-play-button class="media-play-button bottom-0 grid-play-options z-1">
+<media-controls-group class="bottom-0 grid-play-options">
   {@render children?.()}
-</media-play-button>
+</media-controls-group>
