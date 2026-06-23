@@ -171,7 +171,7 @@ export class JellyfinProvider implements Provider {
   async indexFiles(signal: Indexing) {
     if (this._api) {
       const api = this._api;
-      const batchsize = 100;
+      const batchsize = 10;
 
       await this.getByType(
         api,
@@ -212,7 +212,7 @@ export class JellyfinProvider implements Provider {
     provider: JellyfinProvider,
     signal: Indexing,
   ) {
-    const res = await this.getChildren(api, [type], this, batchsize);
+    const res = await this.getChildren(api, [type], this);
     const newItems = res.data.Items;
 
     let run = true;

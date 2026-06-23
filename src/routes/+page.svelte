@@ -1,29 +1,27 @@
 <script lang="ts">
+  import { invalidate } from "$app/navigation";
   import { itemCache } from "$lib/components/MediaItems/ItemCache.ts";
   import ItemComponent from "$lib/components/MediaItems/ItemComponent.svelte";
-  import type { MediaItem } from "$lib/db/relations.ts";
   import { getIndexing } from "$lib/signals/index.svelte";
-  import { mainPageDataQuery } from "$lib/db/queries";
+  import type { PageProps } from "./$types";
 
-  let data: MediaItem[] = $state([]);
+  let { data }: PageProps = $props();
+
   let type = $state("SongItem");
   let limit = $state(6);
-
   let signal = getIndexing();
-  $inspect(signal);
 
   $effect(() => {
-    async () => {
-      if (signal.type === type) {
-        data = await mainPageDataQuery.execute({ limit, type });
-      }
-    };
+    if (signal.value.type === type && data.post.length < limit) {
+      console.warn("reload page");
+      invalidate("app:mainPage");
+    }
   });
 </script>
 
 <div class="flex">
-  {#each data as item}
-    {#if itemCache.set(item.uuid!, item)}
+  {#each data.post as item}
+    {#if itemCache.set(item.uuid, item)}
       <ItemComponent {item}></ItemComponent>
     {/if}
   {/each}

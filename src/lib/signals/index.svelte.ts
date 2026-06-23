@@ -1,8 +1,12 @@
 import { createContext } from "svelte";
 
-export interface Indexing {
+interface IndexingState {
   type: string;
   uuid: string;
+}
+
+export interface Indexing {
+  value: IndexingState;
 }
 
 export const [getIndexing, setIndexing] = createContext<Indexing>();

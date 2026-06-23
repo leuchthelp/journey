@@ -1,6 +1,7 @@
 <script lang="ts">
   import { providerManager } from "$lib/providers/ProviderManager";
   import { JellyfinProvider } from "$lib/providers/variants/JellyfinProvider";
+  import { getIndexing } from "$lib/signals/index.svelte";
 
   type Props = {
     serverId?: string;
@@ -10,6 +11,8 @@
 
   let uname = $state("");
   let psw = $state("");
+
+  let signal = getIndexing();
 
   let provider: JellyfinProvider;
 
@@ -29,6 +32,9 @@
       provider.createApi(serverURL);
       provider.authApiWithPw(uname, psw).then(() => {
         if (provider.authStatus()) {
+          provider
+            .indexFiles(signal)
+            .finally(() => console.log("auth indexing finished"));
           success = true;
         }
       });
