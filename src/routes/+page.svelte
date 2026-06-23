@@ -8,7 +8,7 @@
   let { data }: PageProps = $props();
 
   let type = $state("SongItem");
-  let limit = $state(6);
+  let limit = $state(5);
   let signal = getIndexing();
 
   $effect(() => {

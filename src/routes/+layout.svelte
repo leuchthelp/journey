@@ -65,7 +65,6 @@
   class:w-full={visible}
 >
   <Navbar>
-    <div class="md:h-full"></div>
     <NavbarButton func={toggleVisible}>settings</NavbarButton>
   </Navbar>
   {#if visible}
