@@ -19,7 +19,7 @@
   });
 </script>
 
-<div class="flex">
+<div class="flex gap-3">
   {#each data.post as item}
     {#if itemCache.set(item.uuid, item)}
       <ItemComponent {item}></ItemComponent>

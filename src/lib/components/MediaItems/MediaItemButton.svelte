@@ -8,12 +8,6 @@
   let { item }: Props = $props();
 
   let image = $derived(item.images.at(0)?.url!);
-  let styling = $derived(
-    "m-0.5 h-24 w-24 rounded-xl bg-amber-200 ring" +
-      " " +
-      item.outlineGradient +
-      " overflow-hidden",
-  );
   let name = $derived(
     item.content.filter((item) => item.type === "Name").at(0),
   );
@@ -22,8 +16,19 @@
   );
 </script>
 
-<button class={styling} onclick={() => console.log(styling)}>
-  <img src={image} class="object-cover h-full w-full" alt="waiting" />
-</button>
-<div>{name?.description}</div>
-<div>{artist?.description}</div>
+<div class="flex flex-col md:size-44 size-24">
+  <button
+    class={`m-0.5 rounded-xl bg-amber-200 ring-4 overflow-clip aspect-square  ${item.outlineGradient}`}
+    aria-labelledby={name?.description}
+  >
+    <enhanced:img
+      src={image}
+      class="object-cover h-full w-full"
+      alt="waiting"
+    />
+  </button>
+  <div class="flex flex-col *:truncate">
+    <span>{name?.description}</span>
+    <span class="text-sm">{artist?.description}</span>
+  </div>
+</div>

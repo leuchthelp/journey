@@ -39,7 +39,7 @@
     providerManager.initProvider(data.post, signal);
   });
 
-  $inspect(src)
+  $inspect(src);
 </script>
 
 <main class="mt-5 h-full">
@@ -60,9 +60,12 @@
   </media-container>
 </audio-player>
 
-<div class="fixed flex flex-row h-full place-self-start" class:w-full={visible}>
+<div
+  class="fixed flex flex-row md:h-full place-self-start"
+  class:w-full={visible}
+>
   <Navbar>
-    <div class="h-full"></div>
+    <div class="md:h-full"></div>
     <NavbarButton func={toggleVisible}>settings</NavbarButton>
   </Navbar>
   {#if visible}
