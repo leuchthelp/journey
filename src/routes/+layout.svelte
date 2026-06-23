@@ -41,11 +41,13 @@
   <media-container>
     <Playbar>
       <PlaybarButton>1</PlaybarButton>
-      <PlaybarButton>2</PlaybarButton>
+      <PlaybarButton action={"paused"}>2</PlaybarButton>
       <PlaybarButton>3</PlaybarButton>
     </Playbar>
 
-    <audio></audio>
+    <audio
+      src="https://music.leuchtapp.com/Audio/dbc3af6e79261a0429c7c666f7a8031b/stream?static=true"
+    ></audio>
   </media-container>
 </audio-player>
 
