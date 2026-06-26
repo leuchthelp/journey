@@ -3,6 +3,7 @@
   "specifiers": {
     "npm:@electric-sql/pglite@~0.5.3": "0.5.3",
     "npm:@jellyfin/sdk@0.13": "0.13.0_axios@1.16.1",
+    "npm:@lucide/svelte@^1.21.0": "1.21.0_svelte@5.56.4",
     "npm:@sveltejs/adapter-static@4.0.0-next.0": "4.0.0-next.0_@sveltejs+kit@2.65.0__@sveltejs+vite-plugin-svelte@7.1.2___svelte@5.56.4___vite@8.1.0____@types+node@26.0.0__svelte@5.56.4__typescript@6.0.3__vite@8.1.0___@types+node@26.0.0__acorn@8.17.0_acorn@8.17.0_svelte@5.56.4",
     "npm:@sveltejs/enhanced-img@0.11": "0.11.0_@sveltejs+vite-plugin-svelte@7.1.2__svelte@5.56.4__vite@8.1.0___@types+node@26.0.0_svelte@5.56.4_vite@8.1.0__@types+node@26.0.0",
     "npm:@sveltejs/kit@3.0.0-next.2": "3.0.0-next.2_@sveltejs+vite-plugin-svelte@7.1.2__svelte@5.56.4__vite@8.1.0___@types+node@26.0.0_svelte@5.56.4_typescript@6.0.3_vite@8.1.0__@types+node@26.0.0",
@@ -396,6 +397,12 @@
       "integrity": "sha512-pbCDiVMnne1lYUIaYNN5wrwQXDtHaYtg7YEFPeW+hws6U47WeFvISGUWekPGKWOP1ygrs0ef0o1VJMk1exos5A==",
       "dependencies": [
         "@lit-labs/ssr-dom-shim"
+      ]
+    },
+    "@lucide/svelte@1.21.0_svelte@5.56.4": {
+      "integrity": "sha512-MEv//A7Jv3kHukZowv/DWp1MAtUzJKYwtJsmnQ7X98lCgtac3z3NbaToDl3Q6jO3gS9sougFpcD+t+YuxOkRMw==",
+      "dependencies": [
+        "svelte"
       ]
     },
     "@napi-rs/wasm-runtime@1.1.5_@emnapi+core@1.11.1_@emnapi+runtime@1.11.1": {
@@ -1912,6 +1919,7 @@
       "dependencies": [
         "npm:@electric-sql/pglite@~0.5.3",
         "npm:@jellyfin/sdk@0.13",
+        "npm:@lucide/svelte@^1.21.0",
         "npm:@sveltejs/adapter-static@4.0.0-next.0",
         "npm:@sveltejs/enhanced-img@0.11",
         "npm:@sveltejs/kit@3.0.0-next.2",
