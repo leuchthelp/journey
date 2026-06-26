@@ -6,6 +6,7 @@
     "tamasfe.even-better-toml",
     "bradlc.vscode-tailwindcss",
     "streetsidesoftware.code-spell-checker",
-    "svelte.svelte-vscode"
+    "svelte.svelte-vscode",
+    "denoland.vscode-deno"
   ]
 }
