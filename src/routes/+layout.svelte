@@ -1,10 +1,7 @@
 <script lang="ts">
   import "../app.css";
-  import Navbar from "$lib/components/Navbar/Navbar.svelte";
-  import NavbarButton from "$lib/components/Navbar/NavbarButton.svelte";
-  import Playbar from "$lib/components/Playbar/Playbar.svelte";
-  import PlaybarButton from "$lib/components/Playbar/PlaybarButton.svelte";
-  import PlaybarSkip from "$lib/components/Playbar/PlaybarSkip.svelte";
+  import * as Navbar from "$lib/components/Navbar/index.ts"
+  import * as Playbar from "$lib/components/Playbar/index.ts"
   import ProviderAccordion from "$lib/components/Settings/Provider/ProviderAccordion.svelte";
   import Settings from "$lib/components/Settings/Settings.svelte";
   import { toAuthComponent } from "$lib/snippets/ToAuthComponent.svelte";
@@ -50,11 +47,11 @@
 
 <audio-player class="z-1">
   <media-container>
-    <Playbar>
-      <PlaybarSkip action={"backward"} seconds={"-5"}>1</PlaybarSkip>
-      <PlaybarButton action={"paused"}>2</PlaybarButton>
-      <PlaybarSkip action={"forward"} seconds={"+15"}>3</PlaybarSkip>
-    </Playbar>
+    <Playbar.Root>
+      <Playbar.Skip action={"backward"} seconds={"-5"} />
+      <Playbar.Button action={"paused"} />
+      <Playbar.Skip action={"forward"} seconds={"+15"} />
+    </Playbar.Root>
 
     <audio src={src.url} autoplay></audio>
   </media-container>
@@ -64,9 +61,9 @@
   class="fixed flex flex-row md:h-full place-self-start"
   class:w-full={visible}
 >
-  <Navbar>
-    <NavbarButton func={toggleVisible}>settings</NavbarButton>
-  </Navbar>
+  <Navbar.Root>
+    <Navbar.Button func={toggleVisible}>settings</Navbar.Button>
+  </Navbar.Root>
   {#if visible}
     <Settings>
       <ProviderAccordion title={"Providers"}>

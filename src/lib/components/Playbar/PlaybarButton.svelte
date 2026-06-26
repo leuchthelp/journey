@@ -1,16 +1,29 @@
 <script lang="ts">
+  import { Play, Pause } from "@lucide/svelte";
+
+  function toggleState() {
+    state = !state;
+  }
+
   type Props = {
     action?: string;
-    children?: import("svelte").Snippet;
   };
 
-  let { action, children }: Props = $props();
+  let { action }: Props = $props();
+
+  let state = $state(false);
 
   $effect(() => {
     if (!action) action = "";
   });
+
+  $inspect(state);
 </script>
 
 <media-play-button class={`${action} playbar-styled-button`}>
-  {@render children?.()}
+  {#if state}
+    <Pause />
+  {:else}
+    <Play />
+  {/if}
 </media-play-button>
