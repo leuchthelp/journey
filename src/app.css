@@ -10,7 +10,7 @@ body {
   }
 
   .playbar-styled-button {
-    @apply h-16 w-16 rounded-full place-content-center-safe hover:bg-hover hover:ring;
+    @apply h-16 w-16 place-content-center-safe rounded-full hover:bg-hover hover:ring;
   }
 }
 

@@ -13,6 +13,7 @@
   import "@videojs/html/audio/minimal-skin";
   import "@videojs/html/ui/controls";
   import "@videojs/html/ui/play-button";
+  import Player from "$lib/components/Player/Player.svelte";
 
   function toggleVisible() {
     visible = !visible;
@@ -45,6 +46,7 @@
   {@render children()}
 </main>
 
+<Player />
 <audio-player class="z-1">
   <media-container>
     <Playbar.Root>
@@ -53,7 +55,7 @@
       <Playbar.Skip action={"forward"} seconds={"+15"} />
     </Playbar.Root>
 
-    <audio src={src.url} autoplay></audio>
+    <audio src={src.url}></audio>
   </media-container>
 </audio-player>
 

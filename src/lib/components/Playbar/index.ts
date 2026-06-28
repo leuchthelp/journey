@@ -1,13 +1,12 @@
-import PlaybarRoot from "./PlaybarRoot.svelte"
-import PlaybarButton from "./PlaybarButton.svelte"
-import PlaybarSkip from "./PlaybarSkip.svelte"
+import PlaybarRoot from "./PlaybarRoot.svelte";
+import PlaybarButton from "./PlaybarButton.svelte";
+import PlaybarSkip from "./PlaybarSkip.svelte";
 
 export {
-    PlaybarRoot,
-    PlaybarButton,
-    PlaybarSkip,
-
-    PlaybarRoot as Root,
-    PlaybarButton as Button,
-    PlaybarSkip as Skip,
-}
+  PlaybarRoot,
+  PlaybarButton,
+  PlaybarSkip,
+  PlaybarRoot as Root,
+  PlaybarButton as Button,
+  PlaybarSkip as Skip,
+};
