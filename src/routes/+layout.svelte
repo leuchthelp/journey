@@ -1,7 +1,7 @@
 <script lang="ts">
   import "../app.css";
-  import * as Navbar from "$lib/components/Navbar/index.ts"
-  import * as Playbar from "$lib/components/Playbar/index.ts"
+  import * as Navbar from "$lib/components/Navbar/index.ts";
+  import * as Playbar from "$lib/components/Playbar/index.ts";
   import ProviderAccordion from "$lib/components/Settings/Provider/ProviderAccordion.svelte";
   import Settings from "$lib/components/Settings/Settings.svelte";
   import { toAuthComponent } from "$lib/snippets/ToAuthComponent.svelte";
@@ -39,11 +39,11 @@
   $inspect(src);
 </script>
 
-<main class="mt-5 h-full">
+<main
+  class="flex mt-5 pl-40 p-2 h-full max-w-full overflow-scroll scrollbar-none overscroll-none"
+>
   {@render children()}
 </main>
-
-<div></div>
 
 <audio-player class="z-1">
   <media-container>
@@ -58,7 +58,7 @@
 </audio-player>
 
 <div
-  class="fixed flex flex-row md:h-full place-self-start"
+  class="fixed flex flex-row md:h-full place-self-start *:m-1"
   class:w-full={visible}
 >
   <Navbar.Root>

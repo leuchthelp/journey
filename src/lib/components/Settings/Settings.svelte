@@ -7,7 +7,7 @@
 </script>
 
 <div
-  class="flex flex-col grow rounded-2xl m-2 p-3 backdrop-blur-sm backdrop-saturate-125 shadow-xl outline-2 outline-gray-400"
+  class="flex flex-col grow rounded-2xl p-3 backdrop-blur-sm backdrop-saturate-125 shadow-xl outline-2 outline-gray-400"
 >
   {@render children?.()}
 </div>
