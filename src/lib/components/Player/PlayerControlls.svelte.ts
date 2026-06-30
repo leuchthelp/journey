@@ -1,10 +1,13 @@
 import { createPlayer, audioFeatures, MediaElement } from "@videojs/html";
 
-const Player = createPlayer({ features: audioFeatures });
-const store = Player.create();
+const { ProviderMixin, ContainerMixin, create } = createPlayer({
+  features: audioFeatures,
+});
+const store = create();
 
-class AudioPlayer extends Player.ProviderMixin(MediaElement) {
+class AudioPlayer extends ProviderMixin(ContainerMixin(MediaElement)) {
   static readonly tagName = "journey-audio-player";
 }
+customElements.define("journey-audio-player", AudioPlayer);
 
-export { store, Player, AudioPlayer };
+export { store, AudioPlayer };
