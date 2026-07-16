@@ -2,6 +2,7 @@
 
 mod db;
 mod provider;
+mod provider_test;
 
 use crate::db::db as database;
 use crate::db::entity::media_items::ConvertableMediaItems;
@@ -22,7 +23,7 @@ impl Api for ApiImpl {
         return database::select().await;
     }
     async fn insert(self) -> MediaItemsDTO {
-        let _test = provider::provider::test().await;
+        let _test = provider_test::test().await;
 
         let amodel = media_items::ActiveModel {
             uuid: Set(uuid::Uuid::now_v7()),

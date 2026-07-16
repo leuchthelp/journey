@@ -1,24 +1,64 @@
 use jellyfin_sdk_rs::apis::configuration::Configuration;
+use url::Url;
 use uuid::Uuid;
 
-use crate::provider::jellyfin::Provider;
+use crate::provider::{Provider, ProviderParams};
 
-#[derive(Default)]
 pub struct JellyfinProvider {
-    pub user_id: Uuid,
-    pub server_id: Uuid,
-    pub url: String,
+    params: ProviderParams,
     config: Configuration,
     authenticated: bool,
 }
 
 impl Provider for JellyfinProvider {
-    fn new(user_id: Uuid, server_id: Uuid, url: String) -> Self {
+    fn new(params: ProviderParams) -> Self {
         JellyfinProvider {
-            user_id: user_id,
-            server_id: server_id,
-            url: url,
-            ..Default::default()
+            params: params,
+            config: Configuration::default(),
+            authenticated: false,
         }
+    }
+
+    fn user_id(&self) -> Uuid {
+        self.params.user_id
+    }
+
+    fn server_id(&self) -> Uuid {
+        self.params.server_id
+    }
+
+    fn url(&self) -> &Url {
+        &self.params.url
+    }
+
+    fn params(&self) -> &ProviderParams {
+        &self.params
+    }
+}
+
+impl JellyfinProvider {
+    fn test(self) {
+        self.server_id();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::provider::jellyfin_provider::JellyfinProvider;
+    use crate::provider::{Provider, ProviderParams};
+    use url::Url;
+    use uuid::Uuid;
+
+    #[test]
+    fn matching_name() {
+        assert!(
+            JellyfinProvider::new(ProviderParams {
+                url: Url::parse("http://example.net").unwrap(),
+                user_id: Uuid::now_v7(),
+                server_id: Uuid::now_v7()
+            })
+            .type_()
+            .contains("JellyfinProvider")
+        );
     }
 }

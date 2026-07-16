@@ -1,7 +1,7 @@
 use jellyfin_sdk_rs::{self as sdk, models::BaseItemKind};
 use url::Url;
 
-use crate::provider::{jellyfin::helpers, jellyfin_provider::JellyfinProvider};
+use crate::provider::{helpers, Provider, jellyfin_provider::JellyfinProvider};
 
 pub async fn test() {
     let device_info = sdk::required::DeviceInfo {

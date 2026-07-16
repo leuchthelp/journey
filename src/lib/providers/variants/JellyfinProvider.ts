@@ -24,7 +24,7 @@ import type { Indexing } from "$lib/signals/index.svelte.ts";
 
 export class JellyfinProvider implements Provider {
   readonly client: Jellyfin;
-  readonly type = "JellyfinProvider";
+  readonly type = JellyfinProvider.name;
 
   private _api?: JellyfinApi;
   private _authenticated = false;
