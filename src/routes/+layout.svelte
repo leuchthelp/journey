@@ -14,6 +14,11 @@
   import "@videojs/html/ui/controls";
   import "@videojs/html/ui/play-button";
   import Player from "$lib/components/Player/Player.svelte";
+  import { createTauRPCProxy } from "../bindings.ts";
+
+  const taurpc = createTauRPCProxy();
+  console.log("from rust: ", await taurpc.insert());
+  await taurpc.select()
 
   function toggleVisible() {
     visible = !visible;

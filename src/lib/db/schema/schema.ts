@@ -46,7 +46,7 @@ export const originalItems = pgTable(
     parentId: text("parentId").notNull(),
     serverId: text("serverId").notNull(),
     uuid: text("uuid").notNull(),
-    url: text("url").notNull(),
+    url: text("url").notNull().unique(),
   },
   (t) => [index("OrignalToItemId_idx").on(t.parentId)],
 );
@@ -62,7 +62,7 @@ export const contentItems = pgTable(
   {
     id: serial("id").primaryKey(),
     parentId: text("parentId").notNull(),
-    type: text("type").notNull(),
+    type: text("type").notNull().unique(),
     description: text("description").notNull(),
   },
   (t) => [index("ContentToItemId_idx").on(t.parentId)],

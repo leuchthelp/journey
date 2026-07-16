@@ -1,0 +1,63 @@
+use sea_orm::entity::prelude::*;
+use serde::{Deserialize, Serialize};
+
+use crate::db::entity::{
+    ImagesDTO, MediaItemsDTO, images::ConvertableImage, media_items::ConvertableMediaItems,
+};
+
+#[sea_orm::model]
+#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
+#[sea_orm(table_name = "providers")]
+pub struct Model {
+    #[sea_orm(primary_key)]
+    #[sea_orm(unique)]
+    pub user_id: uuid::Uuid,
+    pub server_id: uuid::Uuid,
+    pub kind: String,
+    pub url: String,
+    #[sea_orm(has_many, via = "jt_media_item_to_provider")]
+    pub media_items: HasMany<super::media_items::Entity>,
+    #[sea_orm(has_many)]
+    pub images: HasMany<super::images::Entity>,
+}
+
+impl ActiveModelBehavior for ActiveModel {}
+
+pub trait ConvertableProvider {
+    fn from_model(item: ModelEx) -> ProviderDTO;
+}
+
+#[taurpc::ipc_type]
+#[derive(Debug)]
+pub struct ProviderDTO {
+    pub user_id: uuid::Uuid,
+    pub server_id: uuid::Uuid,
+    pub kind: String,
+    pub url: String,
+    pub media_items: Option<Vec<MediaItemsDTO>>,
+    pub images: Option<Vec<ImagesDTO>>,
+}
+
+impl ConvertableProvider for ProviderDTO {
+    fn from_model(item: ModelEx) -> ProviderDTO {
+        let parents = item
+            .media_items
+            .iter()
+            .map(|f| MediaItemsDTO::from_model(f.clone()))
+            .collect::<Vec<_>>();
+        let images = item
+            .images
+            .iter()
+            .map(|f| ImagesDTO::from_model(f.clone()))
+            .collect::<Vec<_>>();
+
+        return ProviderDTO {
+            user_id: item.user_id,
+            server_id: item.server_id,
+            kind: item.kind,
+            url: item.url,
+            media_items: Some(parents),
+            images: Some(images),
+        };
+    }
+}

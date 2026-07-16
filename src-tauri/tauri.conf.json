@@ -27,10 +27,5 @@
     "active": true,
     "targets": "all",
     "icon": ["icons/icon.png"]
-  },
-  "plugins": {
-    "sql": {
-      "preload": ["sqlite:dev.db"]
-    }
   }
 }

@@ -1,7 +1,46 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 
+mod db;
+mod provider;
+
+use crate::db::db as database;
+use crate::db::entity::media_items::ConvertableMediaItems;
+use crate::db::entity::{MediaItemsDTO, media_items};
+
+#[taurpc::procedures]
+trait Api {
+    async fn select() -> MediaItemsDTO;
+    async fn insert() -> MediaItemsDTO;
+}
+
+#[derive(Clone)]
+struct ApiImpl;
+
+#[taurpc::resolvers]
+impl Api for ApiImpl {
+    async fn select(self) -> MediaItemsDTO {
+        return database::select().await;
+    }
+    async fn insert(self) -> MediaItemsDTO {
+        let _test = provider::provider::test().await;
+
+        let amodel = media_items::ActiveModel {
+            uuid: Set(uuid::Uuid::now_v7()),
+            outline_gradient: Set("test".to_string()),
+            kind: Set("SongItem".to_string()),
+            loaded: Set(false),
+            local: Set("".to_string()),
+        };
+
+        let tmp = database::insert(amodel).await;
+        log::info!("{:#?}", tmp);
+        return MediaItemsDTO::from_model(tmp.into_ex());
+    }
+}
+
 use musicbrainz_rs::entity::artist::*;
 use musicbrainz_rs::prelude::*;
+use sea_orm::ActiveValue::Set;
 
 #[tauri::command]
 fn test2() {
@@ -11,17 +50,33 @@ fn test2() {
         .unwrap();
 
     let tmp = nirvana.name;
-    println!("{tmp}");
+    log::info!("{:#?}", tmp);
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
+pub async fn run() {
+    let router = taurpc::Router::new().merge(ApiImpl.into_handler());
+
+    #[cfg(debug_assertions)]
+    taurpc::Exporter::new()
+        .export(&router, "../src/bindings.ts")
+        .unwrap();
+
     tauri::Builder::default()
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .level(tauri_plugin_log::log::LevelFilter::Info)
+                .target(tauri_plugin_log::Target::new(
+                    tauri_plugin_log::TargetKind::Webview,
+                ))
+                .build(),
+        )
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_window_state::Builder::new().build())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_persisted_scope::init())
         .invoke_handler(tauri::generate_handler![test2])
+        .invoke_handler(router.into_handler())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
