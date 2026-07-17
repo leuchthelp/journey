@@ -10,9 +10,9 @@ pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub provider_id: uuid::Uuid,
     #[sea_orm(belongs_to, from = "media_item_id", to = "uuid")]
-    pub media_item: Option<super::media_items::Entity>,
+    pub media_item: BelongsTo<super::media_items::Entity>,
     #[sea_orm(belongs_to, from = "provider_id", to = "user_id")]
-    pub provider: Option<super::providers::Entity>,
+    pub provider: BelongsTo<super::providers::Entity>,
 }
 
 impl ActiveModelBehavior for ActiveModel {}

@@ -12,9 +12,9 @@ pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     #[sea_orm(unique)]
     pub url: String,
-    pub server_id: uuid::Uuid,
+    pub server_id: Option<uuid::Uuid>,
     #[sea_orm(belongs_to, from = "server_id", to = "server_id")]
-    pub provider: HasOne<super::providers::Entity>,
+    pub provider: BelongsTo<Option<super::providers::Entity>>,
     pub kind: String,
     #[sea_orm(has_many, via = "jt_media_item_to_image")]
     pub media_items: HasMany<super::media_items::Entity>,
@@ -30,7 +30,7 @@ pub trait ConvertableImage {
 #[derive(Debug)]
 pub struct ImagesDTO {
     pub url: String,
-    pub server_id: uuid::Uuid,
+    pub server_id: Option<uuid::Uuid>,
     pub provider: Option<ProviderDTO>,
     pub kind: String,
     pub media_items: Option<Vec<MediaItemsDTO>>,

@@ -4,7 +4,7 @@
 import { createTauRPCProxy as createProxy, type InferCommandOutput, type TauRpcResult, type UnlistenFn } from 'taurpc'
 export type ContentDTO = {
 	id: number,
-	parent_id: string,
+	parent_id: string | null,
 	parent: MediaItemsDTO | null,
 	kind: string,
 	description: string,
@@ -12,7 +12,7 @@ export type ContentDTO = {
 
 export type ImagesDTO = {
 	url: string,
-	server_id: string,
+	server_id: string | null,
 	provider: ProviderDTO | null,
 	kind: string,
 	media_items: MediaItemsDTO[] | null,
@@ -34,7 +34,7 @@ export type MediaItemsDTO = {
 
 export type OriginalDTO = {
 	id: number,
-	parent_id: string,
+	parent_id: string | null,
 	parent: MediaItemsDTO | null,
 	server_id: string,
 	uuid: string,

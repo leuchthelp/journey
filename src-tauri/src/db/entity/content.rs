@@ -9,9 +9,9 @@ use crate::db::entity::{MediaItemsDTO, media_items::ConvertableMediaItems};
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
-    pub parent_id: String,
+    pub parent_id: Option<uuid::Uuid>,
     #[sea_orm(belongs_to, from = "parent_id", to = "uuid")]
-    pub parent: HasOne<super::media_items::Entity>,
+    pub parent: BelongsTo<Option<super::media_items::Entity>>,
     #[sea_orm(unique)]
     pub kind: String,
     pub description: String,
@@ -27,7 +27,7 @@ pub trait ConvertableContent {
 #[derive(Debug)]
 pub struct ContentDTO {
     pub id: i32,
-    pub parent_id: String,
+    pub parent_id: Option<uuid::Uuid>,
     pub parent: Option<MediaItemsDTO>,
     pub kind: String,
     pub description: String,
