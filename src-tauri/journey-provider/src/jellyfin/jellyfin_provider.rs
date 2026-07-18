@@ -4,7 +4,7 @@ use jellyfin_sdk_rs::{
     models::AuthenticateUserByName,
     required::{ClientInfo, DeviceInfo},
 };
-use journey_db::uuid::Uuid;
+use uuid::Uuid;
 use std::error::Error;
 use url::Url;
 
@@ -105,9 +105,9 @@ impl JellyfinProvider {
 
 #[cfg(test)]
 mod tests {
-    use crate::provider::jellyfin_provider::JellyfinProvider;
-    use crate::provider::{Provider, ProviderParams};
-    use journey_db::uuid::Uuid;
+    use crate::jellyfin_provider::JellyfinProvider;
+    use crate::{Provider, ProviderParams};
+    use uuid::Uuid;
     use url::Url;
 
     #[test]

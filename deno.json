@@ -1,8 +1,4 @@
 {
   "minimumDependencyAge": "2026-07-19",
-  "allowScripts": [
-    "npm:@openapitools/openapi-generator-cli@2.39.1",
-    "npm:esbuild@0.25.12",
-    "npm:sharp@0.34.5"
-  ]
+  "allowScripts": ["npm:esbuild@0.25.12", "npm:sharp@0.34.5"]
 }

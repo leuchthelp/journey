@@ -3,7 +3,7 @@ use jellyfin_sdk_rs::{
     apis::{Error, configuration::Configuration, library_api::GetItemsError},
     models,
 };
-use journey_db::uuid::Uuid;
+use uuid::Uuid;
 
 #[bon::builder]
 pub async fn get_items(

@@ -2745,6 +2745,7 @@ dependencies = [
  "journey-keyring",
  "journey-provider",
  "log",
+ "sea-orm",
  "serde",
  "serde_json",
  "specta",
@@ -2759,6 +2760,7 @@ dependencies = [
  "tauri-plugin-window-state",
  "taurpc",
  "tokio",
+ "uuid",
 ]
 
 [[package]]
@@ -2795,6 +2797,7 @@ dependencies = [
  "journey-db",
  "reqwest",
  "url",
+ "uuid",
 ]
 
 [[package]]

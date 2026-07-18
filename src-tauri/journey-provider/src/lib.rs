@@ -3,7 +3,7 @@ pub use jellyfin::helpers;
 pub use jellyfin::jellyfin_provider;
 use std::any::type_name_of_val;
 
-use journey_db::uuid::Uuid;
+use uuid::Uuid;
 use std::error::Error;
 use url::Url;
 

@@ -2,7 +2,7 @@
 use journey_db::db as database;
 use journey_db::entity::media_items::ConvertableMediaItems;
 use journey_db::entity::{MediaItemsDTO, media_items};
-use journey_db::uuid::Uuid;
+use uuid::Uuid;
 
 #[taurpc::procedures]
 trait Api {
@@ -13,7 +13,7 @@ trait Api {
 #[derive(Clone)]
 struct ApiImpl;
 
-use journey_db::sea_orm::ActiveValue::Set;
+use sea_orm::ActiveValue::Set;
 
 #[taurpc::resolvers]
 impl Api for ApiImpl {
