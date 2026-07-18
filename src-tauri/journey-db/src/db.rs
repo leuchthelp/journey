@@ -8,7 +8,7 @@ use crate::entity::{
 async fn init_db() -> Result<DatabaseConnection, DbErr> {
     let db = Database::connect("sqlite::memory:").await?;
 
-    db.get_schema_registry("journey_lib::db::entity::*")
+    db.get_schema_registry("journey-db::entity::*")
         .sync(&db)
         .await?;
 
