@@ -1,8 +1,8 @@
 <script lang="ts">
   import { invalidate } from "$app/navigation";
-  import { itemCache } from "$lib/components/MediaItems/ItemCache.ts";
-  import ItemComponent from "$lib/components/MediaItems/ItemComponent.svelte";
-  import { getIndexing } from "$lib/signals/index.svelte";
+  import { itemCache } from "#lib/components/MediaItems/ItemCache.ts";
+  import ItemComponent from "#lib/components/MediaItems/ItemComponent.svelte";
+  import { getIndexing } from "#lib/signals/index.svelte";
   import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();

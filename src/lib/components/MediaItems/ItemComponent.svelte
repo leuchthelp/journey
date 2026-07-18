@@ -1,6 +1,6 @@
 <script lang="ts">
   import Button from "./MediaItemButton.svelte";
-  import type { MediaItem } from "$lib/db/relations";
+  import type { MediaItem } from "#lib/db/relations";
 
   type Props = {
     item: MediaItem;

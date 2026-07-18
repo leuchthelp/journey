@@ -1,19 +1,19 @@
 <script lang="ts">
   import "../app.css";
-  import * as Navbar from "$lib/components/Navbar/index.ts";
-  import * as Playbar from "$lib/components/Playbar/index.ts";
-  import ProviderAccordion from "$lib/components/Settings/Provider/ProviderAccordion.svelte";
-  import Settings from "$lib/components/Settings/Settings.svelte";
-  import { toAuthComponent } from "$lib/snippets/ToAuthComponent.svelte";
+  import * as Navbar from "#lib/components/Navbar/index.ts";
+  import * as Playbar from "#lib/components/Playbar/index.ts";
+  import ProviderAccordion from "#lib/components/Settings/Provider/ProviderAccordion.svelte";
+  import Settings from "#lib/components/Settings/Settings.svelte";
+  import { toAuthComponent } from "#lib/snippets/ToAuthComponent.svelte";
   import type { LayoutProps } from "./$types.d.ts";
-  import { providerManager } from "$lib/providers/ProviderManager.ts";
-  import { setIndexing } from "$lib/signals/index.svelte.ts";
-  import { setMediaSource } from "$lib/signals/mediaSource.svelte.ts";
+  import { providerManager } from "#lib/providers/ProviderManager.ts";
+  import { setIndexing } from "#lib/signals/index.svelte.ts";
+  import { setMediaSource } from "#lib/signals/mediaSource.svelte.ts";
   import "@videojs/html/audio/player";
   import "@videojs/html/audio/minimal-skin";
   import "@videojs/html/ui/controls";
   import "@videojs/html/ui/play-button";
-  import Player from "$lib/components/Player/Player.svelte";
+  import Player from "#lib/components/Player/Player.svelte";
   import { createTauRPCProxy } from "../bindings.ts";
 
   const taurpc = createTauRPCProxy();

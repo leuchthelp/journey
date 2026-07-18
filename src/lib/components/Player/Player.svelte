@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getMediaSource } from "$lib/signals/mediaSource.svelte";
+  import { getMediaSource } from "#lib/signals/mediaSource.svelte";
   import { store } from "./PlayerControlls.svelte";
 
   let test = $state(store);

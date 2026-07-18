@@ -1,10 +1,10 @@
-import type { ParentItem, MediaItem } from "$lib/db/relations.ts";
+import type { ParentItem, MediaItem } from "#lib/db/relations.ts";
 import type {
   ContentItem,
   ProviderItem,
   ImageItem,
   OriginalItem,
-} from "$lib/db/schema/schema.ts";
+} from "#lib/db/schema/schema.ts";
 
 class BaseItem implements MediaItem {
   type!: string;

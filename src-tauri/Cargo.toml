@@ -34,7 +34,7 @@ url = "2.5.8"
 chrono = "0.4.45"
 reqwest = "0.13.4"
 uuid = { version = "^1.23.4", features = ["serde", "v7"] }
-sea-orm = { version = "2.0.0-rc", features = [
+sea-orm = { version = "2.0.0-rc.43", features = [
     "sqlx-sqlite",
     "runtime-tokio",
     "macros",
@@ -43,6 +43,9 @@ sea-orm = { version = "2.0.0-rc", features = [
     "entity-registry",
     "with-json",
 ] }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
 
 [dependencies]
 tauri = { version = "2", features = ["tray-icon"] }

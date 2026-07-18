@@ -14,13 +14,13 @@ import {
   providerItems,
   type ContentItem,
   type ImageItem,
-} from "$lib/db/schema/schema.ts";
+} from "#lib/db/schema/schema.ts";
 import { providerManager } from "../ProviderManager.ts";
 import { mapJellyfinOptions } from ".";
-import type { MediaItem, ParentItem } from "$lib/db/relations.ts";
-import { db } from "$lib/db/database.ts";
-import { insertMediaItem } from "$lib/db/transactions.ts";
-import type { Indexing } from "$lib/signals/index.svelte.ts";
+import type { MediaItem, ParentItem } from "#lib/db/relations.ts";
+import { db } from "#lib/db/database.ts";
+import { insertMediaItem } from "#lib/db/transactions.ts";
+import type { Indexing } from "#lib/signals/index.svelte.ts";
 
 export class JellyfinProvider implements Provider {
   readonly client: Jellyfin;

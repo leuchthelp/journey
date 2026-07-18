@@ -4,9 +4,9 @@ use jellyfin_sdk_rs::{
     models::AuthenticateUserByName,
     required::{ClientInfo, DeviceInfo},
 };
-use uuid::Uuid;
 use std::error::Error;
 use url::Url;
+use uuid::Uuid;
 
 use crate::{Provider, ProviderParams};
 
@@ -76,18 +76,21 @@ impl Provider for JellyfinProvider {
             };
             let auth_res = authenticate_user_by_name(&client_config, auth_by_name).await?;
 
-            let access_token = match auth_res.access_token.unwrap() {
-                None => {
-                    panic!("Result lacked access token supply even though we succeeded with auth.")
-                }
-                Some(token) => token,
+            let nested_access_token = match auth_res.access_token {
+                Some(token) => Ok(token),
+                _ => Err("Result lacked access token supply even though we succeeded with auth."),
+            };
+
+            let access_token = match nested_access_token? {
+                Some(token) => Ok(token),
+                _ => Err("Result lacked access token supply even though we succeeded with auth."),
             };
 
             client_config = configure()
                 .base_url(self.url())
                 .client_info(&self.client_info)
                 .device_info(&self.device_info)
-                .access_token(access_token)
+                .access_token(access_token?)
                 .call()?;
 
             self.config = Some(client_config);
@@ -107,8 +110,8 @@ impl JellyfinProvider {
 mod tests {
     use crate::jellyfin_provider::JellyfinProvider;
     use crate::{Provider, ProviderParams};
-    use uuid::Uuid;
     use url::Url;
+    use uuid::Uuid;
 
     #[test]
     fn matching_name() {

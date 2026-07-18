@@ -1,10 +1,10 @@
-use sea_orm::entity::prelude::*;
-use serde::{Deserialize, Serialize};
-
 use crate::entity::{
     ContentDTO, ImagesDTO, OriginalDTO, ProviderDTO, content::ConvertableContent,
     images::ConvertableImage, original::ConvertableOriginal, providers::ConvertableProvider,
 };
+use sea_orm::entity::prelude::*;
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[sea_orm::model]
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
@@ -12,7 +12,7 @@ use crate::entity::{
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     #[sea_orm(unique)]
-    pub uuid: uuid::Uuid,
+    pub uuid: Uuid,
     pub kind: String,
     pub outline_gradient: String,
     pub loaded: bool,
@@ -45,7 +45,7 @@ pub trait ConvertableMediaItems {
 #[taurpc::ipc_type]
 #[derive(Debug)]
 pub struct MediaItemsDTO {
-    pub uuid: uuid::Uuid,
+    pub uuid: Uuid,
     pub kind: String,
     pub outline_gradient: String,
     pub loaded: bool,

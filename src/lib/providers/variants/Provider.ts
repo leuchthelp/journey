@@ -1,5 +1,5 @@
-import type { ProviderItem } from "$lib/db/schema/schema.ts";
-import type { Indexing } from "../../signals/index.svelte.ts";
+import type { ProviderItem } from "#lib/db/schema/schema.ts";
+import type { Indexing } from "#lib/signals/index.svelte.ts";
 
 export interface Provider extends Omit<ProviderItem, "id"> {
   readonly client: unknown;

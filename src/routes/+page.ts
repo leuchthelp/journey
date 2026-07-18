@@ -1,5 +1,5 @@
 import type { PageLoad } from "./$types.d.ts";
-import { mainPageDataQuery } from "$lib/db/queries.ts";
+import { mainPageDataQuery } from "#lib/db/queries.ts";
 // import { itemCache } from "$lib/components/MediaItems/ItemCache.ts";
 // import type { MediaItem } from "$lib/db/relations.ts";
 

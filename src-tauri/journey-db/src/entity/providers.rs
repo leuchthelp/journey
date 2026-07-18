@@ -1,6 +1,8 @@
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
+use uuid::Uuid;
+
 use crate::entity::{
     ImagesDTO, MediaItemsDTO, images::ConvertableImage, media_items::ConvertableMediaItems,
 };
@@ -11,8 +13,8 @@ use crate::entity::{
 pub struct Model {
     #[sea_orm(primary_key)]
     #[sea_orm(unique)]
-    pub user_id: uuid::Uuid,
-    pub server_id: uuid::Uuid,
+    pub user_id: Uuid,
+    pub server_id: Uuid,
     pub kind: String,
     pub url: String,
     #[sea_orm(has_many, via = "jt_media_item_to_provider")]
@@ -30,8 +32,8 @@ pub trait ConvertableProvider {
 #[taurpc::ipc_type]
 #[derive(Debug)]
 pub struct ProviderDTO {
-    pub user_id: uuid::Uuid,
-    pub server_id: uuid::Uuid,
+    pub user_id: Uuid,
+    pub server_id: Uuid,
     pub kind: String,
     pub url: String,
     pub media_items: Option<Vec<MediaItemsDTO>>,

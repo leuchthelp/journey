@@ -1,5 +1,5 @@
 import { providerOptions } from "./variants/index.ts";
-import type { ProviderItem } from "$lib/db/schema/schema.ts";
+import type { ProviderItem } from "#lib/db/schema/schema.ts";
 import type { Provider } from "./variants/Provider.ts";
 import type { Indexing } from "../signals/index.svelte.ts";
 

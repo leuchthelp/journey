@@ -1,6 +1,6 @@
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
-
+use uuid::Uuid;
 use crate::entity::{MediaItemsDTO, media_items::ConvertableMediaItems};
 
 #[sea_orm::model]
@@ -9,7 +9,7 @@ use crate::entity::{MediaItemsDTO, media_items::ConvertableMediaItems};
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
-    pub parent_id: Option<uuid::Uuid>,
+    pub parent_id: Option<Uuid>,
     #[sea_orm(belongs_to, from = "parent_id", to = "uuid")]
     pub parent: BelongsTo<Option<super::media_items::Entity>>,
     #[sea_orm(unique)]
@@ -27,7 +27,7 @@ pub trait ConvertableContent {
 #[derive(Debug)]
 pub struct ContentDTO {
     pub id: i32,
-    pub parent_id: Option<uuid::Uuid>,
+    pub parent_id: Option<Uuid>,
     pub parent: Option<MediaItemsDTO>,
     pub kind: String,
     pub description: String,

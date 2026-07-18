@@ -1,5 +1,5 @@
 import { LRUCache } from "lru-cache";
-import type { MediaItem } from "$lib/db/relations.ts";
+import type { MediaItem } from "#lib/db/relations.ts";
 
 const options = {
   max: 150,

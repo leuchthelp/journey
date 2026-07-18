@@ -15,6 +15,7 @@ pub trait Provider {
     fn type_(&self) -> String {
         return type_name_of_val(self).to_string();
     }
+
     async fn authenticate_with_pw(self, uname: String, psw: String) -> Result<(), Box<dyn Error>>;
 
     fn params(&self) -> &ProviderParams;

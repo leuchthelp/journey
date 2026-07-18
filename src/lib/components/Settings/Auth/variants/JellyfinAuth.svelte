@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { providerManager } from "$lib/providers/ProviderManager";
-  import { JellyfinProvider } from "$lib/providers/variants/JellyfinProvider";
-  import { getIndexing } from "$lib/signals/index.svelte";
+  import { providerManager } from "#lib/providers/ProviderManager";
+  import { JellyfinProvider } from "#lib/providers/variants/JellyfinProvider";
+  import { getIndexing } from "#lib/signals/index.svelte";
 
   async function addConnection() {
     if (!provider.authStatus()) {

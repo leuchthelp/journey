@@ -1,8 +1,8 @@
 export const ssr = false;
 
-import { providerDataQuery } from "$lib/db/queries.ts";
+import { providerDataQuery } from "#lib/db/queries.ts";
 import type { LayoutLoad } from "./$types.d.ts";
-import { migrate_pglite } from "../lib/db/migrate.ts";
+import { migrate_pglite } from "#lib/db/migrate.ts";
 
 export const load: LayoutLoad = async () => {
   //indexedDB.deleteDatabase("/pglite/dev");
