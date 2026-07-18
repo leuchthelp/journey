@@ -18,7 +18,7 @@
 
   const taurpc = createTauRPCProxy();
   console.log("from rust: ", await taurpc.insert());
-  await taurpc.select()
+  await taurpc.select();
 
   function toggleVisible() {
     visible = !visible;
@@ -46,7 +46,7 @@
 </script>
 
 <main
-  class="flex mt-5 pl-40 p-2 h-full max-w-full overflow-scroll scrollbar-none overscroll-none"
+  class="mt-5 flex h-full max-w-full scrollbar-none overflow-scroll overscroll-none p-2 pl-40"
 >
   {@render children()}
 </main>
@@ -65,7 +65,7 @@
 </audio-player>
 
 <div
-  class="fixed flex flex-row md:h-full place-self-start *:m-1"
+  class="fixed flex flex-row place-self-start *:m-1 md:h-full"
   class:w-full={visible}
 >
   <Navbar.Root>

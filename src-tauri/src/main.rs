@@ -3,5 +3,7 @@
 
 #[tokio::main]
 async fn main() {
-    journey_lib::run().await
+    journey_keyring::use_native_store().unwrap();
+    journey_lib::run().await;
+    journey_keyring::release_store();
 }

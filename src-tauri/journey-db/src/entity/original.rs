@@ -1,7 +1,7 @@
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::db::entity::{MediaItemsDTO, media_items::ConvertableMediaItems};
+use crate::entity::{MediaItemsDTO, media_items::ConvertableMediaItems};
 
 #[sea_orm::model]
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]

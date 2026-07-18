@@ -1,7 +1,7 @@
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::db::entity::{
+use crate::entity::{
     ImagesDTO, MediaItemsDTO, images::ConvertableImage, media_items::ConvertableMediaItems,
 };
 

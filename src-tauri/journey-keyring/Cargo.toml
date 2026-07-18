@@ -1,0 +1,31 @@
+[package]
+name = "journey-keyring"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+keyring-core = { version = "1.0.0", features = ["sample"] }
+
+[target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
+apple-native-keyring-store = { version = "1.0.1", features = [
+    "keychain",
+    "protected",
+] }
+[target.'cfg(target_os = "windows")'.dependencies]
+windows-native-keyring-store = { version = "1.1.0" }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+linux-keyutils-keyring-store = { version = "1.0.0" }
+[target.'cfg(target_os = "android")'.dependencies]
+android-native-keyring-store = { version = "1.0.0" }
+
+
+[package.metadata.docs.rs]
+all-features = true
+targets = [
+    "x86_64-unknown-linux-gnu",
+    "x86_64-pc-windows-gnu",
+    "x86_64-linux-android",
+    "aarch64-apple-darwin",
+    "aarch64-apple-ios",
+]

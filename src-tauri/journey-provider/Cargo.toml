@@ -1,0 +1,12 @@
+[package]
+name = "journey-provider"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+reqwest = "0.13.4"
+chrono = "0.4.45"
+url = "2.5.8"
+bon = "^3.9"
+journey-db = { path = "../journey-db" }
+jellyfin-sdk-rs = { git = "https://github.com/leuchthelp/jellyfin-sdk-rs" }

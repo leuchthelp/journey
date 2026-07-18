@@ -3,8 +3,9 @@ pub use jellyfin::helpers;
 pub use jellyfin::jellyfin_provider;
 use std::any::type_name_of_val;
 
+use journey_db::uuid::Uuid;
+use std::error::Error;
 use url::Url;
-use uuid::Uuid;
 
 pub trait Provider {
     fn new(params: ProviderParams) -> Self;
@@ -14,6 +15,7 @@ pub trait Provider {
     fn type_(&self) -> String {
         return type_name_of_val(self).to_string();
     }
+    async fn authenticate_with_pw(self, uname: String, psw: String) -> Result<(), Box<dyn Error>>;
 
     fn params(&self) -> &ProviderParams;
 }

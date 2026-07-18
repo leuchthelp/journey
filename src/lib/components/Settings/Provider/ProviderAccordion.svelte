@@ -14,7 +14,7 @@
   }
 </script>
 
-<div class="flex flex-col outline-amber-200 outline-4">
+<div class="flex flex-col outline-4 outline-amber-200">
   <button class="place-self-start" onclick={() => toggleVisible()}
     >{title}</button
   >

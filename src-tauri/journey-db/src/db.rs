@@ -1,6 +1,6 @@
 use sea_orm::*;
 
-use crate::db::entity::{
+use crate::entity::{
     MediaItems, MediaItemsDTO,
     media_items::{self, ConvertableMediaItems},
 };

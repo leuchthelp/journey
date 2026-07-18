@@ -16,14 +16,14 @@
   );
 </script>
 
-<div class="flex flex-col md:size-44 size-24">
+<div class="flex size-24 flex-col md:size-44">
   <button
-    class={`m-0.5 rounded-xl bg-amber-200 ring-4 aspect-square overflow-x-clip  ${item.outlineGradient}`}
+    class={`m-0.5 aspect-square overflow-x-clip rounded-xl bg-amber-200 ring-4  ${item.outlineGradient}`}
     aria-labelledby={name?.description}
   >
     <enhanced:img
       src={image}
-      class="object-cover h-full w-full"
+      class="h-full w-full object-cover"
       alt="waiting"
     />
   </button>

@@ -1,12 +1,8 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-
-mod db;
-mod provider;
-mod provider_test;
-
-use crate::db::db as database;
-use crate::db::entity::media_items::ConvertableMediaItems;
-use crate::db::entity::{MediaItemsDTO, media_items};
+use journey_db::db as database;
+use journey_db::entity::media_items::ConvertableMediaItems;
+use journey_db::entity::{MediaItemsDTO, media_items};
+use journey_db::uuid::Uuid;
 
 #[taurpc::procedures]
 trait Api {
@@ -17,16 +13,16 @@ trait Api {
 #[derive(Clone)]
 struct ApiImpl;
 
+use journey_db::sea_orm::ActiveValue::Set;
+
 #[taurpc::resolvers]
 impl Api for ApiImpl {
     async fn select(self) -> MediaItemsDTO {
         return database::select().await;
     }
     async fn insert(self) -> MediaItemsDTO {
-        let _test = provider_test::test().await;
-
         let amodel = media_items::ActiveModel {
-            uuid: Set(uuid::Uuid::now_v7()),
+            uuid: Set(Uuid::now_v7()),
             outline_gradient: Set("test".to_string()),
             kind: Set("SongItem".to_string()),
             loaded: Set(false),
@@ -37,21 +33,6 @@ impl Api for ApiImpl {
         log::info!("{:#?}", tmp);
         return MediaItemsDTO::from_model(tmp.into_ex());
     }
-}
-
-use musicbrainz_rs::entity::artist::*;
-use musicbrainz_rs::prelude::*;
-use sea_orm::ActiveValue::Set;
-
-#[tauri::command]
-fn test2() {
-    let nirvana = Artist::fetch()
-        .id("5b11f4ce-a62d-471e-81fc-a69a8278c7da")
-        .execute()
-        .unwrap();
-
-    let tmp = nirvana.name;
-    log::info!("{:#?}", tmp);
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -76,7 +57,6 @@ pub async fn run() {
         .plugin(tauri_plugin_window_state::Builder::new().build())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_persisted_scope::init())
-        .invoke_handler(tauri::generate_handler![test2])
         .invoke_handler(router.into_handler())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
