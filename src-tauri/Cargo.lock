@@ -2818,6 +2818,7 @@ dependencies = [
  "jellyfin-sdk-rs",
  "journey-db",
  "journey-keyring",
+ "journey-utils",
  "log",
  "reqwest",
  "tauri-plugin-os",
@@ -2825,6 +2826,13 @@ dependencies = [
  "tokio",
  "url",
  "uuid",
+]
+
+[[package]]
+name = "journey-utils"
+version = "0.1.0"
+dependencies = [
+ "dotenvy 0.15.7 (git+https://github.com/allan2/dotenvy)",
 ]
 
 [[package]]

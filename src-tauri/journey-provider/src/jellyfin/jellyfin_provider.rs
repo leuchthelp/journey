@@ -1,4 +1,3 @@
-use dotenvy::{EnvLoader, EnvMap};
 use jellyfin_sdk_rs::{
     JellyfinSDKError,
     apis::{
@@ -10,15 +9,12 @@ use jellyfin_sdk_rs::{
     required::{ClientInfo, DeviceInfo},
 };
 use journey_keyring::Entry;
+use journey_utils::get_env;
 use thiserror::Error;
 use url::Url;
 use uuid::Uuid;
 
 use crate::{Provider, ProviderParams};
-
-fn get_env() -> Result<EnvMap, dotenvy::Error> {
-    return EnvLoader::with_path("../../.env.production").load();
-}
 
 #[derive(Error, Debug)]
 pub enum JellyfinProviderError {
@@ -40,6 +36,8 @@ pub enum JellyfinProviderError {
     MissingUserIdError,
 }
 
+type Result<T> = std::result::Result<T, JellyfinProviderError>;
+
 pub struct JellyfinProvider {
     params: ProviderParams,
     config: Option<Configuration>,
@@ -49,7 +47,7 @@ pub struct JellyfinProvider {
 }
 
 impl Provider<JellyfinProvider, JellyfinProviderError> for JellyfinProvider {
-    fn new(params: ProviderParams) -> Result<Self, JellyfinProviderError> {
+    fn new(params: ProviderParams) -> Result<Self> {
         let client_info = ClientInfo {
             name: get_env()?.var("VITE_JOURNEY_NAME")?,
             version: get_env()?.var("VITE_JOURNEY_VERSION")?.to_string(),
@@ -76,7 +74,7 @@ impl Provider<JellyfinProvider, JellyfinProviderError> for JellyfinProvider {
         })
     }
 
-    fn user_id(&self) -> Result<Uuid, JellyfinProviderError> {
+    fn user_id(&self) -> Result<Uuid> {
         let res = match self.params.user_id {
             Some(server_id) => Ok(server_id),
             None => Err(JellyfinProviderError::MissingUserIdError),
@@ -85,7 +83,7 @@ impl Provider<JellyfinProvider, JellyfinProviderError> for JellyfinProvider {
         Ok(res?)
     }
 
-    fn server_id(&self) -> Result<Uuid, JellyfinProviderError> {
+    fn server_id(&self) -> Result<Uuid> {
         let res = match self.params.server_id {
             Some(server_id) => Ok(server_id),
             None => Err(JellyfinProviderError::MissingServerIdError),
@@ -102,11 +100,7 @@ impl Provider<JellyfinProvider, JellyfinProviderError> for JellyfinProvider {
         &self.authenticated
     }
 
-    async fn authenticate_with_pw(
-        &mut self,
-        uname: String,
-        psw: String,
-    ) -> Result<(), JellyfinProviderError> {
+    async fn authenticate_with_pw(&mut self, uname: String, psw: String) -> Result<()> {
         if self.authenticated {
             Ok(())
         } else {
@@ -146,7 +140,7 @@ impl Provider<JellyfinProvider, JellyfinProviderError> for JellyfinProvider {
 }
 
 impl JellyfinProvider {
-    fn save_token(&self, access_token: &String) -> Result<(), JellyfinProviderError> {
+    fn save_token(&self, access_token: &String) -> Result<()> {
         let token_entry = Entry::new(
             &get_env()?.var("VITE_JOURNEY_NAME")?,
             format!("{}-{}", self.server_id()?, self.user_id()?).as_str(),
@@ -156,10 +150,7 @@ impl JellyfinProvider {
         Ok(())
     }
 
-    fn set_server_id(
-        &mut self,
-        server_id: Option<Option<String>>,
-    ) -> Result<(), JellyfinProviderError> {
+    fn set_server_id(&mut self, server_id: Option<Option<String>>) -> Result<()> {
         let server_id = match server_id.flatten() {
             Some(token) => Ok(token),
             None => Err(JellyfinProviderError::ApiEntryRetrievalError),
@@ -173,16 +164,13 @@ impl JellyfinProvider {
        EFFECTIVELY: WE DON'T TRUST THE JELLYFIN API AT ALL
 
        When we authenticate we are required to check if the value provided by Jellyfin
-       actually exists. Due to the way Jellyfin current API is structured there are a
+       actually exists. Due to the way Jellyfins current API is structured there are a
        lot of unnecessary Option<>.
 
-       We could pass it through in one line but we risk an error of a missing user_id
+       We could pass it through in one line but we risk an error for a missing user_id
        if anything in the Jellyfin API gets funky.
     */
-    fn set_user_id(
-        &mut self,
-        user_id: Option<Option<Box<UserDto>>>,
-    ) -> Result<(), JellyfinProviderError> {
+    fn set_user_id(&mut self, user_id: Option<Option<Box<UserDto>>>) -> Result<()> {
         let user_id = match user_id.flatten() {
             Some(dto) => Ok(dto),
             None => Err(JellyfinProviderError::ApiEntryRetrievalError),

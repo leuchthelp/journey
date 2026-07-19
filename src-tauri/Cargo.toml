@@ -19,7 +19,7 @@ tauri-build = { version = "2", features = [] }
 
 [workspace]
 resolver = "3"
-members = ["journey-db", "journey-keyring", "journey-provider"]
+members = ["journey-db", "journey-keyring", "journey-provider", "journey-utils"]
 
 [workspace.dependencies]
 tauri = { version = "2", features = ["tray-icon"] }
@@ -51,8 +51,9 @@ sea-orm = { version = "2.0.0-rc.43", features = [
     "entity-registry",
     "with-json",
 ] }
-journey-keyring = { path = "journey-keyring" }
 journey-db = { path = "journey-db" }
+journey-utils = { path = "journey-utils" }
+journey-keyring = { path = "journey-keyring" }
 journey-provider = { path = "journey-provider" }
 
 dotenvy = { git = "https://github.com/allan2/dotenvy", features = ["macros"] }
