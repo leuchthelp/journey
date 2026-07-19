@@ -1,11 +1,12 @@
 use dotenvy::{EnvLoader, EnvMap};
 use jellyfin_sdk_rs::{
+    JellyfinSDKError,
     apis::{
         authentication_api::{AuthenticateUserByNameError, authenticate_user_by_name},
         configuration::Configuration,
     },
     configure,
-    models::AuthenticateUserByName,
+    models::{AuthenticateUserByName, UserDto},
     required::{ClientInfo, DeviceInfo},
 };
 use journey_keyring::Entry;
@@ -15,10 +16,8 @@ use uuid::Uuid;
 
 use crate::{Provider, ProviderParams};
 
-fn get_env() -> EnvMap {
-    return EnvLoader::with_path("../../.env.production")
-        .load()
-        .unwrap();
+fn get_env() -> Result<EnvMap, dotenvy::Error> {
+    return EnvLoader::with_path("../../.env.production").load();
 }
 
 #[derive(Error, Debug)]
@@ -30,7 +29,9 @@ pub enum JellyfinProviderError {
     #[error(transparent)]
     UuidParserError(#[from] uuid::Error),
     #[error(transparent)]
-    ConfigurationError(#[from] Box<dyn std::error::Error>),
+    EnvLoadingError(#[from] dotenvy::Error),
+    #[error(transparent)]
+    ConfigurationError(#[from] JellyfinSDKError),
     #[error("Failed to retrieve Jellyfin API response entry.")]
     ApiEntryRetrievalError,
     #[error("server_id hasn't been set yet, try authenticating first.")]
@@ -47,11 +48,11 @@ pub struct JellyfinProvider {
     authenticated: bool,
 }
 
-impl Provider<JellyfinProviderError> for JellyfinProvider {
-    fn new(params: ProviderParams) -> Self {
+impl Provider<JellyfinProvider, JellyfinProviderError> for JellyfinProvider {
+    fn new(params: ProviderParams) -> Result<Self, JellyfinProviderError> {
         let client_info = ClientInfo {
-            name: get_env().var("VITE_JOURNEY_NAME").unwrap(),
-            version: get_env().var("VITE_JOURNEY_VERSION").unwrap().to_string(),
+            name: get_env()?.var("VITE_JOURNEY_NAME")?,
+            version: get_env()?.var("VITE_JOURNEY_VERSION")?.to_string(),
         };
 
         let device_info = DeviceInfo {
@@ -66,13 +67,13 @@ impl Provider<JellyfinProviderError> for JellyfinProvider {
             languages: None,
         };
 
-        JellyfinProvider {
+        Ok(JellyfinProvider {
             params,
             config: None,
             client_info,
             device_info,
             authenticated: false,
-        }
+        })
     }
 
     fn user_id(&self) -> Result<Uuid, JellyfinProviderError> {
@@ -97,8 +98,8 @@ impl Provider<JellyfinProviderError> for JellyfinProvider {
         &self.params.url
     }
 
-    fn authenticated(&self) -> bool {
-        self.authenticated
+    fn authenticated(&self) -> &bool {
+        &self.authenticated
     }
 
     async fn authenticate_with_pw(
@@ -127,7 +128,7 @@ impl Provider<JellyfinProviderError> for JellyfinProvider {
             }?;
 
             self.set_server_id(auth_res.server_id)?;
-            self.params.user_id = Some(auth_res.user.flatten().unwrap().id.unwrap());
+            self.set_user_id(auth_res.user)?;
 
             client_config = configure()
                 .base_url(self.url())
@@ -147,7 +148,7 @@ impl Provider<JellyfinProviderError> for JellyfinProvider {
 impl JellyfinProvider {
     fn save_token(&self, access_token: &String) -> Result<(), JellyfinProviderError> {
         let token_entry = Entry::new(
-            &get_env().var("VITE_JOURNEY_NAME").unwrap(),
+            &get_env()?.var("VITE_JOURNEY_NAME")?,
             format!("{}-{}", self.server_id()?, self.user_id()?).as_str(),
         )?;
         token_entry.set_password(&access_token)?;
@@ -165,6 +166,33 @@ impl JellyfinProvider {
         }?;
 
         self.params.server_id = Some(Uuid::parse_str(&server_id)?);
+        Ok(())
+    }
+
+    /*
+       EFFECTIVELY: WE DON'T TRUST THE JELLYFIN API AT ALL
+
+       When we authenticate we are required to check if the value provided by Jellyfin
+       actually exists. Due to the way Jellyfin current API is structured there are a
+       lot of unnecessary Option<>.
+
+       We could pass it through in one line but we risk an error of a missing user_id
+       if anything in the Jellyfin API gets funky.
+    */
+    fn set_user_id(
+        &mut self,
+        user_id: Option<Option<Box<UserDto>>>,
+    ) -> Result<(), JellyfinProviderError> {
+        let user_id = match user_id.flatten() {
+            Some(dto) => Ok(dto),
+            None => Err(JellyfinProviderError::ApiEntryRetrievalError),
+        }?;
+
+        self.params.user_id = Some(match user_id.id {
+            Some(id) => Ok(id),
+            None => Err(JellyfinProviderError::MissingUserIdError),
+        }?);
+
         Ok(())
     }
 }
@@ -187,6 +215,7 @@ mod tests {
                 user_id: None,
                 server_id: None
             })
+            .unwrap()
             .type_()
             .contains("JellyfinProvider")
         );
@@ -208,9 +237,10 @@ mod tests {
                 url: Url::parse(&url).unwrap(),
                 user_id: None,
                 server_id: None,
-            });
+            })
+            .unwrap();
 
-            assert!(provider.authenticated() == false);
+            assert!(*provider.authenticated() == false);
             assert!(provider.server_id().is_err());
             assert!(provider.user_id().is_err());
 
@@ -222,7 +252,7 @@ mod tests {
                 .await
                 .unwrap();
 
-            assert!(provider.authenticated() == true);
+            assert!(*provider.authenticated() == true);
             assert!(provider.server_id().is_ok());
             assert!(provider.user_id().is_ok());
 

@@ -1,6 +1,6 @@
+use Uuid;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
-use Uuid;
 
 #[sea_orm::model]
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]

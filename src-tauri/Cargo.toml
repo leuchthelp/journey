@@ -60,6 +60,7 @@ dotenvy = { git = "https://github.com/allan2/dotenvy", features = ["macros"] }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
+unconditional_panic = "forbid"
 
 [dependencies]
 tauri = { workspace = true }

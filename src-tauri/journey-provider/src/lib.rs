@@ -6,15 +6,15 @@ use std::any::type_name_of_val;
 use url::Url;
 use uuid::Uuid;
 
-pub trait Provider<E> {
-    fn new(params: ProviderParams) -> Self;
+pub trait Provider<T, E> {
+    fn new(params: ProviderParams) -> Result<T, E>;
     fn user_id(&self) -> Result<Uuid, E>;
     fn server_id(&self) -> Result<Uuid, E>;
     fn url(&self) -> &Url;
     fn type_(&self) -> String {
         return type_name_of_val(self).to_string();
     }
-    fn authenticated(&self) -> bool;
+    fn authenticated(&self) -> &bool;
 
     fn authenticate_with_pw(
         &mut self,

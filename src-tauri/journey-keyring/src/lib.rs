@@ -2,8 +2,8 @@ use keyring_core::{Error, Result, set_default_store, unset_default_store};
 use std::collections::HashMap;
 use std::format;
 
-pub use keyring_core::Entry;
 pub use keyring_core;
+pub use keyring_core::Entry;
 
 const NAMED_STORES: [&str; 5] = ["android", "keyutils", "protected", "windows", "sample"];
 

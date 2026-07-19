@@ -1,9 +1,9 @@
-use sea_orm::entity::prelude::*;
-use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 use crate::entity::{
     MediaItemsDTO, ProviderDTO, media_items::ConvertableMediaItems, providers::ConvertableProvider,
 };
+use sea_orm::entity::prelude::*;
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[sea_orm::model]
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
