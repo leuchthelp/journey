@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use jellyfin_sdk_rs::{
     JellyfinSDKError,
     apis::{
@@ -14,7 +15,7 @@ use thiserror::Error;
 use url::Url;
 use uuid::Uuid;
 
-use crate::{Provider, ProviderParams};
+use crate::{Provider, ProviderNew, ProviderParams, ProviderResult};
 
 #[derive(Error, Debug)]
 pub enum JellyfinProviderError {
@@ -36,8 +37,6 @@ pub enum JellyfinProviderError {
     MissingUserIdError,
 }
 
-type Result<T> = std::result::Result<T, JellyfinProviderError>;
-
 pub struct JellyfinProvider {
     params: ProviderParams,
     config: Option<Configuration>,
@@ -46,8 +45,8 @@ pub struct JellyfinProvider {
     authenticated: bool,
 }
 
-impl Provider<JellyfinProvider, JellyfinProviderError> for JellyfinProvider {
-    fn new(params: ProviderParams) -> Result<Self> {
+impl ProviderNew<JellyfinProvider> for JellyfinProvider {
+    fn new(params: ProviderParams) -> ProviderResult<Self> {
         let client_info = ClientInfo {
             name: get_env_prod()?.var("VITE_JOURNEY_NAME")?,
             version: get_env_prod()?.var("VITE_JOURNEY_VERSION")?.to_string(),
@@ -73,8 +72,11 @@ impl Provider<JellyfinProvider, JellyfinProviderError> for JellyfinProvider {
             authenticated: false,
         })
     }
+}
 
-    fn user_id(&self) -> Result<Uuid> {
+#[async_trait]
+impl Provider for JellyfinProvider {
+    fn user_id(&self) -> ProviderResult<Uuid> {
         let res = match self.params.user_id {
             Some(server_id) => Ok(server_id),
             None => Err(JellyfinProviderError::MissingUserIdError),
@@ -83,7 +85,7 @@ impl Provider<JellyfinProvider, JellyfinProviderError> for JellyfinProvider {
         Ok(res?)
     }
 
-    fn server_id(&self) -> Result<Uuid> {
+    fn server_id(&self) -> ProviderResult<Uuid> {
         let res = match self.params.server_id {
             Some(server_id) => Ok(server_id),
             None => Err(JellyfinProviderError::MissingServerIdError),
@@ -100,7 +102,7 @@ impl Provider<JellyfinProvider, JellyfinProviderError> for JellyfinProvider {
         &self.authenticated
     }
 
-    async fn authenticate_with_pw(&mut self, uname: String, psw: String) -> Result<()> {
+    async fn authenticate_with_pw(&mut self, uname: String, psw: String) -> ProviderResult<()> {
         if self.authenticated {
             Ok(())
         } else {
@@ -140,7 +142,7 @@ impl Provider<JellyfinProvider, JellyfinProviderError> for JellyfinProvider {
 }
 
 impl JellyfinProvider {
-    fn save_token(&self, access_token: &String) -> Result<()> {
+    fn save_token(&self, access_token: &String) -> ProviderResult<()> {
         let token_entry = Entry::new(
             &get_env_prod()?.var("VITE_JOURNEY_NAME")?,
             format!("{}-{}", self.server_id()?, self.user_id()?).as_str(),
@@ -150,7 +152,7 @@ impl JellyfinProvider {
         Ok(())
     }
 
-    fn set_server_id(&mut self, server_id: Option<Option<String>>) -> Result<()> {
+    fn set_server_id(&mut self, server_id: Option<Option<String>>) -> ProviderResult<()> {
         let server_id = match server_id.flatten() {
             Some(token) => Ok(token),
             None => Err(JellyfinProviderError::ApiEntryRetrievalError),
@@ -170,7 +172,7 @@ impl JellyfinProvider {
        We could pass it through in one line but we risk an error for a missing user_id
        if anything in the Jellyfin API gets funky.
     */
-    fn set_user_id(&mut self, user_id: Option<Option<Box<UserDto>>>) -> Result<()> {
+    fn set_user_id(&mut self, user_id: Option<Option<Box<UserDto>>>) -> ProviderResult<()> {
         let user_id = match user_id.flatten() {
             Some(dto) => Ok(dto),
             None => Err(JellyfinProviderError::ApiEntryRetrievalError),
@@ -190,10 +192,10 @@ mod tests {
     use std::collections::HashMap;
 
     use crate::jellyfin_provider::JellyfinProvider;
-    use crate::{Provider, ProviderParams};
+    use crate::{Provider, ProviderNew, ProviderParams};
     use journey_keyring::Entry;
     use journey_utils::get_env_local;
-use url::Url;
+    use url::Url;
 
     #[test]
     fn matching_name() {

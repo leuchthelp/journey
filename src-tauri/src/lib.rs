@@ -2,8 +2,6 @@
 use journey_db::db as database;
 use journey_db::entity::media_items::ConvertableMediaItems;
 use journey_db::entity::{MediaItemsDTO, media_items};
-use journey_provider::jellyfin_provider::JellyfinProvider;
-use journey_provider::{Provider, ProviderParams};
 use uuid::Uuid;
 
 #[taurpc::procedures]
@@ -20,7 +18,7 @@ use sea_orm::ActiveValue::Set;
 #[taurpc::resolvers]
 impl Api for ApiImpl {
     async fn select(self) -> MediaItemsDTO {
-        return database::select().await;
+        return database::select().await.unwrap();
     }
     async fn insert(self) -> MediaItemsDTO {
         let amodel = media_items::ActiveModel {
@@ -33,7 +31,7 @@ impl Api for ApiImpl {
 
         let tmp = database::insert(amodel).await;
         log::info!("{:#?}", tmp);
-        return MediaItemsDTO::from_model(tmp.into_ex());
+        return MediaItemsDTO::from_model(tmp.unwrap().into_ex());
     }
 }
 

@@ -2812,6 +2812,7 @@ name = "journey-provider"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "bon",
  "chrono",
  "dotenvy 0.15.7 (git+https://github.com/allan2/dotenvy)",

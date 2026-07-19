@@ -15,26 +15,19 @@ async fn init_db() -> Result<DatabaseConnection, DbErr> {
     Ok(db)
 }
 
-pub async fn insert(item: media_items::ActiveModel) -> media_items::Model {
-    let db = init_db().await.unwrap();
+pub async fn insert(item: media_items::ActiveModel) -> Result<media_items::Model, DbErr> {
+    let db = init_db().await?;
+    let res = item.insert(&db).await?;
+    db.close().await?;
 
-    let res = item.insert(&db).await.unwrap();
-
-    db.close().await.unwrap();
-    return res;
+    Ok(res)
 }
 
-pub async fn select() -> MediaItemsDTO {
-    let db = init_db().await.unwrap();
-
-    let res = MediaItems::find()
-        .one(&db)
-        .await
-        .unwrap()
-        .unwrap()
-        .into_ex();
-
+pub async fn select() -> Result<MediaItemsDTO, DbErr> {
+    let db = init_db().await?;
+    let res = MediaItems::find().one(&db).await?.unwrap().into_ex();
     let res = MediaItemsDTO::from_model(res);
-    db.close().await.unwrap();
-    return res;
+    db.close().await?;
+
+    Ok(res)
 }
