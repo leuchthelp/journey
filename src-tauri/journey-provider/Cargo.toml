@@ -7,10 +7,19 @@ edition = "2024"
 workspace = true
 
 [dependencies]
-reqwest = {workspace = true}
-chrono = {workspace = true}
-url = {workspace = true}
-bon = {workspace = true}
-uuid = {workspace = true}
-journey-db = { path = "../journey-db" }
+tauri-plugin-os = { workspace = true }
+reqwest = { workspace = true }
+chrono = { workspace = true }
+url = { workspace = true }
+bon = { workspace = true }
+uuid = { workspace = true }
+log = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+dotenvy = { workspace = true }
+journey-db = { workspace = true }
+journey-keyring = { workspace = true }
 jellyfin-sdk-rs = { git = "https://github.com/leuchthelp/jellyfin-sdk-rs" }
+
+[dev-dependencies]
+tokio = { workspace = true }

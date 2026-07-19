@@ -1,4 +1,4 @@
 {
-  "minimumDependencyAge": "2026-07-19",
+  "minimumDependencyAge": "2026-07-20",
   "allowScripts": ["npm:esbuild@0.25.12", "npm:sharp@0.34.5"]
 }

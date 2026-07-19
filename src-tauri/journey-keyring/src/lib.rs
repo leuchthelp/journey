@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::format;
 
 pub use keyring_core::Entry;
+pub use keyring_core;
 
 const NAMED_STORES: [&str; 5] = ["android", "keyutils", "protected", "windows", "sample"];
 

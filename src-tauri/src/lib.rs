@@ -2,6 +2,8 @@
 use journey_db::db as database;
 use journey_db::entity::media_items::ConvertableMediaItems;
 use journey_db::entity::{MediaItemsDTO, media_items};
+use journey_provider::jellyfin_provider::JellyfinProvider;
+use journey_provider::{Provider, ProviderParams};
 use uuid::Uuid;
 
 #[taurpc::procedures]
