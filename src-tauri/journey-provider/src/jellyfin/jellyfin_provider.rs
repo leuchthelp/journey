@@ -9,7 +9,7 @@ use jellyfin_sdk_rs::{
     required::{ClientInfo, DeviceInfo},
 };
 use journey_keyring::Entry;
-use journey_utils::get_env;
+use journey_utils::get_env_prod;
 use thiserror::Error;
 use url::Url;
 use uuid::Uuid;
@@ -49,8 +49,8 @@ pub struct JellyfinProvider {
 impl Provider<JellyfinProvider, JellyfinProviderError> for JellyfinProvider {
     fn new(params: ProviderParams) -> Result<Self> {
         let client_info = ClientInfo {
-            name: get_env()?.var("VITE_JOURNEY_NAME")?,
-            version: get_env()?.var("VITE_JOURNEY_VERSION")?.to_string(),
+            name: get_env_prod()?.var("VITE_JOURNEY_NAME")?,
+            version: get_env_prod()?.var("VITE_JOURNEY_VERSION")?.to_string(),
         };
 
         let device_info = DeviceInfo {
@@ -142,7 +142,7 @@ impl Provider<JellyfinProvider, JellyfinProviderError> for JellyfinProvider {
 impl JellyfinProvider {
     fn save_token(&self, access_token: &String) -> Result<()> {
         let token_entry = Entry::new(
-            &get_env()?.var("VITE_JOURNEY_NAME")?,
+            &get_env_prod()?.var("VITE_JOURNEY_NAME")?,
             format!("{}-{}", self.server_id()?, self.user_id()?).as_str(),
         )?;
         token_entry.set_password(&access_token)?;
@@ -191,9 +191,9 @@ mod tests {
 
     use crate::jellyfin_provider::JellyfinProvider;
     use crate::{Provider, ProviderParams};
-    use dotenvy::EnvLoader;
     use journey_keyring::Entry;
-    use url::Url;
+    use journey_utils::get_env_local;
+use url::Url;
 
     #[test]
     fn matching_name() {
@@ -212,7 +212,7 @@ mod tests {
     #[tokio::test]
     #[ignore]
     async fn try_auth() {
-        let env_map = EnvLoader::with_path("../../.env.local").load();
+        let env_map = get_env_local();
         if env_map.is_err() {
             assert!(true)
         } else {
