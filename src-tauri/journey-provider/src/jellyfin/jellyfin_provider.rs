@@ -9,7 +9,6 @@ use jellyfin_sdk_rs::{
     models::{AuthenticateUserByName, UserDto},
     required::{ClientInfo, DeviceInfo},
 };
-use journey_keyring::Entry;
 use journey_utils::get_env_prod;
 use thiserror::Error;
 use url::Url;
@@ -142,16 +141,6 @@ impl Provider for JellyfinProvider {
 }
 
 impl JellyfinProvider {
-    fn save_token(&self, access_token: &String) -> ProviderResult<()> {
-        let token_entry = Entry::new(
-            &get_env_prod()?.var("VITE_JOURNEY_NAME")?,
-            format!("{}-{}", self.server_id()?, self.user_id()?).as_str(),
-        )?;
-        token_entry.set_password(&access_token)?;
-
-        Ok(())
-    }
-
     fn set_server_id(&mut self, server_id: Option<Option<String>>) -> ProviderResult<()> {
         let server_id = match server_id.flatten() {
             Some(token) => Ok(token),
