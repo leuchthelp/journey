@@ -36,6 +36,7 @@ pub enum JellyfinProviderError {
     MissingUserIdError,
 }
 
+#[derive(Debug)]
 pub struct JellyfinProvider {
     params: ProviderParams,
     config: Option<Configuration>,

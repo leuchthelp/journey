@@ -6,6 +6,8 @@ pub use jellyfin::jellyfin_provider;
 use journey_keyring::Entry;
 use journey_utils::get_env_prod;
 use std::any::type_name_of_val;
+use std::collections::HashMap;
+use std::hash::Hash;
 use thiserror::Error;
 use url::Url;
 use uuid::Uuid;
@@ -37,6 +39,7 @@ pub trait Provider {
     async fn authenticate_with_pw(&mut self, uname: String, psw: String) -> ProviderResult<()>;
 }
 
+#[derive(Debug, Eq, PartialEq)]
 pub struct ProviderParams {
     pub user_id: Option<Uuid>,
     pub server_id: Option<Uuid>,
@@ -53,19 +56,25 @@ pub enum ProviderManagerError {
     WronglyRegisteredError(#[from] anyhow::Error),
 }
 
+impl Hash for Box<dyn Provider + 'static> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.user_id().unwrap().hash(state);
+    }
+}
+
 pub trait ProviderManagerFn {
-    fn get_providers(&self) -> Result<&Vec<Box<dyn Provider>>, ProviderManagerError>;
+    fn get_providers(&self) -> Result<&HashMap<Uuid, Box<dyn Provider>>, ProviderManagerError>;
     fn register(&mut self, provider: Box<dyn Provider>) -> Result<(), ProviderManagerError>;
-    fn deregister(&mut self, provider: Box<dyn Provider>) -> Result<(), ProviderManagerError>;
+    fn deregister(&mut self, key: &Uuid) -> Result<(), ProviderManagerError>;
 }
 
 #[derive(Default)]
 pub struct ProviderManager {
-    variants: Vec<Box<dyn Provider>>,
+    variants: HashMap<Uuid, Box<dyn Provider>>,
 }
 
 impl ProviderManagerFn for ProviderManager {
-    fn get_providers(&self) -> Result<&Vec<Box<dyn Provider>>, ProviderManagerError> {
+    fn get_providers(&self) -> Result<&HashMap<Uuid, Box<dyn Provider>>, ProviderManagerError> {
         if self.variants.is_empty() {
             return Err(ProviderManagerError::NoProvidersError);
         }
@@ -73,24 +82,14 @@ impl ProviderManagerFn for ProviderManager {
     }
 
     fn register(&mut self, provider: Box<dyn Provider>) -> Result<(), ProviderManagerError> {
-        self.variants.push(provider);
+        self.variants.insert(provider.user_id()?, provider);
         Ok(())
     }
 
-    fn deregister(&mut self, provider: Box<dyn Provider>) -> Result<(), ProviderManagerError> {
-        let mut index: Option<usize> = None;
+    fn deregister(&mut self, key: &Uuid) -> Result<(), ProviderManagerError> {
+        let key = self.variants.remove(key);
 
-        let needed = provider.user_id()?;
-        for (i, variant) in self.variants.iter().enumerate() {
-            let id = variant.user_id()?;
-            if id == needed {
-                index = Some(i);
-                break;
-            }
-        }
-
-        if index.is_some() {
-            self.variants.swap_remove(index.unwrap());
+        if key.is_some() {
             return Ok(());
         }
         Err(ProviderManagerError::UnregisterError)
@@ -100,14 +99,14 @@ impl ProviderManagerFn for ProviderManager {
 #[cfg(test)]
 mod tests {
     use crate::jellyfin_provider::JellyfinProvider;
-    use crate::{ProviderManager, ProviderManagerFn, ProviderNew, ProviderParams};
+    use crate::{Provider, ProviderManager, ProviderManagerFn, ProviderNew, ProviderParams};
     use journey_utils::get_env_local;
     use serial_test::serial;
     use url::Url;
 
-    #[test]
+    #[tokio::test]
     #[serial]
-    fn insert_providers() {
+    async fn insert_providers() {
         let env_map = get_env_local();
         if env_map.is_err() {
             assert!(true)
@@ -118,16 +117,27 @@ mod tests {
             println!("{}", env_map.var("TEST_JELLYFIN_URL").unwrap());
             let url = env_map.var("TEST_JELLYFIN_URL").unwrap();
 
-            let provider = JellyfinProvider::new(ProviderParams {
+            let mut provider = JellyfinProvider::new(ProviderParams {
                 url: Url::parse(&url).unwrap(),
                 user_id: None,
                 server_id: None,
             })
             .unwrap();
 
+            provider
+                .authenticate_with_pw(
+                    env_map.var("TEST_JELLYFIN_USER").unwrap(),
+                    env_map.var("TEST_JELLYFIN_PW").unwrap(),
+                )
+                .await
+                .unwrap();
+
             let mut provider_manager = ProviderManager::default();
 
+            let key = provider.user_id().unwrap();
             provider_manager.register(Box::new(provider)).unwrap();
+
+            provider_manager.deregister(&key).unwrap();
 
             journey_keyring::release_store();
         }
