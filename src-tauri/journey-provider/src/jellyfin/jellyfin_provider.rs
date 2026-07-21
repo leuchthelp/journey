@@ -184,6 +184,7 @@ mod tests {
     use crate::{Provider, ProviderNew, ProviderParams};
     use journey_keyring::Entry;
     use journey_utils::get_env_local;
+    use serial_test::serial;
     use url::Url;
 
     #[test]
@@ -202,6 +203,7 @@ mod tests {
 
     #[tokio::test]
     #[ignore]
+    #[serial]
     async fn try_auth() {
         let env_map = get_env_local();
         if env_map.is_err() {

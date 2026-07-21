@@ -25,3 +25,4 @@ jellyfin-sdk-rs = { git = "https://github.com/leuchthelp/jellyfin-sdk-rs" }
 
 [dev-dependencies]
 tokio = { workspace = true }
+serial_test = { workspace = true }
