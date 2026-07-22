@@ -1,10 +1,6 @@
 use async_trait::async_trait;
 use jellyfin_sdk_rs::{
-    JellyfinSDKError,
-    apis::{
-        authentication_api::{AuthenticateUserByNameError, authenticate_user_by_name},
-        configuration::Configuration,
-    },
+    apis::{authentication_api::authenticate_user_by_name, configuration::Configuration},
     configure,
     models::{AuthenticateUserByName, UserDto},
     required::{ClientInfo, DeviceInfo},
@@ -14,20 +10,10 @@ use thiserror::Error;
 use url::Url;
 use uuid::Uuid;
 
-use crate::{Provider, ProviderNew, ProviderParams, ProviderResult};
+use crate::provider::{Provider, ProviderNew, ProviderParams, ProviderResult};
 
 #[derive(Error, Debug)]
 pub enum JellyfinProviderError {
-    #[error("Failed to save access token to native keyring: {0}")]
-    SetTokenFailureError(#[from] journey_keyring::keyring_core::Error),
-    #[error(transparent)]
-    AuthenticationError(#[from] jellyfin_sdk_rs::apis::Error<AuthenticateUserByNameError>),
-    #[error(transparent)]
-    UuidParserError(#[from] uuid::Error),
-    #[error(transparent)]
-    EnvLoadingError(#[from] dotenvy::Error),
-    #[error(transparent)]
-    ConfigurationError(#[from] JellyfinSDKError),
     #[error("Failed to retrieve Jellyfin API response entry.")]
     ApiEntryRetrievalError,
     #[error("server_id hasn't been set yet, try authenticating first.")]
@@ -45,6 +31,7 @@ pub struct JellyfinProvider {
     authenticated: bool,
 }
 
+#[async_trait]
 impl ProviderNew<JellyfinProvider> for JellyfinProvider {
     fn new(params: ProviderParams) -> ProviderResult<Self> {
         let client_info = ClientInfo {
@@ -71,35 +58,6 @@ impl ProviderNew<JellyfinProvider> for JellyfinProvider {
             device_info,
             authenticated: false,
         })
-    }
-}
-
-#[async_trait]
-impl Provider for JellyfinProvider {
-    fn user_id(&self) -> ProviderResult<Uuid> {
-        let res = match self.params.user_id {
-            Some(server_id) => Ok(server_id),
-            None => Err(JellyfinProviderError::MissingUserIdError),
-        };
-
-        Ok(res?)
-    }
-
-    fn server_id(&self) -> ProviderResult<Uuid> {
-        let res = match self.params.server_id {
-            Some(server_id) => Ok(server_id),
-            None => Err(JellyfinProviderError::MissingServerIdError),
-        };
-
-        Ok(res?)
-    }
-
-    fn url(&self) -> &Url {
-        &self.params.url
-    }
-
-    fn authenticated(&self) -> &bool {
-        &self.authenticated
     }
 
     async fn authenticate_with_pw(&mut self, uname: String, psw: String) -> ProviderResult<()> {
@@ -141,6 +99,40 @@ impl Provider for JellyfinProvider {
     }
 }
 
+impl Provider for JellyfinProvider {
+    fn user_id(&self) -> ProviderResult<Uuid> {
+        let res = match self.params.user_id {
+            Some(server_id) => Ok(server_id),
+            None => Err(JellyfinProviderError::MissingUserIdError),
+        };
+
+        Ok(res?)
+    }
+
+    fn server_id(&self) -> ProviderResult<Uuid> {
+        let res = match self.params.server_id {
+            Some(server_id) => Ok(server_id),
+            None => Err(JellyfinProviderError::MissingServerIdError),
+        };
+
+        Ok(res?)
+    }
+
+    fn url(&self) -> &Url {
+        &self.params.url
+    }
+
+    fn authenticated(&self) -> &bool {
+        &self.authenticated
+    }
+
+    fn invalidate(&self) -> ProviderResult<()> {
+        
+        
+        Ok(())
+    }
+}
+
 impl JellyfinProvider {
     fn set_server_id(&mut self, server_id: Option<Option<String>>) -> ProviderResult<()> {
         let server_id = match server_id.flatten() {
@@ -178,11 +170,13 @@ impl JellyfinProvider {
 }
 
 #[cfg(test)]
-mod tests {
+mod variant_jellyfin {
     use std::collections::HashMap;
 
-    use crate::jellyfin_provider::JellyfinProvider;
-    use crate::{Provider, ProviderNew, ProviderParams};
+    use crate::{
+        jellyfin_provider::JellyfinProvider,
+        provider::{Provider, ProviderNew, ProviderParams},
+    };
     use journey_keyring::Entry;
     use journey_utils::get_env_local;
     use serial_test::serial;
@@ -205,43 +199,40 @@ mod tests {
     #[tokio::test]
     #[ignore]
     #[serial]
-    async fn try_auth() {
+    async fn try_auth_flow() {
         let env_map = get_env_local();
-        if env_map.is_err() {
-            assert!(true)
-        } else {
-            let env_map = env_map.unwrap();
-            journey_keyring::use_native_store().unwrap();
 
-            println!("{}", env_map.var("TEST_JELLYFIN_URL").unwrap());
-            let url = env_map.var("TEST_JELLYFIN_URL").unwrap();
-            let mut provider = JellyfinProvider::new(ProviderParams {
-                url: Url::parse(&url).unwrap(),
-                user_id: None,
-                server_id: None,
-            })
+        let env_map = env_map.unwrap();
+        journey_keyring::use_native_store().unwrap();
+
+        println!("{}", env_map.var("TEST_JELLYFIN_URL").unwrap());
+        let url = env_map.var("TEST_JELLYFIN_URL").unwrap();
+        let mut provider = JellyfinProvider::new(ProviderParams {
+            url: Url::parse(&url).unwrap(),
+            user_id: None,
+            server_id: None,
+        })
+        .unwrap();
+
+        assert!(*provider.authenticated() == false);
+        assert!(provider.server_id().is_err());
+        assert!(provider.user_id().is_err());
+
+        provider
+            .authenticate_with_pw(
+                env_map.var("TEST_JELLYFIN_USER").unwrap(),
+                env_map.var("TEST_JELLYFIN_PW").unwrap(),
+            )
+            .await
             .unwrap();
 
-            assert!(*provider.authenticated() == false);
-            assert!(provider.server_id().is_err());
-            assert!(provider.user_id().is_err());
+        assert!(*provider.authenticated() == true);
+        assert!(provider.server_id().is_ok());
+        assert!(provider.user_id().is_ok());
 
-            provider
-                .authenticate_with_pw(
-                    env_map.var("TEST_JELLYFIN_USER").unwrap(),
-                    env_map.var("TEST_JELLYFIN_PW").unwrap(),
-                )
-                .await
-                .unwrap();
-
-            assert!(*provider.authenticated() == true);
-            assert!(provider.server_id().is_ok());
-            assert!(provider.user_id().is_ok());
-
-            let test = Entry::search(&HashMap::from([("service", "journey")])).unwrap();
-            test.iter()
-                .for_each(|f| println!("{:#?}", f.get_password()));
-            journey_keyring::release_store();
-        }
+        let test = Entry::search(&HashMap::from([("service", "journey")])).unwrap();
+        test.iter()
+            .for_each(|f| println!("{:#?}", f.get_password()));
+        journey_keyring::release_store();
     }
 }
