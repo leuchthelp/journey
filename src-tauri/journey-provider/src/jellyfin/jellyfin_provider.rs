@@ -127,8 +127,6 @@ impl Provider for JellyfinProvider {
     }
 
     fn invalidate(&self) -> ProviderResult<()> {
-        
-        
         Ok(())
     }
 }
