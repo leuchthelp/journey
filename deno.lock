@@ -11,6 +11,7 @@
     "npm:@tailwindcss/vite@^4.3.3": "4.3.3_vite@8.1.5__@types+node@26.1.1",
     "npm:@tauri-apps/api@^2.11.1": "2.11.1",
     "npm:@tauri-apps/cli@^2.11.4": "2.11.4",
+    "npm:@tauri-apps/plugin-fs@~2.5.1": "2.5.1",
     "npm:@tauri-apps/plugin-os@^2.3.2": "2.3.2",
     "npm:@tauri-apps/plugin-window-state@^2.4.1": "2.4.1",
     "npm:@types/node@26.1.1": "26.1.1",
@@ -818,6 +819,12 @@
         "@tauri-apps/cli-win32-x64-msvc"
       ],
       "bin": true
+    },
+    "@tauri-apps/plugin-fs@2.5.1": {
+      "integrity": "sha512-9Lz+Jopp6QyeEWhlpkMx4R/+P9HgR+AVAI4vOZhlT8Xaymtz8iVI/Ov984/XTqgJz/5gz5NretqPB/XEMS3NhQ==",
+      "dependencies": [
+        "@tauri-apps/api"
+      ]
     },
     "@tauri-apps/plugin-os@2.3.2": {
       "integrity": "sha512-n+nXWeuSeF9wcEsSPmRnBEGrRgOy6jjkSU+UVCOV8YUGKb2erhDOxis7IqRXiRVHhY8XMKks00BJ0OAdkpf6+A==",
@@ -1867,6 +1874,7 @@
         "npm:@tailwindcss/vite@^4.3.3",
         "npm:@tauri-apps/api@^2.11.1",
         "npm:@tauri-apps/cli@^2.11.4",
+        "npm:@tauri-apps/plugin-fs@~2.5.1",
         "npm:@tauri-apps/plugin-os@^2.3.2",
         "npm:@tauri-apps/plugin-window-state@^2.4.1",
         "npm:@types/node@26.1.1",

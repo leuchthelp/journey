@@ -45,6 +45,7 @@ pub async fn run() {
         .unwrap();
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_window_state::Builder::new().build())
         .plugin(tauri_plugin_persisted_scope::init())
         .invoke_handler(router.into_handler())
