@@ -90,10 +90,16 @@ pub trait Provider {
         Ok(s.finish())
     }
     fn authenticated(&self) -> ProviderResult<bool> {
-        match self.retrieve_token() {
-            Err(_) => return Ok(false),
-            Ok(_) => return Ok(true),
-        };
+        let tokens = self.retrieve_token();
+        if tokens.is_err() {
+            return Ok(false);
+        }
+
+        let tokens = tokens?;
+        if tokens.len() == 0 {
+            return Ok(false);
+        }
+        Ok(true)
     }
     fn invalidate(&mut self) -> ProviderResult<()>;
 }
