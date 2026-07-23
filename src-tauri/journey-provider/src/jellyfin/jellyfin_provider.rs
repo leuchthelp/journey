@@ -28,12 +28,11 @@ pub struct JellyfinProvider {
     config: Option<Configuration>,
     client_info: ClientInfo,
     device_info: DeviceInfo,
-    authenticated: bool,
 }
 
 #[async_trait]
 impl ProviderNew<JellyfinProvider> for JellyfinProvider {
-    fn new(params: ProviderParams) -> ProviderResult<Self> {
+    fn new(params: ProviderParams) -> ProviderResult<Box<Self>> {
         let client_info = ClientInfo {
             name: get_env_prod()?.var("VITE_JOURNEY_NAME")?,
             version: get_env_prod()?.var("VITE_JOURNEY_VERSION")?.to_string(),
@@ -51,51 +50,48 @@ impl ProviderNew<JellyfinProvider> for JellyfinProvider {
             languages: None,
         };
 
-        Ok(JellyfinProvider {
+        Ok(Box::new(JellyfinProvider {
             params,
             config: None,
             client_info,
             device_info,
-            authenticated: false,
-        })
+        }))
     }
 
     async fn authenticate_with_pw(&mut self, uname: String, psw: String) -> ProviderResult<()> {
-        if self.authenticated {
-            Ok(())
-        } else {
-            let mut client_config = configure()
-                .base_url(self.url())
-                .client_info(&self.client_info)
-                .device_info(&self.device_info)
-                .call()?;
-
-            let auth_by_name = AuthenticateUserByName {
-                username: Some(Some(uname)),
-                pw: Some(Some(psw)),
-            };
-            let auth_res = authenticate_user_by_name(&client_config, auth_by_name).await?;
-
-            let access_token = match auth_res.access_token.flatten() {
-                Some(token) => Ok(token),
-                None => Err(JellyfinProviderError::ApiEntryRetrievalError),
-            }?;
-
-            self.set_server_id(auth_res.server_id)?;
-            self.set_user_id(auth_res.user)?;
-
-            client_config = configure()
-                .base_url(self.url())
-                .client_info(&self.client_info)
-                .device_info(&self.device_info)
-                .access_token(&access_token)
-                .call()?;
-
-            self.save_token(&access_token)?;
-            self.config = Some(client_config);
-            self.authenticated = true;
-            Ok(())
+        if self.authenticated()? {
+            return Ok(());
         }
+        let mut client_config = configure()
+            .base_url(self.url())
+            .client_info(&self.client_info)
+            .device_info(&self.device_info)
+            .call()?;
+
+        let auth_by_name = AuthenticateUserByName {
+            username: Some(Some(uname)),
+            pw: Some(Some(psw)),
+        };
+        let auth_res = authenticate_user_by_name(&client_config, auth_by_name).await?;
+
+        let access_token = match auth_res.access_token.flatten() {
+            Some(token) => Ok(token),
+            None => Err(JellyfinProviderError::ApiEntryRetrievalError),
+        }?;
+
+        self.set_server_id(auth_res.server_id)?;
+        self.set_user_id(auth_res.user)?;
+
+        client_config = configure()
+            .base_url(self.url())
+            .client_info(&self.client_info)
+            .device_info(&self.device_info)
+            .access_token(&access_token)
+            .call()?;
+
+        self.save_token(&access_token)?;
+        self.config = Some(client_config);
+        Ok(())
     }
 }
 
@@ -122,10 +118,6 @@ impl Provider for JellyfinProvider {
         &self.params.url
     }
 
-    fn authenticated(&self) -> &bool {
-        &self.authenticated
-    }
-
     fn invalidate(&mut self) -> ProviderResult<()> {
         self.remove_token()?;
 
@@ -135,7 +127,6 @@ impl Provider for JellyfinProvider {
             url: self.url().clone(),
         };
         self.config = None;
-        self.authenticated = false;
         Ok(())
     }
 }
@@ -223,7 +214,7 @@ mod variant_jellyfin {
         })
         .unwrap();
 
-        assert!(*provider.authenticated() == false);
+        provider.authenticated().unwrap();
         assert!(provider.server_id().is_err());
         assert!(provider.user_id().is_err());
 
@@ -235,7 +226,7 @@ mod variant_jellyfin {
             .await
             .unwrap();
 
-        assert!(*provider.authenticated() == true);
+        assert!(provider.authenticated().unwrap() == true);
         assert!(provider.server_id().is_ok());
         assert!(provider.user_id().is_ok());
 
@@ -244,7 +235,7 @@ mod variant_jellyfin {
 
         provider.invalidate().unwrap();
 
-        assert!(*provider.authenticated() == false);
+        assert!(provider.authenticated().unwrap() == false);
         assert!(provider.server_id().is_err());
         assert!(provider.user_id().is_err());
 

@@ -39,7 +39,7 @@ pub type ProviderResult<T> = Result<T, ProviderError>;
 
 #[async_trait]
 pub trait ProviderNew<T> {
-    fn new(params: ProviderParams) -> ProviderResult<T>;
+    fn new(params: ProviderParams) -> ProviderResult<Box<T>>;
     async fn authenticate_with_pw(&mut self, uname: String, psw: String) -> ProviderResult<()>;
 }
 
@@ -59,7 +59,7 @@ pub trait Provider {
 
         Ok(())
     }
-    fn remove_token(&self) -> ProviderResult<()> {
+    fn retrieve_token(&self) -> ProviderResult<Vec<Entry>> {
         let entries = Entry::search(&HashMap::from([
             ("service", "journey"),
             (
@@ -67,6 +67,11 @@ pub trait Provider {
                 format!("{}-{}", self.server_id()?, self.user_id()?).as_str(),
             ),
         ]))?;
+
+        Ok(entries)
+    }
+    fn remove_token(&self) -> ProviderResult<()> {
+        let entries = self.retrieve_token()?;
 
         for entry in &entries {
             entry.delete_credential()?;
@@ -84,7 +89,12 @@ pub trait Provider {
         self.server_id()?.hash(&mut s);
         Ok(s.finish())
     }
-    fn authenticated(&self) -> &bool;
+    fn authenticated(&self) -> ProviderResult<bool> {
+        match self.retrieve_token() {
+            Err(_) => return Ok(false),
+            Ok(_) => return Ok(true),
+        };
+    }
     fn invalidate(&mut self) -> ProviderResult<()>;
 }
 

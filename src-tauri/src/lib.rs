@@ -2,7 +2,7 @@
 use journey_db::db as database;
 use journey_db::entity::media_items::ConvertableMediaItems;
 use journey_db::entity::{MediaItemsDTO, media_items};
-use tracing::{info};
+use tracing::info;
 use uuid::Uuid;
 
 #[taurpc::procedures]

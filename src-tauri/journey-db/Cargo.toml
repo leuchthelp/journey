@@ -7,11 +7,11 @@ edition = "2024"
 workspace = true
 
 [dependencies]
-uuid = { workspace = true}
-tokio = { workspace = true}
-sea-orm = { workspace = true}
-serde = { workspace = true}
-serde_json = {workspace = true}
+uuid = { workspace = true }
+tokio = { workspace = true }
+sea-orm = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
 
-taurpc = {workspace = true}
-specta = { workspace = true}
+taurpc = { workspace = true }
+specta = { workspace = true }
