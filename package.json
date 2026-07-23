@@ -16,7 +16,7 @@
   "dependencies": {
     "@electric-sql/pglite": "^0.5.4",
     "@jellyfin/sdk": "^0.13.0",
-    "@lucide/svelte": "^1.25.0",
+    "@lucide/svelte": "^1.26.0",
     "@sveltejs/adapter-static": "^4.0.0-next.1",
     "@sveltejs/enhanced-img": "^1.0.0-next.2",
     "@sveltejs/kit": "^3.0.0-next.11",

@@ -13,11 +13,12 @@ chrono = { workspace = true }
 url = { workspace = true }
 bon = { workspace = true }
 uuid = { workspace = true }
-log = { workspace = true }
 thiserror = { workspace = true }
 anyhow = { workspace = true }
 async-trait = { workspace = true }
 dotenvy = { workspace = true }
+tracing = { workspace = true }
+test-log = { workspace = true }
 journey-db = { workspace = true }
 journey-utils = { workspace = true }
 journey-keyring = { workspace = true }

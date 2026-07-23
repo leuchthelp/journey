@@ -5,9 +5,9 @@ pub use jellyfin::jellyfin_provider;
 mod provider;
 mod provider_manager;
 
-pub use provider::Provider;
+pub use provider::ProviderParams;
+
 pub use provider::ProviderError;
-pub use provider::ProviderNew;
 pub use provider::ProviderResult;
 
 pub use provider_manager::ProviderManager;

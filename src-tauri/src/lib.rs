@@ -2,6 +2,7 @@
 use journey_db::db as database;
 use journey_db::entity::media_items::ConvertableMediaItems;
 use journey_db::entity::{MediaItemsDTO, media_items};
+use tracing::{info};
 use uuid::Uuid;
 
 #[taurpc::procedures]
@@ -10,7 +11,7 @@ trait Api {
     async fn insert() -> MediaItemsDTO;
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct ApiImpl;
 
 use sea_orm::ActiveValue::Set;
@@ -30,7 +31,7 @@ impl Api for ApiImpl {
         };
 
         let tmp = database::insert(amodel).await;
-        log::info!("{:#?}", tmp);
+        info!("{:#?}", tmp);
         return MediaItemsDTO::from_model(tmp.unwrap().into_ex());
     }
 }

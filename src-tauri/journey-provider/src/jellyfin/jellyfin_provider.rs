@@ -126,7 +126,16 @@ impl Provider for JellyfinProvider {
         &self.authenticated
     }
 
-    fn invalidate(&self) -> ProviderResult<()> {
+    fn invalidate(&mut self) -> ProviderResult<()> {
+        self.remove_token()?;
+
+        self.params = ProviderParams {
+            user_id: None,
+            server_id: None,
+            url: self.url().clone(),
+        };
+        self.config = None;
+        self.authenticated = false;
         Ok(())
     }
 }
@@ -178,6 +187,8 @@ mod variant_jellyfin {
     use journey_keyring::Entry;
     use journey_utils::get_env_local;
     use serial_test::serial;
+    use test_log::test;
+    use tracing::warn;
     use url::Url;
 
     #[test]
@@ -203,7 +214,7 @@ mod variant_jellyfin {
         let env_map = env_map.unwrap();
         journey_keyring::use_native_store().unwrap();
 
-        println!("{}", env_map.var("TEST_JELLYFIN_URL").unwrap());
+        warn!("{}", env_map.var("TEST_JELLYFIN_URL").unwrap());
         let url = env_map.var("TEST_JELLYFIN_URL").unwrap();
         let mut provider = JellyfinProvider::new(ProviderParams {
             url: Url::parse(&url).unwrap(),
@@ -229,8 +240,14 @@ mod variant_jellyfin {
         assert!(provider.user_id().is_ok());
 
         let test = Entry::search(&HashMap::from([("service", "journey")])).unwrap();
-        test.iter()
-            .for_each(|f| println!("{:#?}", f.get_password()));
+        test.iter().for_each(|f| warn!("{:#?}", f.get_password()));
+
+        provider.invalidate().unwrap();
+
+        assert!(*provider.authenticated() == false);
+        assert!(provider.server_id().is_err());
+        assert!(provider.user_id().is_err());
+
         journey_keyring::release_store();
     }
 }

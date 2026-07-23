@@ -5,6 +5,7 @@ use jellyfin_sdk_rs::apis::authentication_api::AuthenticateUserByNameError;
 use journey_keyring::{Entry, keyring_core};
 use journey_utils::get_env_prod;
 use std::any::type_name_of_val;
+use std::collections::HashMap;
 use std::hash::DefaultHasher;
 use std::hash::Hash;
 use std::hash::Hasher;
@@ -17,7 +18,11 @@ use crate::jellyfin::jellyfin_provider::JellyfinProviderError;
 #[derive(Error, Debug)]
 pub enum ProviderError {
     #[error("Failed to save access token to native keyring: {0}")]
-    SetTokenFailureError(#[from] keyring_core::Error),
+    KeyringCoreError(#[from] keyring_core::Error),
+    #[error("Found more than one access token, removing all.")]
+    TooManyCredentialsError,
+    #[error("Found no access token, nothing to remove.")]
+    NoCredentialsError,
     #[error(transparent)]
     UuidParserError(#[from] uuid::Error),
     #[error(transparent)]
@@ -54,6 +59,25 @@ pub trait Provider {
 
         Ok(())
     }
+    fn remove_token(&self) -> ProviderResult<()> {
+        let entries = Entry::search(&HashMap::from([
+            ("service", "journey"),
+            (
+                "user",
+                format!("{}-{}", self.server_id()?, self.user_id()?).as_str(),
+            ),
+        ]))?;
+
+        for entry in &entries {
+            entry.delete_credential()?;
+        }
+
+        match Some(entries.len()) {
+            Some(len) if len > 1 => return Err(ProviderError::TooManyCredentialsError),
+            Some(len) if len < 1 => return Err(ProviderError::NoCredentialsError),
+            _ => return Ok(()),
+        };
+    }
     fn hash(&self) -> ProviderResult<u64> {
         let mut s = DefaultHasher::new();
         self.user_id()?.hash(&mut s);
@@ -61,7 +85,7 @@ pub trait Provider {
         Ok(s.finish())
     }
     fn authenticated(&self) -> &bool;
-    fn invalidate(&self) -> ProviderResult<()>;
+    fn invalidate(&mut self) -> ProviderResult<()>;
 }
 
 #[derive(Debug, Eq, PartialEq)]

@@ -9,7 +9,7 @@ import {
 import { error } from "@sveltejs/kit";
 
 import type { Provider } from "./Provider.ts";
-import { device, uuid } from "../shared.ts";
+import { uuid } from "../shared.ts";
 import {
   providerItems,
   type ContentItem,
@@ -45,7 +45,7 @@ export class JellyfinProvider implements Provider {
         version: "0.1.0",
       },
       deviceInfo: {
-        name: device,
+        name: "pc",
         id: uuid,
       },
     });
