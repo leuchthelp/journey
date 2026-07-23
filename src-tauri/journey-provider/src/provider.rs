@@ -41,8 +41,12 @@ pub type ProviderResult<T> = Result<T, ProviderError>;
 pub trait ProviderNew<T> {
     fn new(params: ProviderParams) -> ProviderResult<Box<T>>;
     async fn authenticate_with_pw(&mut self, uname: String, psw: String) -> ProviderResult<()>;
+    async fn add_to_db(&self) -> ProviderResult<()> {
+        Ok(())
+    }
 }
 
+#[async_trait]
 pub trait Provider {
     fn user_id(&self) -> ProviderResult<Uuid>;
     fn server_id(&self) -> ProviderResult<Uuid>;
@@ -101,7 +105,10 @@ pub trait Provider {
         }
         Ok(true)
     }
-    fn invalidate(&mut self) -> ProviderResult<()>;
+    async fn invalidate(&mut self) -> ProviderResult<()>;
+    async fn remove_from_db(&self) -> ProviderResult<()> {
+        Ok(())
+    }
 }
 
 #[derive(Debug, Eq, PartialEq)]

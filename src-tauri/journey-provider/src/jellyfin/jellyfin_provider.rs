@@ -95,6 +95,7 @@ impl ProviderNew<JellyfinProvider> for JellyfinProvider {
     }
 }
 
+#[async_trait]
 impl Provider for JellyfinProvider {
     fn user_id(&self) -> ProviderResult<Uuid> {
         let res = match self.params.user_id {
@@ -118,8 +119,9 @@ impl Provider for JellyfinProvider {
         &self.params.url
     }
 
-    fn invalidate(&mut self) -> ProviderResult<()> {
+    async fn invalidate(&mut self) -> ProviderResult<()> {
         self.remove_token()?;
+        self.remove_from_db().await?;
 
         self.params = ProviderParams {
             user_id: None,
@@ -233,7 +235,7 @@ mod variant_jellyfin {
         let test = Entry::search(&HashMap::from([("service", "journey")])).unwrap();
         test.iter().for_each(|f| warn!("{:#?}", f.get_password()));
 
-        provider.invalidate().unwrap();
+        provider.invalidate().await.unwrap();
 
         assert!(provider.authenticated().unwrap() == false);
         assert!(provider.server_id().is_err());

@@ -1,4 +1,5 @@
 use anyhow::Result;
+use async_trait::async_trait;
 use journey_db::entity::providers::Model;
 use std::any::type_name;
 use std::collections::HashMap;
@@ -30,6 +31,7 @@ pub enum ProviderManagerError {
 
 pub type ProviderManagerResult<T> = Result<T, ProviderManagerError>;
 
+#[async_trait]
 pub trait ProviderManagerFn {
     fn init(&mut self, known_providers: Vec<Model>) -> ProviderManagerResult<()> {
         for known in known_providers {
@@ -39,7 +41,7 @@ pub trait ProviderManagerFn {
                 server_id: Some(known.server_id),
             };
 
-            let new_provider: ProviderResult<Box<dyn Provider>> = match known.kind.as_str() {
+            let new_provider: ProviderResult<Box<dyn Provider + Send>> = match known.kind.as_str() {
                 value if value == type_name::<JellyfinProvider>() => {
                     Ok(JellyfinProvider::new(params)?)
                 }
@@ -51,25 +53,26 @@ pub trait ProviderManagerFn {
         }
         Ok(())
     }
-    fn get_providers(&self) -> ProviderManagerResult<&HashMap<u64, Box<dyn Provider>>>;
-    fn get_provider(&self, key: &u64) -> ProviderManagerResult<&Box<dyn Provider>>;
-    fn register(&mut self, provider: Box<dyn Provider>) -> ProviderManagerResult<()>;
-    fn deregister(&mut self, key: &u64) -> ProviderManagerResult<()>;
+    fn get_providers(&self) -> ProviderManagerResult<&HashMap<u64, Box<dyn Provider + Send>>>;
+    fn get_provider(&self, key: &u64) -> ProviderManagerResult<&Box<dyn Provider + Send>>;
+    fn register(&mut self, provider: Box<dyn Provider + Send>) -> ProviderManagerResult<()>;
+    async fn deregister(&mut self, key: &u64) -> ProviderManagerResult<()>;
 }
 
 #[derive(Default)]
 pub struct ProviderManager {
-    variants: HashMap<u64, Box<dyn Provider>>,
+    variants: HashMap<u64, Box<dyn Provider + Send>>,
 }
 
+#[async_trait]
 impl ProviderManagerFn for ProviderManager {
-    fn get_providers(&self) -> ProviderManagerResult<&HashMap<u64, Box<dyn Provider>>> {
+    fn get_providers(&self) -> ProviderManagerResult<&HashMap<u64, Box<dyn Provider + Send>>> {
         if self.variants.is_empty() {
             return Err(ProviderManagerError::NoProviderError);
         }
         Ok(&self.variants)
     }
-    fn get_provider(&self, key: &u64) -> ProviderManagerResult<&Box<dyn Provider>> {
+    fn get_provider(&self, key: &u64) -> ProviderManagerResult<&Box<dyn Provider + Send>> {
         let provider = self.variants.get(key);
 
         if provider.is_none() {
@@ -78,19 +81,19 @@ impl ProviderManagerFn for ProviderManager {
 
         Ok(provider.unwrap())
     }
-    fn register(&mut self, provider: Box<dyn Provider>) -> ProviderManagerResult<()> {
+    fn register(&mut self, provider: Box<dyn Provider + Send>) -> ProviderManagerResult<()> {
         if provider.authenticated()? {
             self.variants.insert(provider.hash()?, provider);
             return Ok(());
         }
         Err(ProviderManagerError::RegisterError)
     }
-    fn deregister(&mut self, key: &u64) -> ProviderManagerResult<()> {
+    async fn deregister(&mut self, key: &u64) -> ProviderManagerResult<()> {
         let provider = self.variants.remove(key);
 
         if provider.is_some() {
             let mut provider = provider.unwrap();
-            provider.invalidate()?;
+            provider.invalidate().await?;
             return Ok(());
         }
         Err(ProviderManagerError::DeregisterError)
@@ -160,7 +163,7 @@ mod provider_manager_test {
             provider.user_id().unwrap(),
             provider.server_id().unwrap()
         );
-        provider_manager.deregister(&key).unwrap();
+        provider_manager.deregister(&key).await.unwrap();
 
         journey_keyring::release_store();
     }
