@@ -1,0 +1,20 @@
+[package]
+name = "journey-api"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tauri = { workspace = true }
+anyhow = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+taurpc = { workspace = true }
+specta = { workspace = true }
+specta-typescript = { workspace = true }
+tokio = { workspace = true }
+journey-db = { workspace = true }
+journey-keyring = { workspace = true }
+journey-provider = { workspace = true }
+
+[lints]
+workspace = true

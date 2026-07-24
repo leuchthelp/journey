@@ -2617,7 +2617,7 @@ name = "journey"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "journey-db",
+ "journey-api",
  "journey-keyring",
  "journey-provider",
  "sea-orm",
@@ -2637,6 +2637,23 @@ dependencies = [
  "tracing-subscriber",
  "url",
  "uuid",
+]
+
+[[package]]
+name = "journey-api"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "journey-db",
+ "journey-keyring",
+ "journey-provider",
+ "serde",
+ "serde_json",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "taurpc",
+ "tokio",
 ]
 
 [[package]]

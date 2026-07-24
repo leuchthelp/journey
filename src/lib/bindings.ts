@@ -53,33 +53,13 @@ export type ProviderDTO = {
   media_items: MediaItemDTO[] | null;
   images: ImageDTO[] | null;
 };
-const ARGS_MAP = {
-  "": {
-    get_content: [],
-    get_images: [],
-    get_media_items: [],
-    get_original: [],
-    get_providers: [],
-  },
-};
+const ARGS_MAP = { "": { get_original: [] } };
 
-const RESULT_MAP = {
-  "": {
-    get_content: false,
-    get_images: false,
-    get_media_items: false,
-    get_original: false,
-    get_providers: false,
-  },
-};
+const RESULT_MAP = { "": { get_original: false } };
 
 export type Router = {
   "": {
-    get_content: () => Promise<ContentDTO>;
-    get_images: () => Promise<ImageDTO>;
-    get_media_items: () => Promise<MediaItemDTO>;
     get_original: () => Promise<OriginalDTO>;
-    get_providers: () => Promise<ProviderDTO>;
   };
 };
 export const createTauRPCProxy = () =>
