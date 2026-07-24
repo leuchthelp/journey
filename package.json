@@ -14,8 +14,6 @@
     "generate": "dx drizzle-kit generate && deno ./src/lib/db/compile-migrations.ts"
   },
   "dependencies": {
-    "@electric-sql/pglite": "^0.5.4",
-    "@jellyfin/sdk": "^0.13.0",
     "@lucide/svelte": "^1.26.0",
     "@sveltejs/adapter-static": "^4.0.0-next.1",
     "@sveltejs/enhanced-img": "^1.0.0-next.2",
@@ -30,8 +28,6 @@
     "@videojs/html": "^10.0.0-beta.25",
     "@videojs/store": "^10.0.0-beta.25",
     "clsx": "^2.1.1",
-    "drizzle-kit": "^1.0.0-rc.4-ca0f029",
-    "drizzle-orm": "^1.0.0-rc.4-de6c356",
     "lru-cache": "^11.5.2",
     "prettier": "^3.9.6",
     "tailwind-merge": "^3.6.0",
