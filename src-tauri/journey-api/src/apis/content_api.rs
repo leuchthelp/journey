@@ -1,15 +1,15 @@
 use journey_db::entity::ContentDTO;
 
-#[taurpc::procedures]
-pub trait ContentApiImpl {
+#[taurpc::procedures(path = "content")]
+pub trait ContentApi {
     async fn get_content() -> ContentDTO;
 }
 
 #[derive(Clone, Debug)]
-pub struct ContentApi;
+pub struct ContentApiImpl;
 
 #[taurpc::resolvers]
-impl ContentApiImpl for ContentApi {
+impl ContentApi for ContentApiImpl {
     async fn get_content(self) -> ContentDTO {
         return ContentDTO::default();
     }

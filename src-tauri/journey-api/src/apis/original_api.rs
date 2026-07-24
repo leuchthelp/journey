@@ -1,15 +1,15 @@
 use journey_db::entity::OriginalDTO;
 
-#[taurpc::procedures]
-pub trait OriginalApiImpl {
+#[taurpc::procedures(path = "original")]
+pub trait OriginalApi {
     async fn get_original() -> OriginalDTO;
 }
 
 #[derive(Clone, Debug)]
-pub struct OriginalApi;
+pub struct OriginalApiImpl;
 
 #[taurpc::resolvers]
-impl OriginalApiImpl for OriginalApi {
+impl OriginalApi for OriginalApiImpl {
     async fn get_original(self) -> OriginalDTO {
         return OriginalDTO::default();
     }

@@ -12,11 +12,11 @@ use crate::apis::{
 
 pub fn get_router() -> Result<Router<Wry>> {
     let router = taurpc::Router::new()
-        .merge(MediaItemApi.into_handler())
-        .merge(ContentApi.into_handler())
-        .merge(ImageApi.into_handler())
-        .merge(ProviderApi.into_handler())
-        .merge(OriginalApi.into_handler());
+        .merge(MediaItemApiImpl.into_handler())
+        .merge(ContentApiImpl.into_handler())
+        .merge(ImageApiImpl.into_handler())
+        .merge(ProviderApiImpl.into_handler())
+        .merge(OriginalApiImpl.into_handler());
 
     Ok(router)
 }

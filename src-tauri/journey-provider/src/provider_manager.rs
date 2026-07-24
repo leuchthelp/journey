@@ -74,7 +74,7 @@ pub trait ProviderManagerFn {
 
 #[derive(Default)]
 pub struct ProviderManager {
-    variants: HashMap<u64, Box<dyn Provider + Send + Sync>>,
+    pub(crate) variants: HashMap<u64, Box<dyn Provider + Send + Sync>>,
 }
 
 #[async_trait]

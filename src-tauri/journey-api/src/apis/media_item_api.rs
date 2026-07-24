@@ -1,16 +1,16 @@
 use journey_db::entity::MediaItemDTO;
 use taurpc;
 
-#[taurpc::procedures]
-pub trait MediaItemApiImpl {
+#[taurpc::procedures(path = "mediaItem")]
+pub trait MediaItemApi {
     async fn get_media_items() -> MediaItemDTO;
 }
 
 #[derive(Clone, Debug)]
-pub struct MediaItemApi;
+pub struct MediaItemApiImpl;
 
 #[taurpc::resolvers]
-impl MediaItemApiImpl for MediaItemApi {
+impl MediaItemApi for MediaItemApiImpl {
     async fn get_media_items(self) -> MediaItemDTO {
         return MediaItemDTO::default();
     }

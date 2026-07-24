@@ -24,10 +24,10 @@ pub enum JellyfinProviderError {
 
 #[derive(Debug)]
 pub struct JellyfinProvider {
-    params: ProviderParams,
-    config: Option<Configuration>,
-    client_info: ClientInfo,
-    device_info: DeviceInfo,
+    pub(crate) params: ProviderParams,
+    pub(crate) config: Option<Configuration>,
+    pub(crate) client_info: ClientInfo,
+    pub(crate) device_info: DeviceInfo,
 }
 
 #[async_trait]
