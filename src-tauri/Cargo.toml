@@ -82,6 +82,7 @@ specta-typescript = { workspace = true }
 sea-orm = { workspace = true }
 uuid = { workspace = true }
 url = { workspace = true }
+anyhow = { workspace = true }
 journey-db = { workspace = true }
 journey-keyring = { workspace = true }
 journey-provider = { workspace = true }

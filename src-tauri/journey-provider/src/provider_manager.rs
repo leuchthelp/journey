@@ -1,6 +1,8 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use journey_db::entity::providers::Model;
+use journey_db::entity::Providers;
+use journey_db::get_conn;
+use journey_db::sea_orm::EntityTrait;
 use std::any::type_name;
 use std::collections::HashMap;
 use thiserror::Error;
@@ -27,13 +29,17 @@ pub enum ProviderManagerError {
     ProviderError(#[from] ProviderError),
     #[error(transparent)]
     ParseUrlError(#[from] url::ParseError),
+    #[error(transparent)]
+    DbError(#[from] journey_db::sea_orm::DbErr),
 }
 
 pub type ProviderManagerResult<T> = Result<T, ProviderManagerError>;
 
 #[async_trait]
 pub trait ProviderManagerFn {
-    fn init(&mut self, known_providers: Vec<Model>) -> ProviderManagerResult<()> {
+    async fn init(&mut self) -> ProviderManagerResult<()> {
+        let known_providers = Providers::find().all(get_conn()).await?;
+
         for known in known_providers {
             let params = ProviderParams {
                 url: Url::parse(&known.url)?,
@@ -41,38 +47,43 @@ pub trait ProviderManagerFn {
                 server_id: Some(known.server_id),
             };
 
-            let new_provider: ProviderResult<Box<dyn Provider + Send>> = match known.kind.as_str() {
-                value if value == type_name::<JellyfinProvider>() => {
-                    Ok(JellyfinProvider::new(params)?)
-                }
-                _ => return Err(ProviderManagerError::UnknownProviderKindError),
-            };
+            let new_provider: ProviderResult<Box<dyn Provider + Send + Sync>> =
+                match known.kind.as_str() {
+                    value if value == type_name::<JellyfinProvider>() => {
+                        Ok(JellyfinProvider::new(params)?)
+                    }
+                    _ => return Err(ProviderManagerError::UnknownProviderKindError),
+                };
 
             let new_provider = new_provider?;
             self.register(new_provider)?;
         }
         Ok(())
     }
-    fn get_providers(&self) -> ProviderManagerResult<&HashMap<u64, Box<dyn Provider + Send>>>;
-    fn get_provider(&self, key: &u64) -> ProviderManagerResult<&Box<dyn Provider + Send>>;
-    fn register(&mut self, provider: Box<dyn Provider + Send>) -> ProviderManagerResult<()>;
+    fn get_providers(
+        &self,
+    ) -> ProviderManagerResult<&HashMap<u64, Box<dyn Provider + Send + Sync>>>;
+    fn get_provider(&self, key: &u64) -> ProviderManagerResult<&Box<dyn Provider + Send + Sync>>;
+    fn register(&mut self, provider: Box<dyn Provider + Send + Sync>) -> ProviderManagerResult<()>;
     async fn deregister(&mut self, key: &u64) -> ProviderManagerResult<()>;
 }
 
 #[derive(Default)]
 pub struct ProviderManager {
-    variants: HashMap<u64, Box<dyn Provider + Send>>,
+    variants: HashMap<u64, Box<dyn Provider + Send + Sync>>,
 }
 
 #[async_trait]
 impl ProviderManagerFn for ProviderManager {
-    fn get_providers(&self) -> ProviderManagerResult<&HashMap<u64, Box<dyn Provider + Send>>> {
+    fn get_providers(
+        &self,
+    ) -> ProviderManagerResult<&HashMap<u64, Box<dyn Provider + Send + Sync>>> {
         if self.variants.is_empty() {
             return Err(ProviderManagerError::NoProviderError);
         }
         Ok(&self.variants)
     }
-    fn get_provider(&self, key: &u64) -> ProviderManagerResult<&Box<dyn Provider + Send>> {
+    fn get_provider(&self, key: &u64) -> ProviderManagerResult<&Box<dyn Provider + Send + Sync>> {
         let provider = self.variants.get(key);
 
         if provider.is_none() {
@@ -81,7 +92,7 @@ impl ProviderManagerFn for ProviderManager {
 
         Ok(provider.unwrap())
     }
-    fn register(&mut self, provider: Box<dyn Provider + Send>) -> ProviderManagerResult<()> {
+    fn register(&mut self, provider: Box<dyn Provider + Send + Sync>) -> ProviderManagerResult<()> {
         if provider.authenticated()? {
             self.variants.insert(provider.hash()?, provider);
             return Ok(());

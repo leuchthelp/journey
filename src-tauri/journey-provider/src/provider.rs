@@ -4,7 +4,8 @@ use jellyfin_sdk_rs::JellyfinSDKError;
 use jellyfin_sdk_rs::apis::authentication_api::AuthenticateUserByNameError;
 use journey_db::entity::Providers;
 use journey_db::entity::providers::ActiveModel;
-use journey_db::{ActiveModelTrait, Set, get_conn};
+use journey_db::get_conn;
+use journey_db::sea_orm::{ActiveModelTrait, Set};
 use journey_keyring::{Entry, keyring_core};
 use journey_utils::get_env_prod;
 use std::any::type_name_of_val;
@@ -29,7 +30,7 @@ pub enum ProviderError {
     #[error(transparent)]
     UuidParserError(#[from] uuid::Error),
     #[error(transparent)]
-    DbError(#[from] journey_db::DbErr),
+    DbError(#[from] journey_db::sea_orm::DbErr),
     #[error(transparent)]
     EnvLoadingError(#[from] dotenvy::Error),
     #[error(transparent)]

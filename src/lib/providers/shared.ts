@@ -9,4 +9,4 @@ import { v7 as uuidv7 } from "uuid";
 const uuid = uuidv7();
 // const device: string = isTauri() ? await tauriDevice() : navigator.platform;
 
-export { uuid};
+export { uuid };

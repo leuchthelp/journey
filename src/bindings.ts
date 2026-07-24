@@ -2,62 +2,12 @@
 
 
 import { createTauRPCProxy as createProxy, type InferCommandOutput, type TauRpcResult, type UnlistenFn } from 'taurpc'
-export type ContentDTO = {
-	id: number,
-	parent_id: string | null,
-	parent: MediaItemsDTO | null,
-	kind: string,
-	description: string,
-};
+const ARGS_MAP = {"":{}};
 
-export type ImagesDTO = {
-	url: string,
-	server_id: string | null,
-	provider: ProviderDTO | null,
-	kind: string,
-	media_items: MediaItemsDTO[] | null,
-};
-
-export type MediaItemsDTO = {
-	uuid: string,
-	kind: string,
-	outline_gradient: string,
-	loaded: boolean,
-	local: string,
-	original: OriginalDTO[] | null,
-	content: ContentDTO[] | null,
-	providers: ProviderDTO[] | null,
-	images: ImagesDTO[] | null,
-	children: MediaItemsDTO[] | null,
-	parents: MediaItemsDTO[] | null,
-};
-
-export type OriginalDTO = {
-	id: number,
-	parent_id: string | null,
-	parent: MediaItemsDTO | null,
-	server_id: string,
-	uuid: string,
-	url: string,
-};
-
-export type ProviderDTO = {
-	user_id: string,
-	server_id: string,
-	kind: string,
-	url: string,
-	media_items: MediaItemsDTO[] | null,
-	images: ImagesDTO[] | null,
-};
-const ARGS_MAP = {"":{"insert":[],"select":[]}};
-
-const RESULT_MAP = {"":{"insert":false,"select":false}};
+const RESULT_MAP = {"":{}};
 
 export type Router = {
-	"": {
-		insert: () => Promise<MediaItemsDTO>,
-		select: () => Promise<MediaItemsDTO>,
-	},
+	"": Record<string, never>,
 };
 export const createTauRPCProxy = () => createProxy<Router>({
   argsMap: ARGS_MAP,
