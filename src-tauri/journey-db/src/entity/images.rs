@@ -1,5 +1,5 @@
 use crate::entity::{
-    MediaItemsDTO, ProviderDTO, media_items::ConvertableMediaItems, providers::ConvertableProvider,
+    MediaItemDTO, ProviderDTO, media_items::ConvertableMediaItems, providers::ConvertableProvider,
 };
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -23,29 +23,30 @@ pub struct Model {
 impl ActiveModelBehavior for ActiveModel {}
 
 pub trait ConvertableImage {
-    fn from_model(item: ModelEx) -> ImagesDTO;
+    fn from_model(item: ModelEx) -> ImageDTO;
 }
 
 #[taurpc::ipc_type]
-#[derive(Debug)]
-pub struct ImagesDTO {
+#[derive(Debug, Default)]
+pub struct ImageDTO {
     pub url: String,
     pub server_id: Option<Uuid>,
     pub provider: Option<ProviderDTO>,
+    #[serde(rename = "type")]
     pub kind: String,
-    pub media_items: Option<Vec<MediaItemsDTO>>,
+    pub media_items: Option<Vec<MediaItemDTO>>,
 }
 
-impl ConvertableImage for ImagesDTO {
-    fn from_model(item: ModelEx) -> ImagesDTO {
+impl ConvertableImage for ImageDTO {
+    fn from_model(item: ModelEx) -> ImageDTO {
         let provider = ProviderDTO::from_model(item.provider.unwrap().clone());
         let media_items = item
             .media_items
             .iter()
-            .map(|f| MediaItemsDTO::from_model(f.clone()))
+            .map(|f| MediaItemDTO::from_model(f.clone()))
             .collect::<Vec<_>>();
 
-        return ImagesDTO {
+        return ImageDTO {
             url: item.url,
             server_id: item.server_id,
             provider: Some(provider),

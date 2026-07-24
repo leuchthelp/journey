@@ -10,8 +10,8 @@ mod jt_media_item_to_provider;
 mod jt_parent_to_child;
 
 pub use content::ContentDTO;
-pub use images::ImagesDTO;
-pub use media_items::MediaItemsDTO;
+pub use images::ImageDTO;
+pub use media_items::MediaItemDTO;
 pub use original::OriginalDTO;
 pub use providers::ProviderDTO;
 

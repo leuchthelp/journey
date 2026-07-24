@@ -1,5 +1,5 @@
 import type { PageLoad } from "./$types.d.ts";
-import { mainPageDataQuery } from "#lib/db/queries.ts";
+import { type MediaItemDTO } from "#lib/bindings.ts";
 // import { itemCache } from "$lib/components/MediaItems/ItemCache.ts";
 // import type { MediaItem } from "$lib/db/relations.ts";
 
@@ -29,7 +29,8 @@ export const load: PageLoad = async ({ parent, depends }) => {
   //     };
   //   }
   // }
+  const tmp: MediaItemDTO[] = [];
   return {
-    post: await mainPageDataQuery.execute({ limit: 100, type: "SongItem" }),
+    post: tmp,
   };
 };

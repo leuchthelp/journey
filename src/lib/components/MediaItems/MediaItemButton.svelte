@@ -1,18 +1,18 @@
 <script lang="ts">
-  import type { MediaItem } from "#lib/db/relations";
+  import type { MediaItemDTO } from "#lib/bindings.ts";
 
   type Props = {
-    item: MediaItem;
+    item: MediaItemDTO;
   };
 
   let { item }: Props = $props();
 
-  let image = $derived(item.images.at(0)?.url!);
+  let image = $derived(item.images?.at(0)?.url!);
   let name = $derived(
-    item.content.filter((item) => item.type === "Name").at(0),
+    item.content?.filter((item) => item.type === "Name").at(0),
   );
   let artist = $derived(
-    item.content.filter((item) => item.type === "Artists").at(0),
+    item.content?.filter((item) => item.type === "Artists").at(0),
   );
 </script>
 

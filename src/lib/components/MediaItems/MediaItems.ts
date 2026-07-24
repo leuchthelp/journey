@@ -1,12 +1,12 @@
-import type { ParentItem, MediaItem } from "#lib/db/relations.ts";
 import type {
-  ContentItem,
-  ProviderItem,
-  ImageItem,
-  OriginalItem,
-} from "#lib/db/schema/schema.ts";
+  ContentDTO,
+  ImageDTO,
+  MediaItemDTO,
+  OriginalDTO,
+  ProviderDTO,
+} from "../../bindings.ts";
 
-class BaseItem implements MediaItem {
+class BaseItem implements MediaItemDTO {
   type!: string;
   outlineGradient!: string;
 
@@ -14,11 +14,12 @@ class BaseItem implements MediaItem {
   loaded!: boolean;
   local!: string;
 
-  original: OriginalItem[] = [];
-  content: ContentItem[] = [];
-  providers: ProviderItem[] = [];
-  images: ImageItem[] = [];
-  parents: ParentItem[] = [];
+  original: OriginalDTO[] = [];
+  content: ContentDTO[] = [];
+  providers: ProviderDTO[] = [];
+  images: ImageDTO[] = [];
+  parents: MediaItemDTO[] = [];
+  children: MediaItemDTO[] = [];
 }
 
 export class SongItem extends BaseItem {

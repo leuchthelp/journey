@@ -3,7 +3,6 @@ import type { PageLoad } from "./$types.d.ts";
 import { page } from "$app/state";
 import { itemCache } from "#lib/components/MediaItems/ItemCache.ts";
 import { GenreItem } from "#lib/components/MediaItems/MediaItems.ts";
-import { singlePageDataQuery } from "#lib/db/queries.ts";
 
 export const load: PageLoad = async ({ params }) => {
   // Fastest: try check out parent page if it already posted the item
@@ -30,7 +29,7 @@ export const load: PageLoad = async ({ params }) => {
   }
 
   // Brutal: fallback to database to get item fresh
-  res = await singlePageDataQuery.execute({ slug: params.slug });
+  res = new GenreItem();
 
   if (res) {
     return {

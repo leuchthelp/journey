@@ -1,5 +1,5 @@
 use crate::entity::{
-    ContentDTO, ImagesDTO, OriginalDTO, ProviderDTO, content::ConvertableContent,
+    ContentDTO, ImageDTO, OriginalDTO, ProviderDTO, content::ConvertableContent,
     images::ConvertableImage, original::ConvertableOriginal, providers::ConvertableProvider,
 };
 use sea_orm::entity::prelude::*;
@@ -39,27 +39,29 @@ pub struct Model {
 impl ActiveModelBehavior for ActiveModel {}
 
 pub trait ConvertableMediaItems {
-    fn from_model(item: ModelEx) -> MediaItemsDTO;
+    fn from_model(item: ModelEx) -> MediaItemDTO;
 }
 
 #[taurpc::ipc_type]
-#[derive(Debug)]
-pub struct MediaItemsDTO {
+#[derive(Debug, Default)]
+pub struct MediaItemDTO {
     pub uuid: Uuid,
+    #[serde(rename = "type")]
     pub kind: String,
+    #[serde(rename = "outlineGradient")]
     pub outline_gradient: String,
     pub loaded: bool,
     pub local: String,
     pub original: Option<Vec<OriginalDTO>>,
     pub content: Option<Vec<ContentDTO>>,
     pub providers: Option<Vec<ProviderDTO>>,
-    pub images: Option<Vec<ImagesDTO>>,
-    pub children: Option<Vec<MediaItemsDTO>>,
-    pub parents: Option<Vec<MediaItemsDTO>>,
+    pub images: Option<Vec<ImageDTO>>,
+    pub children: Option<Vec<MediaItemDTO>>,
+    pub parents: Option<Vec<MediaItemDTO>>,
 }
 
-impl ConvertableMediaItems for MediaItemsDTO {
-    fn from_model(item: ModelEx) -> MediaItemsDTO {
+impl ConvertableMediaItems for MediaItemDTO {
+    fn from_model(item: ModelEx) -> MediaItemDTO {
         let original = item
             .original
             .iter()
@@ -78,20 +80,20 @@ impl ConvertableMediaItems for MediaItemsDTO {
         let images = item
             .images
             .iter()
-            .map(|f| ImagesDTO::from_model(f.clone()))
+            .map(|f| ImageDTO::from_model(f.clone()))
             .collect::<Vec<_>>();
         let children = item
             .children
             .iter()
-            .map(|f| MediaItemsDTO::from_model(f.clone()))
+            .map(|f| MediaItemDTO::from_model(f.clone()))
             .collect::<Vec<_>>();
         let parents = item
             .children
             .iter()
-            .map(|f| MediaItemsDTO::from_model(f.clone()))
+            .map(|f| MediaItemDTO::from_model(f.clone()))
             .collect::<Vec<_>>();
 
-        return MediaItemsDTO {
+        return MediaItemDTO {
             uuid: item.uuid,
             kind: item.kind,
             outline_gradient: item.outline_gradient,

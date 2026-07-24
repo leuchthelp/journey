@@ -1,4 +1,4 @@
-use crate::entity::{MediaItemsDTO, media_items::ConvertableMediaItems};
+use crate::entity::{MediaItemDTO, media_items::ConvertableMediaItems};
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -24,18 +24,19 @@ pub trait ConvertableContent {
 }
 
 #[taurpc::ipc_type]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct ContentDTO {
     pub id: i32,
     pub parent_id: Option<Uuid>,
-    pub parent: Option<MediaItemsDTO>,
+    pub parent: Option<MediaItemDTO>,
+    #[serde(rename = "type")]
     pub kind: String,
     pub description: String,
 }
 
 impl ConvertableContent for ContentDTO {
     fn from_model(item: ModelEx) -> ContentDTO {
-        let parent = MediaItemsDTO::from_model(item.parent.unwrap().clone());
+        let parent = MediaItemDTO::from_model(item.parent.unwrap().clone());
 
         return ContentDTO {
             id: item.id,

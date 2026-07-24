@@ -1,4 +1,4 @@
-use crate::entity::{MediaItemsDTO, media_items::ConvertableMediaItems};
+use crate::entity::{MediaItemDTO, media_items::ConvertableMediaItems};
 use Uuid;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -25,11 +25,11 @@ pub trait ConvertableOriginal {
 }
 
 #[taurpc::ipc_type]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct OriginalDTO {
     pub id: i32,
     pub parent_id: Option<Uuid>,
-    pub parent: Option<MediaItemsDTO>,
+    pub parent: Option<MediaItemDTO>,
     pub server_id: Uuid,
     pub uuid: Uuid,
     pub url: String,
@@ -37,7 +37,7 @@ pub struct OriginalDTO {
 
 impl ConvertableOriginal for OriginalDTO {
     fn from_model(item: ModelEx) -> OriginalDTO {
-        let parent = MediaItemsDTO::from_model(item.parent.unwrap().clone());
+        let parent = MediaItemDTO::from_model(item.parent.unwrap().clone());
 
         return OriginalDTO {
             id: item.id,

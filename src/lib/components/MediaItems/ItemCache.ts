@@ -1,5 +1,5 @@
 import { LRUCache } from "lru-cache";
-import type { MediaItem } from "#lib/db/relations.ts";
+import { type MediaItemsDTO } from "../../bindings.ts";
 
 const options = {
   max: 150,
@@ -13,6 +13,6 @@ const options = {
   updateAgeOnHas: false,
 };
 
-const itemCache = new LRUCache<string, MediaItem>(options);
+const itemCache = new LRUCache<string, MediaItemsDTO>(options);
 
 export { itemCache };

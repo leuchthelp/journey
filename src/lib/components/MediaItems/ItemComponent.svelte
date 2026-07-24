@@ -1,9 +1,9 @@
 <script lang="ts">
+  import type { MediaItemDTO } from "#lib/bindings.ts";
   import Button from "./MediaItemButton.svelte";
-  import type { MediaItem } from "#lib/db/relations";
 
   type Props = {
-    item: MediaItem;
+    item: MediaItemDTO;
   };
 
   let { item }: Props = $props();

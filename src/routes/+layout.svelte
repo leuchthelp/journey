@@ -6,7 +6,6 @@
   import Settings from "#lib/components/Settings/Settings.svelte";
   import { toAuthComponent } from "#lib/snippets/ToAuthComponent.svelte";
   import type { LayoutProps } from "./$types.d.ts";
-  import { providerManager } from "#lib/providers/ProviderManager.ts";
   import { setIndexing } from "#lib/signals/index.svelte.ts";
   import { setMediaSource } from "#lib/signals/mediaSource.svelte.ts";
   import "@videojs/html/audio/player";
@@ -14,11 +13,9 @@
   import "@videojs/html/ui/controls";
   import "@videojs/html/ui/play-button";
   import Player from "#lib/components/Player/Player.svelte";
-  import { createTauRPCProxy } from "../bindings.ts";
+  import { createTauRPCProxy } from "#lib/bindings.ts";
 
   const taurpc = createTauRPCProxy();
-  console.log("from rust: ", await taurpc.insert());
-  await taurpc.select();
 
   function toggleVisible() {
     visible = !visible;
@@ -37,10 +34,6 @@
 
   let src = $state({ url: "" });
   setMediaSource(src);
-
-  $effect(() => {
-    providerManager.initProvider(data.post, signal);
-  });
 
   $inspect(src);
 </script>

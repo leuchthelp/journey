@@ -30,7 +30,7 @@ export const load: PageLoad = async ({ params }) => {
   }
 
   // Brutal: fallback to database to get item fresh
-  res = await singlePageDataQuery.execute({ slug: params.slug });
+  res = new SongItem();
 
   if (res) {
     return {

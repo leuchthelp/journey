@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::entity::{
-    ImagesDTO, MediaItemsDTO, images::ConvertableImage, media_items::ConvertableMediaItems,
+    ImageDTO, MediaItemDTO, images::ConvertableImage, media_items::ConvertableMediaItems,
 };
 
 #[sea_orm::model]
@@ -30,14 +30,15 @@ pub trait ConvertableProvider {
 }
 
 #[taurpc::ipc_type]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct ProviderDTO {
     pub server_id: Uuid,
     pub user_id: Uuid,
+    #[serde(rename = "type")]
     pub kind: String,
     pub url: String,
-    pub media_items: Option<Vec<MediaItemsDTO>>,
-    pub images: Option<Vec<ImagesDTO>>,
+    pub media_items: Option<Vec<MediaItemDTO>>,
+    pub images: Option<Vec<ImageDTO>>,
 }
 
 impl ConvertableProvider for ProviderDTO {
@@ -45,12 +46,12 @@ impl ConvertableProvider for ProviderDTO {
         let parents = item
             .media_items
             .iter()
-            .map(|f| MediaItemsDTO::from_model(f.clone()))
+            .map(|f| MediaItemDTO::from_model(f.clone()))
             .collect::<Vec<_>>();
         let images = item
             .images
             .iter()
-            .map(|f| ImagesDTO::from_model(f.clone()))
+            .map(|f| ImageDTO::from_model(f.clone()))
             .collect::<Vec<_>>();
 
         return ProviderDTO {
