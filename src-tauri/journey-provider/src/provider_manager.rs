@@ -1,5 +1,6 @@
 use anyhow::Result;
 use async_trait::async_trait;
+use futures::TryStreamExt;
 use journey_db::entity::Providers;
 use journey_db::get_conn;
 use journey_db::sea_orm::EntityTrait;
@@ -31,6 +32,8 @@ pub enum ProviderManagerError {
     ParseUrlError(#[from] url::ParseError),
     #[error(transparent)]
     DbError(#[from] journey_db::sea_orm::DbErr),
+    #[error(transparent)]
+    JourneyDbError(#[from] journey_db::JourneyDbError),
 }
 
 pub type ProviderManagerResult<T> = Result<T, ProviderManagerError>;
@@ -38,9 +41,10 @@ pub type ProviderManagerResult<T> = Result<T, ProviderManagerError>;
 #[async_trait]
 pub trait ProviderManagerFn {
     async fn init(&mut self) -> ProviderManagerResult<()> {
-        let known_providers = Providers::find().all(get_conn()).await?;
+        let conn = &get_conn().await?;
+        let mut known_providers = Providers::find().stream(conn).await?;
 
-        for known in known_providers {
+        while let Some(known) = known_providers.try_next().await? {
             let params = ProviderParams {
                 url: Url::parse(&known.url)?,
                 user_id: Some(known.user_id),
@@ -116,7 +120,6 @@ mod provider_manager_test {
     use crate::jellyfin_provider::JellyfinProvider;
     use crate::provider::{Provider, ProviderNew, ProviderParams};
     use crate::provider_manager::{ProviderManager, ProviderManagerFn};
-    use journey_db::init_db;
     use journey_utils::get_env_local;
     use serial_test::serial;
     use test_log::test;
@@ -140,7 +143,6 @@ mod provider_manager_test {
     #[ignore]
     #[serial]
     async fn try_provider_manager_flow() {
-        init_db().await.unwrap();
         let env_map = get_env_local();
 
         let env_map = env_map.unwrap();

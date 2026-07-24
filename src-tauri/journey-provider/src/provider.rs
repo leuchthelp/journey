@@ -32,6 +32,8 @@ pub enum ProviderError {
     #[error(transparent)]
     DbError(#[from] journey_db::sea_orm::DbErr),
     #[error(transparent)]
+    JourneyDbError(#[from] journey_db::JourneyDbError),
+    #[error(transparent)]
     EnvLoadingError(#[from] dotenvy::Error),
     #[error(transparent)]
     JellyfinProviderError(#[from] JellyfinProviderError),
@@ -116,12 +118,12 @@ pub trait Provider {
             kind: Set(self.type_()),
             url: Set(self.url().to_string()),
         };
-        provider.insert(get_conn()).await?;
+        provider.insert(&get_conn().await?).await?;
         Ok(())
     }
     async fn remove_from_db(&self) -> ProviderResult<()> {
         Providers::delete_by_user_id(self.user_id()?)
-            .exec(get_conn())
+            .exec(&get_conn().await?)
             .await?;
         Ok(())
     }

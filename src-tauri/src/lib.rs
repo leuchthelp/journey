@@ -42,8 +42,6 @@ struct AppData {
 pub async fn run() -> Result<()> {
     let router = taurpc::Router::new().merge(ApiImpl.into_handler());
 
-    journey_db::init_db().await?;
-
     let mut provider_manager = ProviderManager::default();
     provider_manager.init().await?;
 

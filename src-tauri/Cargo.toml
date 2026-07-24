@@ -44,6 +44,7 @@ thiserror = "2.0.19"
 async-trait = "0.1.91"
 anyhow = "1.0.104"
 serial_test = "3.5.0"
+futures = "0.3.33"
 uuid = { version = "^1.23.4", features = ["serde", "v7"] }
 sea-orm = { version = "2.0.0-rc.43", features = [
     "sqlx-sqlite",

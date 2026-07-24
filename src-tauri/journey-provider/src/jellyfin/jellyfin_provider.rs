@@ -81,6 +81,7 @@ impl ProviderNew<JellyfinProvider> for JellyfinProvider {
 
         self.set_server_id(auth_res.server_id)?;
         self.set_user_id(auth_res.user)?;
+        let add_db_task = self.add_to_db();
 
         client_config = configure()
             .base_url(self.url())
@@ -89,7 +90,7 @@ impl ProviderNew<JellyfinProvider> for JellyfinProvider {
             .access_token(&access_token)
             .call()?;
 
-        self.add_to_db().await?;
+        add_db_task.await?;
         self.save_token(&access_token)?;
         self.config = Some(client_config);
         Ok(())
@@ -121,9 +122,10 @@ impl Provider for JellyfinProvider {
     }
 
     async fn invalidate(&mut self) -> ProviderResult<()> {
+        let remove_db_task = self.remove_from_db();
         self.remove_token()?;
-        self.remove_from_db().await?;
 
+        remove_db_task.await?;
         self.params = ProviderParams {
             user_id: None,
             server_id: None,
@@ -178,7 +180,6 @@ mod variant_jellyfin {
         jellyfin_provider::JellyfinProvider,
         provider::{Provider, ProviderNew, ProviderParams},
     };
-    use journey_db::init_db;
     use journey_keyring::Entry;
     use journey_utils::get_env_local;
     use serial_test::serial;
@@ -204,7 +205,6 @@ mod variant_jellyfin {
     #[ignore]
     #[serial]
     async fn try_auth_flow() {
-        init_db().await.unwrap();
         let env_map = get_env_local();
 
         let env_map = env_map.unwrap();

@@ -18,7 +18,7 @@ anyhow = { workspace = true }
 async-trait = { workspace = true }
 dotenvy = { workspace = true }
 tracing = { workspace = true }
-test-log = { workspace = true }
+futures = { workspace = true }
 journey-db = { workspace = true }
 journey-utils = { workspace = true }
 journey-keyring = { workspace = true }
@@ -27,3 +27,4 @@ jellyfin-sdk-rs = { git = "https://github.com/leuchthelp/jellyfin-sdk-rs" }
 [dev-dependencies]
 tokio = { workspace = true }
 serial_test = { workspace = true }
+test-log = { workspace = true }
