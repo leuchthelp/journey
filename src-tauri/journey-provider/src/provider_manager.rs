@@ -105,6 +105,7 @@ mod provider_manager_test {
     use crate::jellyfin_provider::JellyfinProvider;
     use crate::provider::{Provider, ProviderNew, ProviderParams};
     use crate::provider_manager::{ProviderManager, ProviderManagerFn};
+    use journey_db::init_db;
     use journey_utils::get_env_local;
     use serial_test::serial;
     use test_log::test;
@@ -128,6 +129,7 @@ mod provider_manager_test {
     #[ignore]
     #[serial]
     async fn try_provider_manager_flow() {
+        init_db().await.unwrap();
         let env_map = get_env_local();
 
         let env_map = env_map.unwrap();

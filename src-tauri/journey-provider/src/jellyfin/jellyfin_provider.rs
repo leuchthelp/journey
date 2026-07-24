@@ -89,6 +89,7 @@ impl ProviderNew<JellyfinProvider> for JellyfinProvider {
             .access_token(&access_token)
             .call()?;
 
+        self.add_to_db().await?;
         self.save_token(&access_token)?;
         self.config = Some(client_config);
         Ok(())
@@ -177,6 +178,7 @@ mod variant_jellyfin {
         jellyfin_provider::JellyfinProvider,
         provider::{Provider, ProviderNew, ProviderParams},
     };
+    use journey_db::init_db;
     use journey_keyring::Entry;
     use journey_utils::get_env_local;
     use serial_test::serial;
@@ -202,6 +204,7 @@ mod variant_jellyfin {
     #[ignore]
     #[serial]
     async fn try_auth_flow() {
+        init_db().await.unwrap();
         let env_map = get_env_local();
 
         let env_map = env_map.unwrap();

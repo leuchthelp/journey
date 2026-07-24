@@ -1,15 +1,8 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-use journey_db::db as database;
-use journey_db::entity::media_items::ConvertableMediaItems;
-use journey_db::entity::{MediaItemsDTO, media_items};
 use tracing::info;
-use uuid::Uuid;
 
 #[taurpc::procedures]
-trait Api {
-    async fn select() -> MediaItemsDTO;
-    async fn insert() -> MediaItemsDTO;
-}
+trait Api {}
 
 #[derive(Clone, Debug)]
 struct ApiImpl;
@@ -17,28 +10,13 @@ struct ApiImpl;
 use sea_orm::ActiveValue::Set;
 
 #[taurpc::resolvers]
-impl Api for ApiImpl {
-    async fn select(self) -> MediaItemsDTO {
-        return database::select().await.unwrap();
-    }
-    async fn insert(self) -> MediaItemsDTO {
-        let amodel = media_items::ActiveModel {
-            uuid: Set(Uuid::now_v7()),
-            outline_gradient: Set("test".to_string()),
-            kind: Set("SongItem".to_string()),
-            loaded: Set(false),
-            local: Set("".to_string()),
-        };
-
-        let tmp = database::insert(amodel).await;
-        info!("{:#?}", tmp);
-        return MediaItemsDTO::from_model(tmp.unwrap().into_ex());
-    }
-}
+impl Api for ApiImpl {}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub async fn run() {
     let router = taurpc::Router::new().merge(ApiImpl.into_handler());
+
+    journey_db::init_db().await.unwrap();
 
     #[cfg(debug_assertions)]
     taurpc::Exporter::new()

@@ -2,6 +2,9 @@ use anyhow::Result;
 use async_trait::async_trait;
 use jellyfin_sdk_rs::JellyfinSDKError;
 use jellyfin_sdk_rs::apis::authentication_api::AuthenticateUserByNameError;
+use journey_db::entity::Providers;
+use journey_db::entity::providers::ActiveModel;
+use journey_db::{ActiveModelTrait, Set, get_conn};
 use journey_keyring::{Entry, keyring_core};
 use journey_utils::get_env_prod;
 use std::any::type_name_of_val;
@@ -26,6 +29,8 @@ pub enum ProviderError {
     #[error(transparent)]
     UuidParserError(#[from] uuid::Error),
     #[error(transparent)]
+    DbError(#[from] journey_db::DbErr),
+    #[error(transparent)]
     EnvLoadingError(#[from] dotenvy::Error),
     #[error(transparent)]
     JellyfinProviderError(#[from] JellyfinProviderError),
@@ -41,9 +46,6 @@ pub type ProviderResult<T> = Result<T, ProviderError>;
 pub trait ProviderNew<T> {
     fn new(params: ProviderParams) -> ProviderResult<Box<T>>;
     async fn authenticate_with_pw(&mut self, uname: String, psw: String) -> ProviderResult<()>;
-    async fn add_to_db(&self) -> ProviderResult<()> {
-        Ok(())
-    }
 }
 
 #[async_trait]
@@ -106,7 +108,20 @@ pub trait Provider {
         Ok(true)
     }
     async fn invalidate(&mut self) -> ProviderResult<()>;
+    async fn add_to_db(&self) -> ProviderResult<()> {
+        let provider = ActiveModel {
+            user_id: Set(self.user_id()?),
+            server_id: Set(self.server_id()?),
+            kind: Set(self.type_()),
+            url: Set(self.url().to_string()),
+        };
+        provider.insert(get_conn()).await?;
+        Ok(())
+    }
     async fn remove_from_db(&self) -> ProviderResult<()> {
+        Providers::delete_by_user_id(self.user_id()?)
+            .exec(get_conn())
+            .await?;
         Ok(())
     }
 }

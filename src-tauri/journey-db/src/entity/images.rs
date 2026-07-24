@@ -9,7 +9,7 @@ use uuid::Uuid;
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "images")]
 pub struct Model {
-    #[sea_orm(primary_key, auto_increment = false)]
+    #[sea_orm(primary_key)]
     #[sea_orm(unique)]
     pub url: String,
     pub server_id: Option<Uuid>,
