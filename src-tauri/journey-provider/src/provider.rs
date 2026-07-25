@@ -1,5 +1,6 @@
 use anyhow::Result;
 use async_trait::async_trait;
+use dyn_clone::{DynClone, clone_trait_object};
 use jellyfin_sdk_rs::JellyfinSDKError;
 use jellyfin_sdk_rs::apis::authentication_api::AuthenticateUserByNameError;
 use journey_db::entity::Providers;
@@ -10,9 +11,8 @@ use journey_keyring::{Entry, keyring_core};
 use journey_utils::get_env_prod;
 use std::any::type_name_of_val;
 use std::collections::HashMap;
-use std::hash::DefaultHasher;
-use std::hash::Hash;
-use std::hash::Hasher;
+use std::fmt::Debug;
+use std::hash::{DefaultHasher, Hash, Hasher};
 use thiserror::Error;
 use url::Url;
 use uuid::Uuid;
@@ -61,7 +61,7 @@ pub trait ProviderNew<T> {
 }
 
 #[async_trait]
-pub trait Provider {
+pub trait Provider: DynClone + Debug {
     fn user_id(&self) -> ProviderResult<Uuid>;
     fn server_id(&self) -> ProviderResult<Uuid>;
     fn url(&self) -> &Url;
@@ -138,7 +138,9 @@ pub trait Provider {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+clone_trait_object!(Provider);
+
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct ProviderParams {
     pub user_id: Option<Uuid>,
     pub server_id: Option<Uuid>,

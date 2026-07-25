@@ -1,6 +1,7 @@
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
+use url::Url;
 use uuid::Uuid;
 
 use crate::entity::{
@@ -30,13 +31,13 @@ pub trait ConvertableProvider {
 }
 
 #[taurpc::ipc_type]
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct ProviderDTO {
     pub server_id: Uuid,
     pub user_id: Uuid,
     #[serde(rename = "type")]
     pub kind: String,
-    pub url: String,
+    pub url: Url,
     pub media_items: Option<Vec<MediaItemDTO>>,
     pub images: Option<Vec<ImageDTO>>,
 }
@@ -58,7 +59,7 @@ impl ConvertableProvider for ProviderDTO {
             user_id: item.user_id,
             server_id: item.server_id,
             kind: item.kind,
-            url: item.url,
+            url: Url::parse(&item.url).unwrap(),
             media_items: Some(parents),
             images: Some(images),
         };

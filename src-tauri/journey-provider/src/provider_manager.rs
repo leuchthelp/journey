@@ -76,7 +76,7 @@ pub trait ProviderManagerFn {
     async fn deregister(&mut self, key: &u64) -> ProviderManagerResult<()>;
 }
 
-#[derive(Default)]
+#[derive(Default, Clone, Debug)]
 pub struct ProviderManager {
     pub(crate) variants: HashMap<u64, Box<dyn Provider + Send + Sync>>,
 }

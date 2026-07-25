@@ -73,7 +73,7 @@ const ARGS_MAP = {
   image: { get_images: [] },
   mediaItem: { get_media_items: [] },
   original: { get_original: [] },
-  provider: { get_providers: [] },
+  provider: { get_providers: ["on_event"] },
 };
 
 const RESULT_MAP = {
@@ -100,7 +100,9 @@ export type Router = {
     get_original: () => Promise<TauRpcResult<OriginalDTO, OriginalApiError>>;
   };
   provider: {
-    get_providers: () => Promise<TauRpcResult<ProviderDTO, ProviderApiError>>;
+    get_providers: (
+      onEvent: (response: ProviderDTO) => void,
+    ) => Promise<TauRpcResult<null, ProviderApiError>>;
   };
 };
 export const createTauRPCProxy = () =>

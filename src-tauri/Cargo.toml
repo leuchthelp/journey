@@ -40,7 +40,7 @@ tracing = { version = "0.1" }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 test-log = { version = "0.2", features = ["trace"] }
 taurpc = "0.8.2"
-specta = { version = "2.0.0-rc.25", features = ["derive", "uuid"] }
+specta = { version = "2.0.0-rc.25", features = ["derive", "uuid", "url"] }
 specta-typescript = "0.0.12"
 bon = "3.9"
 url = "2.5.8"
@@ -48,6 +48,7 @@ chrono = "0.4.45"
 reqwest = "0.13.4"
 thiserror = "2.0.19"
 async-trait = "0.1.91"
+dyn-clone = "1.0.20"
 anyhow = "1.0.104"
 serial_test = "3.5.0"
 futures = "0.3.33"
@@ -56,9 +57,10 @@ sea-orm = { version = "2.0.0-rc.43", features = [
     "sqlx-sqlite",
     "runtime-tokio",
     "macros",
-    "with-uuid",
     "schema-sync",
     "entity-registry",
+    "serde",
+    "with-uuid",
     "with-json",
 ] }
 journey-db = { path = "journey-db" }

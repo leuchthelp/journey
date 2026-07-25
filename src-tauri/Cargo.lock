@@ -2669,6 +2669,7 @@ dependencies = [
  "taurpc",
  "thiserror 2.0.19",
  "tokio",
+ "url",
  "uuid",
 ]
 
@@ -2692,6 +2693,7 @@ dependencies = [
  "bon",
  "chrono",
  "dotenvy 0.15.7 (git+https://github.com/allan2/dotenvy)",
+ "dyn-clone",
  "futures",
  "jellyfin-sdk-rs",
  "journey-db",
@@ -4971,6 +4973,7 @@ dependencies = [
  "paste",
  "rustc_version",
  "specta-macros",
+ "url",
  "uuid",
 ]
 

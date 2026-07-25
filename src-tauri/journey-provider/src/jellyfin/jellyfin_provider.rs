@@ -25,7 +25,7 @@ pub enum JellyfinProviderError {
     MissingUserIdError,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct JellyfinProvider {
     pub(crate) params: ProviderParams,
     pub(crate) config: Option<Configuration>,

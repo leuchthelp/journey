@@ -5,7 +5,7 @@ use specta::Type;
 use tauri::State;
 use thiserror::Error;
 
-use crate::AppData;
+use crate::AppState;
 
 #[derive(Debug, Error, Serialize, Deserialize, Type)]
 #[specta(type = String)]
@@ -15,7 +15,7 @@ type ContentApiResult<T> = Result<T, ContentApiError>;
 
 #[taurpc::procedures(path = "content")]
 pub trait ContentApi {
-    async fn get_content(state: tauri::State<AppData>) -> ContentApiResult<ContentDTO>;
+    async fn get_content(state: tauri::State<AppState>) -> ContentApiResult<ContentDTO>;
 }
 
 #[derive(Clone, Debug)]
@@ -23,7 +23,7 @@ pub struct ContentApiImpl;
 
 #[taurpc::resolvers]
 impl ContentApi for ContentApiImpl {
-    async fn get_content(self, state: State<AppData>) -> ContentApiResult<ContentDTO> {
+    async fn get_content(self, state: State<AppState>) -> ContentApiResult<ContentDTO> {
         Ok(ContentDTO::default())
     }
 }
