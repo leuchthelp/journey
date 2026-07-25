@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 tauri = { workspace = true }
 anyhow = { workspace = true }
+thiserror = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 taurpc = { workspace = true }

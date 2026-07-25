@@ -19,6 +19,8 @@ async-trait = { workspace = true }
 dotenvy = { workspace = true }
 tracing = { workspace = true }
 futures = { workspace = true }
+serde = { workspace = true }
+specta = { workspace = true }
 journey-db = { workspace = true }
 journey-utils = { workspace = true }
 journey-keyring = { workspace = true }

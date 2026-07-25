@@ -12,7 +12,10 @@ use uuid::Uuid;
 
 use crate::provider::{Provider, ProviderNew, ProviderParams, ProviderResult};
 
-#[derive(Error, Debug)]
+use serde::{Deserialize, Serialize};
+use specta::Type;
+
+#[derive(Debug, Error, Serialize, Deserialize, Type)]
 pub enum JellyfinProviderError {
     #[error("Failed to retrieve Jellyfin API response entry.")]
     ApiEntryRetrievalError,

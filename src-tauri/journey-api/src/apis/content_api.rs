@@ -1,8 +1,21 @@
+use anyhow::Result;
 use journey_db::entity::ContentDTO;
+use serde::{Deserialize, Serialize};
+use specta::Type;
+use tauri::State;
+use thiserror::Error;
+
+use crate::AppData;
+
+#[derive(Debug, Error, Serialize, Deserialize, Type)]
+#[specta(type = String)]
+pub enum ContentApiError {}
+
+type ContentApiResult<T> = Result<T, ContentApiError>;
 
 #[taurpc::procedures(path = "content")]
 pub trait ContentApi {
-    async fn get_content() -> ContentDTO;
+    async fn get_content(state: tauri::State<AppData>) -> ContentApiResult<ContentDTO>;
 }
 
 #[derive(Clone, Debug)]
@@ -10,7 +23,7 @@ pub struct ContentApiImpl;
 
 #[taurpc::resolvers]
 impl ContentApi for ContentApiImpl {
-    async fn get_content(self) -> ContentDTO {
-        return ContentDTO::default();
+    async fn get_content(self, state: State<AppData>) -> ContentApiResult<ContentDTO> {
+        Ok(ContentDTO::default())
     }
 }

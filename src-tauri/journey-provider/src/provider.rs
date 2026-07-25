@@ -19,27 +19,36 @@ use uuid::Uuid;
 
 use crate::jellyfin::jellyfin_provider::JellyfinProviderError;
 
-#[derive(Error, Debug)]
+use serde::{Deserialize, Serialize};
+use specta::Type;
+
+#[derive(Debug, Error, Serialize, Deserialize, Type)]
 pub enum ProviderError {
     #[error("Failed to save access token to native keyring: {0}")]
+    #[serde(skip)]
     KeyringCoreError(#[from] keyring_core::Error),
     #[error("Found more than one access token, removing all.")]
     TooManyCredentialsError,
     #[error("Found no access token, nothing to remove.")]
     NoCredentialsError,
     #[error(transparent)]
+    #[serde(skip)]
     UuidParserError(#[from] uuid::Error),
     #[error(transparent)]
+    #[serde(skip)]
     DbError(#[from] journey_db::sea_orm::DbErr),
     #[error(transparent)]
     JourneyDbError(#[from] journey_db::JourneyDbError),
     #[error(transparent)]
+    #[serde(skip)]
     EnvLoadingError(#[from] dotenvy::Error),
     #[error(transparent)]
     JellyfinProviderError(#[from] JellyfinProviderError),
     #[error(transparent)]
+    #[serde(skip)]
     JellyfinAuthenticationError(#[from] jellyfin_sdk_rs::apis::Error<AuthenticateUserByNameError>),
     #[error(transparent)]
+    #[serde(skip)]
     JellyfinConfigurationError(#[from] JellyfinSDKError),
 }
 

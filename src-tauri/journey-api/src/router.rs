@@ -1,4 +1,5 @@
 use anyhow::Result;
+use journey_provider::ProviderManager;
 use tauri::Wry;
 use taurpc::Router;
 
@@ -19,4 +20,8 @@ pub fn get_router() -> Result<Router<Wry>> {
         .merge(OriginalApiImpl.into_handler());
 
     Ok(router)
+}
+
+pub struct AppData {
+    pub provider_manager: ProviderManager,
 }

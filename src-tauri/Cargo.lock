@@ -2653,6 +2653,7 @@ dependencies = [
  "specta-typescript",
  "tauri",
  "taurpc",
+ "thiserror 2.0.19",
  "tokio",
 ]
 
@@ -2697,7 +2698,9 @@ dependencies = [
  "journey-keyring",
  "journey-utils",
  "reqwest",
+ "serde",
  "serial_test",
+ "specta",
  "tauri-plugin-os",
  "test-log",
  "thiserror 2.0.19",

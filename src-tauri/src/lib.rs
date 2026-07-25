@@ -1,22 +1,20 @@
 use anyhow::Result;
-use journey_api::get_router;
+use journey_api::{AppData, get_router};
 use journey_provider::{ProviderManager, ProviderManagerFn};
-
-struct AppData {
-    provider_manager: ProviderManager,
-}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub async fn run() -> Result<()> {
     let router = get_router()?;
 
+    #[cfg(debug_assertions)]
+    taurpc::Exporter::new()
+        .error_handling(taurpc::ErrorHandlingMode::Result)
+        .export(&router, "../src/lib/bindings.ts")?;
+
     let mut provider_manager = ProviderManager::default();
     provider_manager.init().await?;
 
     let app_data = AppData { provider_manager };
-
-    #[cfg(debug_assertions)]
-    taurpc::Exporter::new().export(&router, "../src/lib/bindings.ts")?;
 
     tauri::Builder::default()
         .manage(app_data)

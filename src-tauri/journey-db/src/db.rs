@@ -2,9 +2,13 @@ use anyhow::Result;
 use sea_orm::{Database, DatabaseConnection, DbErr};
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+use serde::{Deserialize, Serialize};
+use specta::Type;
+
+#[derive(Debug, Error, Serialize, Deserialize, Type)]
 pub enum JourneyDbError {
     #[error(transparent)]
+    #[serde(skip)]
     ConnectionError(#[from] DbErr),
 }
 

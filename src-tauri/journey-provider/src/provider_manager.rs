@@ -15,8 +15,10 @@ use crate::jellyfin_provider::JellyfinProvider;
 use crate::provider::Provider;
 use crate::provider::ProviderError;
 use crate::provider::ProviderNew;
+use serde::{Deserialize, Serialize};
+use specta::Type;
 
-#[derive(Error, Debug)]
+#[derive(Debug, Error, Serialize, Deserialize, Type)]
 pub enum ProviderManagerError {
     #[error("No providers registered yet. Please add some first")]
     NoProviderError,
@@ -29,8 +31,10 @@ pub enum ProviderManagerError {
     #[error(transparent)]
     ProviderError(#[from] ProviderError),
     #[error(transparent)]
+    #[serde(skip)]
     ParseUrlError(#[from] url::ParseError),
     #[error(transparent)]
+    #[serde(skip)]
     DbError(#[from] journey_db::sea_orm::DbErr),
     #[error(transparent)]
     JourneyDbError(#[from] journey_db::JourneyDbError),
