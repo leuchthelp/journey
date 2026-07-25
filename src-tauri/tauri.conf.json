@@ -7,7 +7,7 @@
     "beforeDevCommand": "deno run dev",
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "deno run build",
-    "frontendDist": "../build"
+    "frontendDist": "../dist"
   },
   "app": {
     "withGlobalTauri": true,

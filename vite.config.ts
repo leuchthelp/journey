@@ -47,11 +47,5 @@ export default defineConfig(() => ({
       ignored: ["**/src-tauri/**"],
     },
     envPrefix: ["VITE_", "TAURI_ENV_*"],
-    optimizeDeps: {
-      exclude: ["@electric-sql/pglite"],
-    },
-    worker: {
-      format: "es",
-    },
   },
 }));
