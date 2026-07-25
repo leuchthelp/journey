@@ -17,6 +17,7 @@ thiserror = { workspace = true }
 anyhow = { workspace = true }
 async-trait = { workspace = true }
 dyn-clone = { workspace = true }
+inherent = { workspace = true }
 dotenvy = { workspace = true }
 tracing = { workspace = true }
 futures = { workspace = true }

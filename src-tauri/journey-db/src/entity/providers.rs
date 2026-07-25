@@ -1,11 +1,12 @@
+use inherent::inherent;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
-
 use url::Url;
 use uuid::Uuid;
 
-use crate::entity::{
-    ImageDTO, MediaItemDTO, images::ConvertableImage, media_items::ConvertableMediaItems,
+use crate::{
+    db::Convertible,
+    entity::{ImageDTO, MediaItemDTO},
 };
 
 #[sea_orm::model]
@@ -26,10 +27,6 @@ pub struct Model {
 
 impl ActiveModelBehavior for ActiveModel {}
 
-pub trait ConvertableProvider {
-    fn from_model(item: ModelEx) -> ProviderDTO;
-}
-
 #[taurpc::ipc_type]
 #[derive(Debug)]
 pub struct ProviderDTO {
@@ -42,8 +39,9 @@ pub struct ProviderDTO {
     pub images: Option<Vec<ImageDTO>>,
 }
 
-impl ConvertableProvider for ProviderDTO {
-    fn from_model(item: ModelEx) -> ProviderDTO {
+#[inherent]
+impl Convertible<ModelEx> for ProviderDTO {
+    pub fn from_model(item: ModelEx) -> Self {
         let parents = item
             .media_items
             .iter()

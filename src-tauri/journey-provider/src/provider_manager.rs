@@ -1,6 +1,7 @@
 use anyhow::Result;
 use async_trait::async_trait;
 use futures::TryStreamExt;
+use inherent::inherent;
 use journey_db::entity::Providers;
 use journey_db::get_conn;
 use journey_db::sea_orm::EntityTrait;
@@ -82,8 +83,9 @@ pub struct ProviderManager {
 }
 
 #[async_trait]
+#[inherent]
 impl ProviderManagerFn for ProviderManager {
-    fn get_providers(
+    pub fn get_providers(
         &self,
     ) -> ProviderManagerResult<&HashMap<u64, Box<dyn Provider + Send + Sync>>> {
         if self.variants.is_empty() {
@@ -91,7 +93,10 @@ impl ProviderManagerFn for ProviderManager {
         }
         Ok(&self.variants)
     }
-    fn get_provider(&self, key: &u64) -> ProviderManagerResult<&Box<dyn Provider + Send + Sync>> {
+    pub fn get_provider(
+        &self,
+        key: &u64,
+    ) -> ProviderManagerResult<&Box<dyn Provider + Send + Sync>> {
         let provider = self.variants.get(key);
 
         if provider.is_none() {
@@ -100,14 +105,17 @@ impl ProviderManagerFn for ProviderManager {
 
         Ok(provider.unwrap())
     }
-    fn register(&mut self, provider: Box<dyn Provider + Send + Sync>) -> ProviderManagerResult<()> {
+    pub fn register(
+        &mut self,
+        provider: Box<dyn Provider + Send + Sync>,
+    ) -> ProviderManagerResult<()> {
         if provider.authenticated()? {
             self.variants.insert(provider.hash()?, provider);
             return Ok(());
         }
         Err(ProviderManagerError::RegisterError)
     }
-    async fn deregister(&mut self, key: &u64) -> ProviderManagerResult<()> {
+    pub async fn deregister(&mut self, key: &u64) -> ProviderManagerResult<()> {
         let provider = self.variants.remove(key);
 
         if provider.is_some() {
@@ -123,7 +131,7 @@ impl ProviderManagerFn for ProviderManager {
 mod provider_manager_test {
     use crate::jellyfin_provider::JellyfinProvider;
     use crate::provider::{Provider, ProviderNew, ProviderParams};
-    use crate::provider_manager::{ProviderManager, ProviderManagerFn};
+    use crate::provider_manager::ProviderManager;
     use journey_utils::get_env_local;
     use serial_test::serial;
     use test_log::test;

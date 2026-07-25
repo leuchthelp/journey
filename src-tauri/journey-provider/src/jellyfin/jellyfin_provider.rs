@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use inherent::inherent;
 use jellyfin_sdk_rs::{
     apis::{authentication_api::authenticate_user_by_name, configuration::Configuration},
     configure,
@@ -101,8 +102,9 @@ impl ProviderNew<JellyfinProvider> for JellyfinProvider {
 }
 
 #[async_trait]
+#[inherent]
 impl Provider for JellyfinProvider {
-    fn user_id(&self) -> ProviderResult<Uuid> {
+    pub fn user_id(&self) -> ProviderResult<Uuid> {
         let res = match self.params.user_id {
             Some(server_id) => Ok(server_id),
             None => Err(JellyfinProviderError::MissingUserIdError),
@@ -111,7 +113,7 @@ impl Provider for JellyfinProvider {
         Ok(res?)
     }
 
-    fn server_id(&self) -> ProviderResult<Uuid> {
+    pub fn server_id(&self) -> ProviderResult<Uuid> {
         let res = match self.params.server_id {
             Some(server_id) => Ok(server_id),
             None => Err(JellyfinProviderError::MissingServerIdError),
@@ -120,11 +122,11 @@ impl Provider for JellyfinProvider {
         Ok(res?)
     }
 
-    fn url(&self) -> &Url {
+    pub fn url(&self) -> &Url {
         &self.params.url
     }
 
-    async fn invalidate(&mut self) -> ProviderResult<()> {
+    pub async fn invalidate(&mut self) -> ProviderResult<()> {
         let remove_db_task = self.remove_from_db();
         self.remove_token()?;
 

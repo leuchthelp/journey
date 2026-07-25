@@ -20,11 +20,36 @@ pub async fn get_router() -> Result<Router<Wry>> {
     let state = AppState::new(Mutex::new(AppStateInner { provider_manager }));
 
     let router = taurpc::Router::new()
-        .merge(MediaItemApiImpl.into_handler())
-        .merge(ContentApiImpl.into_handler())
-        .merge(ImageApiImpl.into_handler())
-        .merge(ProviderApiImpl { state }.into_handler())
-        .merge(OriginalApiImpl.into_handler());
+        .merge(
+            MediaItemApiImpl {
+                state: state.clone(),
+            }
+            .into_handler(),
+        )
+        .merge(
+            ContentApiImpl {
+                state: state.clone(),
+            }
+            .into_handler(),
+        )
+        .merge(
+            ImageApiImpl {
+                state: state.clone(),
+            }
+            .into_handler(),
+        )
+        .merge(
+            ProviderApiImpl {
+                state: state.clone(),
+            }
+            .into_handler(),
+        )
+        .merge(
+            OriginalApiImpl {
+                state: state.clone(),
+            }
+            .into_handler(),
+        );
 
     Ok(router)
 }

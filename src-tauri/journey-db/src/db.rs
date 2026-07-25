@@ -20,3 +20,7 @@ pub async fn get_conn() -> Result<DatabaseConnection, JourneyDbError> {
         .await?;
     Ok(db)
 }
+
+pub trait Convertible<T> {
+    fn from_model(item: T) -> Self;
+}

@@ -75,7 +75,8 @@ fn use_sample_store(config: &HashMap<&str, &str>) -> Result<()> {
 ///
 /// Fails with a `NotSupportedByStore` error on other platforms.
 #[allow(unused_variables)]
-pub fn use_apple_keychain_store(config: &HashMap<&str, &str>) -> Result<()> {
+#[allow(unused)]
+fn use_apple_keychain_store(config: &HashMap<&str, &str>) -> Result<()> {
     #[cfg(target_os = "macos")]
     {
         use apple_native_keyring_store::keychain::Store;
@@ -133,7 +134,7 @@ fn use_apple_protected_store(config: &HashMap<&str, &str>) -> Result<()> {
 ///
 /// Fails with a `NotSupportedByStore` error on other platforms.
 #[allow(unused_variables)]
-pub fn use_linux_keyutils_store(config: &HashMap<&str, &str>) -> Result<()> {
+fn use_linux_keyutils_store(config: &HashMap<&str, &str>) -> Result<()> {
     #[cfg(target_os = "linux")]
     {
         use linux_keyutils_keyring_store::Store;
@@ -152,7 +153,7 @@ pub fn use_linux_keyutils_store(config: &HashMap<&str, &str>) -> Result<()> {
 ///
 /// Fails with a `NotSupportedByStore` error on other platforms.
 #[allow(unused_variables)]
-pub fn use_windows_native_store(config: &HashMap<&str, &str>) -> Result<()> {
+fn use_windows_native_store(config: &HashMap<&str, &str>) -> Result<()> {
     #[cfg(target_os = "windows")]
     {
         use windows_native_keyring_store::Store;
@@ -173,7 +174,7 @@ pub fn use_windows_native_store(config: &HashMap<&str, &str>) -> Result<()> {
 ///
 /// Fails with a `NotSupportedByStore` error on other platforms.
 #[allow(unused_variables)]
-pub fn use_android_native_store(config: &HashMap<&str, &str>) -> Result<()> {
+fn use_android_native_store(config: &HashMap<&str, &str>) -> Result<()> {
     #[cfg(target_os = "android")]
     {
         use android_native_keyring_store::Store;

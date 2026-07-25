@@ -11,6 +11,7 @@ url = { workspace = true }
 uuid = { workspace = true }
 tokio = { workspace = true }
 anyhow = { workspace = true }
+inherent = { workspace = true }
 thiserror = { workspace = true }
 sea-orm = { workspace = true }
 serde = { workspace = true }

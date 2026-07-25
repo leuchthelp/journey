@@ -2,7 +2,6 @@ use anyhow::Result;
 use journey_db::entity::OriginalDTO;
 use serde::{Deserialize, Serialize};
 use specta::Type;
-use tauri::State;
 use thiserror::Error;
 
 use crate::AppState;
@@ -15,15 +14,17 @@ type OriginalResult<T> = Result<T, OriginalApiError>;
 
 #[taurpc::procedures(path = "original")]
 pub trait OriginalApi {
-    async fn get_original(state: State<AppState>) -> OriginalResult<OriginalDTO>;
+    async fn get_original() -> OriginalResult<OriginalDTO>;
 }
 
 #[derive(Clone, Debug)]
-pub struct OriginalApiImpl;
+pub struct OriginalApiImpl {
+    pub state: AppState,
+}
 
 #[taurpc::resolvers]
 impl OriginalApi for OriginalApiImpl {
-    async fn get_original(self, state: State<AppState>) -> OriginalResult<OriginalDTO> {
+    async fn get_original(self) -> OriginalResult<OriginalDTO> {
         Ok(OriginalDTO::default())
     }
 }

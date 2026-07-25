@@ -1,4 +1,5 @@
-use crate::entity::{MediaItemDTO, media_items::ConvertableMediaItems};
+use crate::{db::Convertible, entity::MediaItemDTO};
+use inherent::inherent;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -19,10 +20,6 @@ pub struct Model {
 
 impl ActiveModelBehavior for ActiveModel {}
 
-pub trait ConvertableContent {
-    fn from_model(item: ModelEx) -> ContentDTO;
-}
-
 #[taurpc::ipc_type]
 #[derive(Debug, Default)]
 pub struct ContentDTO {
@@ -34,8 +31,9 @@ pub struct ContentDTO {
     pub description: String,
 }
 
-impl ConvertableContent for ContentDTO {
-    fn from_model(item: ModelEx) -> ContentDTO {
+#[inherent]
+impl Convertible<ModelEx> for ContentDTO {
+    pub fn from_model(item: ModelEx) -> Self {
         let parent = MediaItemDTO::from_model(item.parent.unwrap().clone());
 
         return ContentDTO {

@@ -1,6 +1,8 @@
-use crate::entity::{
-    MediaItemDTO, ProviderDTO, media_items::ConvertableMediaItems, providers::ConvertableProvider,
+use crate::{
+    db::Convertible,
+    entity::{MediaItemDTO, ProviderDTO},
 };
+use inherent::inherent;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -37,8 +39,9 @@ pub struct ImageDTO {
     pub media_items: Option<Vec<MediaItemDTO>>,
 }
 
-impl ConvertableImage for ImageDTO {
-    fn from_model(item: ModelEx) -> ImageDTO {
+#[inherent]
+impl Convertible<ModelEx> for ImageDTO {
+    pub fn from_model(item: ModelEx) -> Self {
         let provider = ProviderDTO::from_model(item.provider.unwrap().clone());
         let media_items = item
             .media_items

@@ -1,6 +1,6 @@
 use anyhow::Result;
 use journey_db::entity::ProviderDTO;
-use journey_provider::{ProviderError, ProviderManagerError, ProviderManagerFn};
+use journey_provider::{ProviderError, ProviderManagerError};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::ipc::Channel;
