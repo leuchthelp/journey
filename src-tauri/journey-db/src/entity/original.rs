@@ -1,8 +1,10 @@
 use crate::{db::Convertible, entity::MediaItemDTO};
 use Uuid;
 use inherent::inherent;
+use anyhow::Result;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 #[sea_orm::model]
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
@@ -22,28 +24,31 @@ pub struct Model {
 impl ActiveModelBehavior for ActiveModel {}
 
 #[taurpc::ipc_type]
-#[derive(Debug, Default)]
+#[derive(Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct OriginalDTO {
     pub id: i32,
     pub parent_id: Option<Uuid>,
     pub parent: Option<MediaItemDTO>,
     pub server_id: Uuid,
     pub uuid: Uuid,
-    pub url: String,
+    pub url: Url,
 }
 
 #[inherent]
 impl Convertible<ModelEx> for OriginalDTO {
-    pub fn from_model(item: ModelEx) -> Self {
-        let parent = MediaItemDTO::from_model(item.parent.unwrap().clone());
+    type DTO = OriginalDTO;
 
-        return OriginalDTO {
+    pub fn from_model(item: ModelEx) -> Result<Self> {
+        let parent = MediaItemDTO::from_model(item.parent.unwrap().clone())?;
+
+        Ok(OriginalDTO {
             id: item.id,
             parent_id: item.parent_id,
             parent: Some(parent),
             server_id: item.server_id,
             uuid: item.uuid,
-            url: item.url,
-        };
+            url: Url::parse(&item.url)?,
+        })
     }
 }

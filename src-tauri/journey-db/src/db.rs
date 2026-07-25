@@ -22,5 +22,7 @@ pub async fn get_conn() -> Result<DatabaseConnection, JourneyDbError> {
 }
 
 pub trait Convertible<T> {
-    fn from_model(item: T) -> Self;
+    type DTO;
+
+    fn from_model(item: T) -> Result<Self::DTO>;
 }

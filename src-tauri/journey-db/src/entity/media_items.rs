@@ -1,5 +1,6 @@
 use crate::db::Convertible;
 use crate::entity::{ContentDTO, ImageDTO, OriginalDTO, ProviderDTO};
+use anyhow::Result;
 use inherent::inherent;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -39,11 +40,11 @@ impl ActiveModelBehavior for ActiveModel {}
 
 #[taurpc::ipc_type]
 #[derive(Debug, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct MediaItemDTO {
     pub uuid: Uuid,
     #[serde(rename = "type")]
     pub kind: String,
-    #[serde(rename = "outlineGradient")]
     pub outline_gradient: String,
     pub loaded: bool,
     pub local: String,
@@ -57,7 +58,9 @@ pub struct MediaItemDTO {
 
 #[inherent]
 impl Convertible<ModelEx> for MediaItemDTO {
-    pub fn from_model(item: ModelEx) -> Self {
+    type DTO = MediaItemDTO;
+
+    pub fn from_model(item: ModelEx) -> Result<Self> {
         let original = item
             .original
             .iter()
@@ -68,28 +71,28 @@ impl Convertible<ModelEx> for MediaItemDTO {
             .iter()
             .map(|f| ContentDTO::from_model(f.clone()))
             .collect::<Vec<_>>();
-        let providers = item
-            .providers
-            .iter()
-            .map(|f| ProviderDTO::from_model(f.clone()))
-            .collect::<Vec<_>>();
-        let images = item
-            .images
-            .iter()
-            .map(|f| ImageDTO::from_model(f.clone()))
-            .collect::<Vec<_>>();
-        let children = item
-            .children
-            .iter()
-            .map(|f| MediaItemDTO::from_model(f.clone()))
-            .collect::<Vec<_>>();
-        let parents = item
-            .children
-            .iter()
-            .map(|f| MediaItemDTO::from_model(f.clone()))
-            .collect::<Vec<_>>();
+        let mut providers: Vec<ProviderDTO> = vec![];
+        for item in item.providers {
+            let dto = ProviderDTO::from_model(item)?;
+            providers.push(dto);
+        }
+        let mut images: Vec<ImageDTO> = vec![];
+        for item in item.images {
+            let dto = ImageDTO::from_model(item)?;
+            images.push(dto);
+        }
+        let mut children: Vec<MediaItemDTO> = vec![];
+        for item in item.children {
+            let dto = MediaItemDTO::from_model(item)?;
+            children.push(dto);
+        }
+        let mut parents: Vec<MediaItemDTO> = vec![];
+        for item in item.parents {
+            let dto = MediaItemDTO::from_model(item)?;
+            parents.push(dto);
+        }
 
-        return MediaItemDTO {
+        Ok(MediaItemDTO {
             uuid: item.uuid,
             kind: item.kind,
             outline_gradient: item.outline_gradient,
@@ -101,6 +104,6 @@ impl Convertible<ModelEx> for MediaItemDTO {
             images: Some(images),
             children: Some(children),
             parents: Some(parents),
-        };
+        })
     }
 }

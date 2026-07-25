@@ -2,9 +2,11 @@ use crate::{
     db::Convertible,
     entity::{MediaItemDTO, ProviderDTO},
 };
+use anyhow::Result;
 use inherent::inherent;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
+use url::Url;
 use uuid::Uuid;
 
 #[sea_orm::model]
@@ -29,9 +31,10 @@ pub trait ConvertableImage {
 }
 
 #[taurpc::ipc_type]
-#[derive(Debug, Default)]
+#[derive(Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct ImageDTO {
-    pub url: String,
+    pub url: Url,
     pub server_id: Option<Uuid>,
     pub provider: Option<ProviderDTO>,
     #[serde(rename = "type")]
@@ -41,20 +44,23 @@ pub struct ImageDTO {
 
 #[inherent]
 impl Convertible<ModelEx> for ImageDTO {
-    pub fn from_model(item: ModelEx) -> Self {
-        let provider = ProviderDTO::from_model(item.provider.unwrap().clone());
-        let media_items = item
-            .media_items
-            .iter()
-            .map(|f| MediaItemDTO::from_model(f.clone()))
-            .collect::<Vec<_>>();
+    type DTO = ImageDTO;
 
-        return ImageDTO {
-            url: item.url,
+    pub fn from_model(item: ModelEx) -> Result<Self> {
+        let provider = ProviderDTO::from_model(item.provider.unwrap().clone())?;
+
+        let mut media_items: Vec<MediaItemDTO> = vec![];
+        for item in item.media_items {
+            let dto = MediaItemDTO::from_model(item)?;
+            media_items.push(dto);
+        }
+
+        Ok(ImageDTO {
+            url: Url::parse(&item.url)?,
             server_id: item.server_id,
             provider: Some(provider),
             kind: item.kind,
             media_items: Some(media_items),
-        };
+        })
     }
 }

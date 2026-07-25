@@ -1,3 +1,4 @@
+mod helpers;
 pub mod content;
 pub mod images;
 pub mod media_items;
