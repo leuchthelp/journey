@@ -51,7 +51,7 @@ pub trait ProviderManagerFn {
 
         while let Some(known) = known_providers.try_next().await? {
             let params = ProviderParams {
-                url: Url::parse(&known.url)?,
+                url: Some(Url::parse(&known.url)?),
                 user_id: Some(known.user_id),
                 server_id: Some(known.server_id),
             };
@@ -118,12 +118,10 @@ impl ProviderManagerFn for ProviderManager {
     pub async fn deregister(&mut self, key: &u64) -> ProviderManagerResult<()> {
         let provider = self.variants.remove(key);
 
-        if provider.is_some() {
-            let mut provider = provider.unwrap();
-            provider.invalidate().await?;
-            return Ok(());
+        match provider {
+            Some(mut provider) => Ok(provider.invalidate().await?),
+            None => return Err(ProviderManagerError::DeregisterError),
         }
-        Err(ProviderManagerError::DeregisterError)
     }
 }
 
@@ -141,7 +139,7 @@ mod provider_manager_test {
     #[test]
     fn hash_no_login_failure() {
         let provider = JellyfinProvider::new(ProviderParams {
-            url: Url::parse("http://smth.example.com").unwrap(),
+            url: Some(Url::parse("http://smth.example.com").unwrap()),
             user_id: None,
             server_id: None,
         })
@@ -164,7 +162,7 @@ mod provider_manager_test {
         let url = env_map.var("TEST_JELLYFIN_URL").unwrap();
 
         let mut provider = JellyfinProvider::new(ProviderParams {
-            url: Url::parse(&url).unwrap(),
+            url: Some(Url::parse(&url).unwrap()),
             user_id: None,
             server_id: None,
         })

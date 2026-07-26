@@ -51,7 +51,7 @@ impl ProviderApi for ProviderApiImpl {
 
         for provider in providers {
             let dto = ProviderDTO {
-                url: provider.url().clone(),
+                url: provider.url()?.clone(),
                 server_id: provider.server_id()?,
                 user_id: provider.user_id()?,
                 kind: provider.type_(),

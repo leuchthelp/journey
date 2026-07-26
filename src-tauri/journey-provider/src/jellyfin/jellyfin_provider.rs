@@ -24,6 +24,8 @@ pub enum JellyfinProviderError {
     MissingServerIdError,
     #[error("user_id hasn't been set yet, try authenticating first.")]
     MissingUserIdError,
+    #[error("Url hasn't been set yet, provide one first.")]
+    MissingUrlError,
 }
 
 #[derive(Debug, Clone)]
@@ -35,7 +37,9 @@ pub struct JellyfinProvider {
 }
 
 #[async_trait]
-impl ProviderNew<JellyfinProvider> for JellyfinProvider {
+impl ProviderNew for JellyfinProvider {
+    type Provider = JellyfinProvider;
+
     fn new(params: ProviderParams) -> ProviderResult<Box<Self>> {
         let client_info = ClientInfo {
             name: get_env_prod()?.var("VITE_JOURNEY_NAME")?,
@@ -67,7 +71,7 @@ impl ProviderNew<JellyfinProvider> for JellyfinProvider {
             return Ok(());
         }
         let mut client_config = configure()
-            .base_url(self.url())
+            .base_url(self.url()?)
             .client_info(&self.client_info)
             .device_info(&self.device_info)
             .call()?;
@@ -88,7 +92,7 @@ impl ProviderNew<JellyfinProvider> for JellyfinProvider {
         let add_db_task = self.add_to_db();
 
         client_config = configure()
-            .base_url(self.url())
+            .base_url(self.url()?)
             .client_info(&self.client_info)
             .device_info(&self.device_info)
             .access_token(&access_token)
@@ -122,22 +126,20 @@ impl Provider for JellyfinProvider {
         Ok(res?)
     }
 
-    pub fn url(&self) -> &Url {
-        &self.params.url
+    pub fn url(&self) -> ProviderResult<&Url> {
+        let res = match &self.params.url {
+            Some(url) => Ok(url),
+            None => Err(JellyfinProviderError::MissingUrlError),
+        };
+
+        Ok(res?)
     }
 
     pub async fn invalidate(&mut self) -> ProviderResult<()> {
         let remove_db_task = self.remove_from_db();
         self.remove_token()?;
 
-        remove_db_task.await?;
-        self.params = ProviderParams {
-            user_id: None,
-            server_id: None,
-            url: self.url().clone(),
-        };
-        self.config = None;
-        Ok(())
+        Ok(remove_db_task.await?)
     }
 }
 
@@ -196,7 +198,7 @@ mod variant_jellyfin {
     fn matching_name() {
         assert!(
             JellyfinProvider::new(ProviderParams {
-                url: Url::parse("http://example.net").unwrap(),
+                url: Some(Url::parse("http://example.net").unwrap()),
                 user_id: None,
                 server_id: None
             })
@@ -218,7 +220,7 @@ mod variant_jellyfin {
         warn!("{}", env_map.var("TEST_JELLYFIN_URL").unwrap());
         let url = env_map.var("TEST_JELLYFIN_URL").unwrap();
         let mut provider = JellyfinProvider::new(ProviderParams {
-            url: Url::parse(&url).unwrap(),
+            url: Some(Url::parse(&url).unwrap()),
             user_id: None,
             server_id: None,
         })

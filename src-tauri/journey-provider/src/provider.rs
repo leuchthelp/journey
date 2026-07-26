@@ -55,8 +55,10 @@ pub enum ProviderError {
 pub type ProviderResult<T> = Result<T, ProviderError>;
 
 #[async_trait]
-pub trait ProviderNew<T> {
-    fn new(params: ProviderParams) -> ProviderResult<Box<T>>;
+pub trait ProviderNew {
+    type Provider;
+
+    fn new(params: ProviderParams) -> ProviderResult<Box<Self::Provider>>;
     async fn authenticate_with_pw(&mut self, uname: String, psw: String) -> ProviderResult<()>;
 }
 
@@ -64,7 +66,7 @@ pub trait ProviderNew<T> {
 pub trait Provider: DynClone + Debug {
     fn user_id(&self) -> ProviderResult<Uuid>;
     fn server_id(&self) -> ProviderResult<Uuid>;
-    fn url(&self) -> &Url;
+    fn url(&self) -> ProviderResult<&Url>;
     fn type_(&self) -> String {
         return type_name_of_val(self).to_string();
     }
@@ -125,7 +127,7 @@ pub trait Provider: DynClone + Debug {
             user_id: Set(self.user_id()?),
             server_id: Set(self.server_id()?),
             kind: Set(self.type_()),
-            url: Set(self.url().to_string()),
+            url: Set(self.url()?.to_string()),
         };
         provider.insert(&get_conn().await?).await?;
         Ok(())
@@ -144,5 +146,5 @@ clone_trait_object!(Provider);
 pub struct ProviderParams {
     pub user_id: Option<Uuid>,
     pub server_id: Option<Uuid>,
-    pub url: Url,
+    pub url: Option<Url>,
 }
