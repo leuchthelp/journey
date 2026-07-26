@@ -46,17 +46,8 @@ impl Convertible<ModelEx> for ProviderDTO {
     type DTO = ProviderDTO;
 
     pub fn from_model(item: ModelEx) -> Result<Self> {
-        let mut parents: Vec<MediaItemDTO> = vec![];
-        for item in item.media_items {
-            let dto = MediaItemDTO::from_model(item)?;
-            parents.push(dto);
-        }
-
-        let mut images: Vec<ImageDTO> = vec![];
-        for item in item.images {
-            let dto = ImageDTO::from_model(item)?;
-            images.push(dto);
-        }
+        let parents = MediaItemDTO::to_vec(item.media_items)?;
+        let images = ImageDTO::to_vec(item.images)?;
 
         Ok(ProviderDTO {
             user_id: item.user_id,

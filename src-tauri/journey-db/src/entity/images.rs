@@ -49,11 +49,7 @@ impl Convertible<ModelEx> for ImageDTO {
     pub fn from_model(item: ModelEx) -> Result<Self> {
         let provider = ProviderDTO::from_model(item.provider.unwrap().clone())?;
 
-        let mut media_items: Vec<MediaItemDTO> = vec![];
-        for item in item.media_items {
-            let dto = MediaItemDTO::from_model(item)?;
-            media_items.push(dto);
-        }
+        let media_items = MediaItemDTO::to_vec(item.media_items)?;
 
         Ok(ImageDTO {
             url: Url::parse(&item.url)?,

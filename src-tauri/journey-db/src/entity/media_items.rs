@@ -61,36 +61,12 @@ impl Convertible<ModelEx> for MediaItemDTO {
     type DTO = MediaItemDTO;
 
     pub fn from_model(item: ModelEx) -> Result<Self> {
-        let original = item
-            .original
-            .iter()
-            .map(|f| OriginalDTO::from_model(f.clone()))
-            .collect::<Vec<_>>();
-        let content = item
-            .content
-            .iter()
-            .map(|f| ContentDTO::from_model(f.clone()))
-            .collect::<Vec<_>>();
-        let mut providers: Vec<ProviderDTO> = vec![];
-        for item in item.providers {
-            let dto = ProviderDTO::from_model(item)?;
-            providers.push(dto);
-        }
-        let mut images: Vec<ImageDTO> = vec![];
-        for item in item.images {
-            let dto = ImageDTO::from_model(item)?;
-            images.push(dto);
-        }
-        let mut children: Vec<MediaItemDTO> = vec![];
-        for item in item.children {
-            let dto = MediaItemDTO::from_model(item)?;
-            children.push(dto);
-        }
-        let mut parents: Vec<MediaItemDTO> = vec![];
-        for item in item.parents {
-            let dto = MediaItemDTO::from_model(item)?;
-            parents.push(dto);
-        }
+        let original = OriginalDTO::to_vec(item.original)?;
+        let content = ContentDTO::to_vec(item.content)?;
+        let providers = ProviderDTO::to_vec(item.providers)?;
+        let images = ImageDTO::to_vec(item.images)?;
+        let children = MediaItemDTO::to_vec(item.children)?;
+        let parents = MediaItemDTO::to_vec(item.parents)?;
 
         Ok(MediaItemDTO {
             uuid: item.uuid,
