@@ -1,9 +1,9 @@
 use anyhow::Result;
-use journey_db::entity::ProviderDTO;
+use journey_db::{entity::ProviderDTO, sea_orm::sqlx::types::Uuid};
 use journey_provider::{ProviderError, ProviderManagerError};
 use serde::{Deserialize, Serialize};
 use specta::Type;
-use tauri::ipc::Channel;
+use tauri::{Url, ipc::Channel};
 use thiserror::Error;
 use tokio::sync::TryLockError;
 use tracing::warn;
@@ -40,8 +40,18 @@ pub struct ProviderApiImpl {
 #[taurpc::resolvers]
 impl ProviderApi for ProviderApiImpl {
     async fn get_providers(self, on_event: Channel<ProviderDTO>) -> ProviderApiResult<()> {
-        warn!("passing providers to frontend");
         let locked = self.state.lock().await;
+
+        let dto = ProviderDTO {
+            url: Url::parse("https://example.net").unwrap(),
+            kind: "JellyfinProvider".into(),
+            server_id: Uuid::now_v7(),
+            user_id: Uuid::now_v7(),
+            images: None,
+            media_items: None,
+        };
+        warn!("passing providers to frontend");
+        on_event.send(dto)?;
 
         let providers = locked
             .provider_manager

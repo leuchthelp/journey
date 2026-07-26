@@ -5,7 +5,6 @@
   import ProviderAccordion from "#lib/components/Settings/Provider/ProviderAccordion.svelte";
   import Settings from "#lib/components/Settings/Settings.svelte";
   import { toAuthComponent } from "#lib/snippets/ToAuthComponent.svelte";
-  import type { LayoutProps } from "./$types.d.ts";
   import { setIndexing } from "#lib/signals/index.svelte.ts";
   import { setMediaSource } from "#lib/signals/mediaSource.svelte.ts";
   import "@videojs/html/audio/player";
@@ -13,12 +12,14 @@
   import "@videojs/html/ui/controls";
   import "@videojs/html/ui/play-button";
   import Player from "#lib/components/Player/Player.svelte";
+  import { API } from "#lib/proxy.ts";
+  import type { ProviderDTO } from "#lib/bindings.ts";
 
   function toggleVisible() {
     visible = !visible;
   }
 
-  let { data, children }: LayoutProps = $props();
+  let { children } = $props();
   let visible = $state(false);
 
   let displayable: string[] = $state([]);
@@ -31,6 +32,16 @@
 
   let src = $state({ url: "" });
   setMediaSource(src);
+
+  let providers: ProviderDTO[] = $state([]);
+  $effect(() => {
+    (async () => {
+      await API.provider.get_providers((provider) => {
+        console.warn(provider);
+        providers.push(provider);
+      });
+    })();
+  });
 
   $inspect(src);
 </script>
@@ -69,8 +80,8 @@
           {#each displayable as type}
             {@render toAuthComponent(type)}
           {/each}
-          {#each data.post as item}
-            {@render toAuthComponent(item.type, item.serverId)}
+          {#each providers as provider}
+            {@render toAuthComponent(provider.type, provider.serverId)}
           {/each}
         </ProviderAccordion>
       </ProviderAccordion>
