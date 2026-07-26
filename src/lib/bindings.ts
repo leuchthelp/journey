@@ -6,7 +6,7 @@ export type ContentApiError = string;
 
 export type ContentDTO = {
 	id: number,
-	parent_id: string | null,
+	parentId: string | null,
 	parent: MediaItemDTO | null,
 	type: string,
 	description: string,
@@ -16,10 +16,10 @@ export type ImageApiError = string;
 
 export type ImageDTO = {
 	url: string,
-	server_id: string | null,
+	serverId: string | null,
 	provider: ProviderDTO | null,
 	type: string,
-	media_items: MediaItemDTO[] | null,
+	mediaItems: MediaItemDTO[] | null,
 };
 
 export type MediaItemApiError = string;
@@ -42,21 +42,20 @@ export type OriginalApiError = string;
 
 export type OriginalDTO = {
 	id: number,
-	parent_id: string | null,
+	parentId: string | null,
 	parent: MediaItemDTO | null,
-	server_id: string,
-	uuid: string,
+	serverId: string,
 	url: string,
 };
 
 export type ProviderApiError = string;
 
 export type ProviderDTO = {
-	server_id: string,
-	user_id: string,
+	serverId: string,
+	userId: string,
 	type: string,
 	url: string,
-	media_items: MediaItemDTO[] | null,
+	mediaItems: MediaItemDTO[] | null,
 	images: ImageDTO[] | null,
 };
 

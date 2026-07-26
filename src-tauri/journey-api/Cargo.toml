@@ -13,6 +13,7 @@ taurpc = { workspace = true }
 specta = { workspace = true }
 specta-typescript = { workspace = true }
 tokio = { workspace = true }
+tracing = { workspace = true }
 journey-db = { workspace = true }
 journey-keyring = { workspace = true }
 journey-provider = { workspace = true }

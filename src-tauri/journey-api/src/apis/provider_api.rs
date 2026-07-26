@@ -6,6 +6,7 @@ use specta::Type;
 use tauri::ipc::Channel;
 use thiserror::Error;
 use tokio::sync::TryLockError;
+use tracing::warn;
 
 use crate::AppState;
 
@@ -39,6 +40,7 @@ pub struct ProviderApiImpl {
 #[taurpc::resolvers]
 impl ProviderApi for ProviderApiImpl {
     async fn get_providers(self, on_event: Channel<ProviderDTO>) -> ProviderApiResult<()> {
+        warn!("passing providers to frontend");
         let locked = self.state.lock().await;
 
         let providers = locked
