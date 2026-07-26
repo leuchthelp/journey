@@ -47,16 +47,31 @@ impl Convertible<ModelEx> for ImageDTO {
     type DTO = ImageDTO;
 
     pub fn from_model(item: ModelEx) -> Result<Self> {
-        let provider = ProviderDTO::from_model(item.provider.unwrap().clone())?;
+        let provider = match item.provider.into_option() {
+            Some(provider) => Some(ProviderDTO::from_model(provider)?),
+            None => None,
+        };
 
         let media_items = MediaItemDTO::to_vec(item.media_items)?;
 
         Ok(ImageDTO {
             url: Url::parse(&item.url)?,
             server_id: item.server_id,
-            provider: Some(provider),
+            provider: provider,
             kind: item.kind,
-            media_items: Some(media_items),
+            media_items: media_items,
         })
+    }
+}
+
+impl ImageDTO {
+    pub fn new() -> Self {
+        return ImageDTO {
+            url: Url::parse("https://example.net").unwrap(),
+            kind: "Primary".into(),
+            server_id: None,
+            provider: None,
+            media_items: None,
+        };
     }
 }

@@ -38,12 +38,15 @@ impl Convertible<ModelEx> for ContentDTO {
     type DTO = ContentDTO;
 
     pub fn from_model(item: ModelEx) -> Result<Self> {
-        let parent = MediaItemDTO::from_model(item.parent.unwrap().clone())?;
+        let parent = match item.parent.into_option() {
+            Some(parent) => Some(MediaItemDTO::from_model(parent)?),
+            None => None,
+        };
 
         Ok(ContentDTO {
             id: item.id,
             parent_id: item.parent_id,
-            parent: Some(parent),
+            parent: parent,
             kind: item.kind,
             description: item.description,
         })

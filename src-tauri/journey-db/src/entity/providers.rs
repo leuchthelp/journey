@@ -54,8 +54,8 @@ impl Convertible<ModelEx> for ProviderDTO {
             server_id: item.server_id,
             kind: item.kind,
             url: Url::parse(&item.url)?,
-            media_items: Some(parents),
-            images: Some(images),
+            media_items: parents,
+            images: images,
         })
     }
 }

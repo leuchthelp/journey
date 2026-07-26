@@ -74,12 +74,12 @@ impl Convertible<ModelEx> for MediaItemDTO {
             outline_gradient: item.outline_gradient,
             loaded: item.loaded,
             local: item.local,
-            original: Some(original),
-            content: Some(content),
-            providers: Some(providers),
-            images: Some(images),
-            children: Some(children),
-            parents: Some(parents),
+            original: original,
+            content: content,
+            providers: providers,
+            images: images,
+            children: children,
+            parents: parents,
         })
     }
 }

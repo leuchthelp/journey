@@ -25,6 +25,6 @@ pub struct ImageApiImpl {
 #[taurpc::resolvers]
 impl ImageApi for ImageApiImpl {
     async fn get_images(self) -> ImageApiResult<ImageDTO> {
-        Ok(ImageDTO::default())
+        Ok(ImageDTO::new())
     }
 }

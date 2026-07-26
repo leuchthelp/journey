@@ -16,7 +16,6 @@ pub struct Model {
     #[sea_orm(belongs_to, from = "parent_id", to = "uuid")]
     pub parent: BelongsTo<Option<super::media_items::Entity>>,
     pub server_id: Uuid,
-    pub uuid: Uuid,
     #[sea_orm(unique)]
     pub url: String,
 }
@@ -31,7 +30,6 @@ pub struct OriginalDTO {
     pub parent_id: Option<Uuid>,
     pub parent: Option<MediaItemDTO>,
     pub server_id: Uuid,
-    pub uuid: Uuid,
     pub url: Url,
 }
 
@@ -40,15 +38,29 @@ impl Convertible<ModelEx> for OriginalDTO {
     type DTO = OriginalDTO;
 
     pub fn from_model(item: ModelEx) -> Result<Self> {
-        let parent = MediaItemDTO::from_model(item.parent.unwrap().clone())?;
+        let parent = match item.parent.into_option() {
+            Some(parent) => Some(MediaItemDTO::from_model(parent)?),
+            None => None,
+        };
 
         Ok(OriginalDTO {
             id: item.id,
             parent_id: item.parent_id,
-            parent: Some(parent),
+            parent: parent,
             server_id: item.server_id,
-            uuid: item.uuid,
             url: Url::parse(&item.url)?,
         })
+    }
+}
+
+impl OriginalDTO {
+    pub fn new() -> Self {
+        return OriginalDTO {
+            url: Url::parse("https://example.net").unwrap(),
+            id: -1,
+            parent_id: None,
+            parent: None,
+            server_id: Uuid::nil(),
+        };
     }
 }
