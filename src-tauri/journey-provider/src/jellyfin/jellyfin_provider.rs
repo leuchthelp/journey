@@ -6,12 +6,16 @@ use jellyfin_sdk_rs::{
     models::{AuthenticateUserByName, UserDto},
     required::{ClientInfo, DeviceInfo},
 };
+use journey_db::{
+    entity::providers::ActiveModel,
+    sea_orm::{ActiveValue::Set, TryIntoModel},
+};
 use journey_utils::get_env_prod;
 use thiserror::Error;
 use url::Url;
 use uuid::Uuid;
 
-use crate::provider::{Provider, ProviderNew, ProviderParams, ProviderResult};
+use crate::provider::{Provider, ProviderNew, ProviderResult};
 
 use serde::{Deserialize, Serialize};
 use specta::Type;
@@ -30,7 +34,7 @@ pub enum JellyfinProviderError {
 
 #[derive(Debug, Clone)]
 pub struct JellyfinProvider {
-    pub(crate) params: ProviderParams,
+    pub(crate) params: ActiveModel,
     pub(crate) config: Option<Configuration>,
     pub(crate) client_info: ClientInfo,
     pub(crate) device_info: DeviceInfo,
@@ -40,7 +44,7 @@ pub struct JellyfinProvider {
 impl ProviderNew for JellyfinProvider {
     type Provider = JellyfinProvider;
 
-    fn new(params: ProviderParams) -> ProviderResult<Box<Self>> {
+    fn new(params: ActiveModel) -> ProviderResult<Box<Self>> {
         let client_info = ClientInfo {
             name: get_env_prod()?.var("VITE_JOURNEY_NAME")?,
             version: get_env_prod()?.var("VITE_JOURNEY_VERSION")?.to_string(),
@@ -59,7 +63,7 @@ impl ProviderNew for JellyfinProvider {
         };
 
         Ok(Box::new(JellyfinProvider {
-            params,
+            params: params,
             config: None,
             client_info,
             device_info,
@@ -71,7 +75,7 @@ impl ProviderNew for JellyfinProvider {
             return Ok(());
         }
         let mut client_config = configure()
-            .base_url(self.url()?)
+            .base_url(&self.url()?)
             .client_info(&self.client_info)
             .device_info(&self.device_info)
             .call()?;
@@ -92,7 +96,7 @@ impl ProviderNew for JellyfinProvider {
         let add_db_task = self.add_to_db();
 
         client_config = configure()
-            .base_url(self.url()?)
+            .base_url(&self.url()?)
             .client_info(&self.client_info)
             .device_info(&self.device_info)
             .access_token(&access_token)
@@ -109,37 +113,39 @@ impl ProviderNew for JellyfinProvider {
 #[inherent]
 impl Provider for JellyfinProvider {
     pub fn user_id(&self) -> ProviderResult<Uuid> {
-        let res = match self.params.user_id {
-            Some(server_id) => Ok(server_id),
-            None => Err(JellyfinProviderError::MissingUserIdError),
-        };
+        let model = self.params.clone().try_into_model()?;
 
-        Ok(res?)
+        match model.user_id {
+            user_id if user_id != Uuid::nil() => Ok(user_id),
+            _ => Err(JellyfinProviderError::MissingServerIdError.into()),
+        }
     }
 
     pub fn server_id(&self) -> ProviderResult<Uuid> {
-        let res = match self.params.server_id {
-            Some(server_id) => Ok(server_id),
-            None => Err(JellyfinProviderError::MissingServerIdError),
-        };
+        let model = self.params.clone().try_into_model()?;
 
-        Ok(res?)
+        match model.server_id {
+            server_id if server_id != Uuid::nil() => Ok(server_id),
+            _ => Err(JellyfinProviderError::MissingServerIdError.into()),
+        }
     }
 
-    pub fn url(&self) -> ProviderResult<&Url> {
-        let res = match &self.params.url {
-            Some(url) => Ok(url),
-            None => Err(JellyfinProviderError::MissingUrlError),
-        };
-
-        Ok(res?)
+    pub fn url(&self) -> ProviderResult<Url> {
+        let model = self.params.clone().try_into_model();
+        match model {
+            Ok(model) => Ok(Url::parse(&model.url)?),
+            Err(_) => Err(JellyfinProviderError::MissingUrlError.into()),
+        }
     }
 
     pub async fn invalidate(&mut self) -> ProviderResult<()> {
         let remove_db_task = self.remove_from_db();
         self.remove_token()?;
+        remove_db_task.await?;
 
-        Ok(remove_db_task.await?)
+        self.params = ActiveModel::default();
+        self.config = None;
+        Ok(())
     }
 }
 
@@ -150,7 +156,7 @@ impl JellyfinProvider {
             None => Err(JellyfinProviderError::ApiEntryRetrievalError),
         }?;
 
-        self.params.server_id = Some(Uuid::parse_str(&server_id)?);
+        self.params.server_id = Set(Uuid::parse_str(&server_id)?);
         Ok(())
     }
 
@@ -164,17 +170,18 @@ impl JellyfinProvider {
        We could pass it through in one line but we risk an error for a missing user_id
        if anything in the Jellyfin API gets funky.
     */
-    fn set_user_id(&mut self, user_id: Option<Option<Box<UserDto>>>) -> ProviderResult<()> {
-        let user_id = match user_id.flatten() {
+    fn set_user_id(&mut self, user_dto: Option<Option<Box<UserDto>>>) -> ProviderResult<()> {
+        let user_dto = match user_dto.flatten() {
             Some(dto) => Ok(dto),
             None => Err(JellyfinProviderError::ApiEntryRetrievalError),
         }?;
 
-        self.params.user_id = Some(match user_id.id {
+        let user_id = match user_dto.id {
             Some(id) => Ok(id),
             None => Err(JellyfinProviderError::MissingUserIdError),
-        }?);
+        }?;
 
+        self.params.user_id = Set(user_id);
         Ok(())
     }
 }
@@ -185,7 +192,11 @@ mod variant_jellyfin {
 
     use crate::{
         jellyfin_provider::JellyfinProvider,
-        provider::{Provider, ProviderNew, ProviderParams},
+        provider::{Provider, ProviderNew},
+    };
+    use journey_db::{
+        entity::providers::ActiveModel,
+        sea_orm::{ActiveModelTrait, ActiveValue::Set},
     };
     use journey_keyring::Entry;
     use journey_utils::get_env_local;
@@ -196,15 +207,16 @@ mod variant_jellyfin {
 
     #[test]
     fn matching_name() {
+        let params = ActiveModel {
+            url: Set(Url::parse("http://smth.example.com").unwrap().into()),
+            ..Default::default()
+        };
+
         assert!(
-            JellyfinProvider::new(ProviderParams {
-                url: Some(Url::parse("http://example.net").unwrap()),
-                user_id: None,
-                server_id: None
-            })
-            .unwrap()
-            .type_()
-            .contains("JellyfinProvider")
+            JellyfinProvider::new(params)
+                .unwrap()
+                .type_()
+                .contains("JellyfinProvider")
         );
     }
 
@@ -219,16 +231,18 @@ mod variant_jellyfin {
 
         warn!("{}", env_map.var("TEST_JELLYFIN_URL").unwrap());
         let url = env_map.var("TEST_JELLYFIN_URL").unwrap();
-        let mut provider = JellyfinProvider::new(ProviderParams {
-            url: Some(Url::parse(&url).unwrap()),
-            user_id: None,
-            server_id: None,
-        })
-        .unwrap();
+
+        let params = ActiveModel {
+            url: Set(Url::parse(&url).unwrap().into()),
+            ..ActiveModel::default_values()
+        };
+
+        let mut provider = JellyfinProvider::new(params).unwrap();
 
         provider.authenticated().unwrap();
         assert!(provider.server_id().is_err());
         assert!(provider.user_id().is_err());
+        assert!(provider.url().is_ok());
 
         provider
             .authenticate_with_pw(
@@ -241,6 +255,7 @@ mod variant_jellyfin {
         assert!(provider.authenticated().unwrap() == true);
         assert!(provider.server_id().is_ok());
         assert!(provider.user_id().is_ok());
+        assert!(provider.url().is_ok());
 
         let test = Entry::search(&HashMap::from([("service", "journey")])).unwrap();
         test.iter().for_each(|f| warn!("{:#?}", f.get_password()));
@@ -250,6 +265,7 @@ mod variant_jellyfin {
         assert!(provider.authenticated().unwrap() == false);
         assert!(provider.server_id().is_err());
         assert!(provider.user_id().is_err());
+        assert!(provider.url().is_err());
 
         journey_keyring::release_store();
     }

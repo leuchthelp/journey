@@ -50,6 +50,9 @@ pub enum ProviderError {
     #[error(transparent)]
     #[serde(skip)]
     JellyfinConfigurationError(#[from] JellyfinSDKError),
+    #[error(transparent)]
+    #[serde(skip)]
+    ParseUrlError(#[from] url::ParseError),
 }
 
 pub type ProviderResult<T> = Result<T, ProviderError>;
@@ -58,7 +61,7 @@ pub type ProviderResult<T> = Result<T, ProviderError>;
 pub trait ProviderNew {
     type Provider;
 
-    fn new(params: ProviderParams) -> ProviderResult<Box<Self::Provider>>;
+    fn new(params: ActiveModel) -> ProviderResult<Box<Self::Provider>>;
     async fn authenticate_with_pw(&mut self, uname: String, psw: String) -> ProviderResult<()>;
 }
 
@@ -66,7 +69,7 @@ pub trait ProviderNew {
 pub trait Provider: DynClone + Debug {
     fn user_id(&self) -> ProviderResult<Uuid>;
     fn server_id(&self) -> ProviderResult<Uuid>;
-    fn url(&self) -> ProviderResult<&Url>;
+    fn url(&self) -> ProviderResult<Url>;
     fn type_(&self) -> String {
         return type_name_of_val(self).to_string();
     }
@@ -119,6 +122,7 @@ pub trait Provider: DynClone + Debug {
         if tokens.len() == 0 {
             return Ok(false);
         }
+
         Ok(true)
     }
     async fn invalidate(&mut self) -> ProviderResult<()>;
@@ -141,10 +145,3 @@ pub trait Provider: DynClone + Debug {
 }
 
 clone_trait_object!(Provider);
-
-#[derive(Debug, Eq, PartialEq, Clone)]
-pub struct ProviderParams {
-    pub user_id: Option<Uuid>,
-    pub server_id: Option<Uuid>,
-    pub url: Option<Url>,
-}

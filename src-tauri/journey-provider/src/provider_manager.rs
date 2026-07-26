@@ -5,12 +5,11 @@ use inherent::inherent;
 use journey_db::entity::Providers;
 use journey_db::get_conn;
 use journey_db::sea_orm::EntityTrait;
+use journey_db::sea_orm::IntoActiveModel;
 use std::any::type_name;
 use std::collections::HashMap;
 use thiserror::Error;
-use url::Url;
 
-use crate::ProviderParams;
 use crate::ProviderResult;
 use crate::jellyfin_provider::JellyfinProvider;
 use crate::provider::Provider;
@@ -50,16 +49,10 @@ pub trait ProviderManagerFn {
         let mut known_providers = Providers::find().stream(conn).await?;
 
         while let Some(known) = known_providers.try_next().await? {
-            let params = ProviderParams {
-                url: Some(Url::parse(&known.url)?),
-                user_id: Some(known.user_id),
-                server_id: Some(known.server_id),
-            };
-
             let new_provider: ProviderResult<Box<dyn Provider + Send + Sync>> =
                 match known.kind.as_str() {
                     value if value == type_name::<JellyfinProvider>() => {
-                        Ok(JellyfinProvider::new(params)?)
+                        Ok(JellyfinProvider::new(known.into_active_model())?)
                     }
                     _ => return Err(ProviderManagerError::UnknownProviderKindError),
                 };
@@ -128,8 +121,11 @@ impl ProviderManagerFn for ProviderManager {
 #[cfg(test)]
 mod provider_manager_test {
     use crate::jellyfin_provider::JellyfinProvider;
-    use crate::provider::{Provider, ProviderNew, ProviderParams};
+    use crate::provider::{Provider, ProviderNew};
     use crate::provider_manager::ProviderManager;
+    use journey_db::entity::providers::ActiveModel;
+    use journey_db::sea_orm::ActiveModelTrait;
+    use journey_db::sea_orm::ActiveValue::Set;
     use journey_utils::get_env_local;
     use serial_test::serial;
     use test_log::test;
@@ -138,12 +134,12 @@ mod provider_manager_test {
 
     #[test]
     fn hash_no_login_failure() {
-        let provider = JellyfinProvider::new(ProviderParams {
-            url: Some(Url::parse("http://smth.example.com").unwrap()),
-            user_id: None,
-            server_id: None,
-        })
-        .unwrap();
+        let params = ActiveModel {
+            url: Set(Url::parse("http://smth.example.com").unwrap().into()),
+            ..Default::default()
+        };
+
+        let provider = JellyfinProvider::new(params).unwrap();
 
         let hash = provider.hash();
         assert!(hash.is_err())
@@ -161,12 +157,12 @@ mod provider_manager_test {
         warn!("{}", env_map.var("TEST_JELLYFIN_URL").unwrap());
         let url = env_map.var("TEST_JELLYFIN_URL").unwrap();
 
-        let mut provider = JellyfinProvider::new(ProviderParams {
-            url: Some(Url::parse(&url).unwrap()),
-            user_id: None,
-            server_id: None,
-        })
-        .unwrap();
+        let params = ActiveModel {
+            url: Set(Url::parse(&url).unwrap().into()),
+            ..ActiveModel::default_values()
+        };
+
+        let mut provider = JellyfinProvider::new(params).unwrap();
 
         provider
             .authenticate_with_pw(
