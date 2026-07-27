@@ -1,19 +1,19 @@
 <script lang="ts">
-  import type { ProviderDTO } from "#lib/bindings.ts";
+  import type { ProviderApiError, ProviderDTO } from "#lib/bindings.ts";
   import { strip } from "#lib/components/helpers.ts";
   import { API } from "#lib/proxy.ts";
 
-  const getProvider = async (key?: number): Promise<ProviderDTO | null> => {
-    if (!key) return null;
+  const getProvider = async (key?: number): Promise<ProviderDTO | Error> => {
+    if (!key) return Error("no key yet");
 
     return await API.provider
       .get_provider(key)
       .then((response) => {
         return strip(response);
       })
-      .catch((err) => {
+      .catch((err: ProviderApiError) => {
         console.error(err);
-        return null;
+        return Error(err);
       });
   };
 

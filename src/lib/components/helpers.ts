@@ -5,6 +5,6 @@ export function strip<T, E>(response: TauRpcResult<T, E>) {
     return response.data;
   } else {
     console.error(response.error);
-    return null;
+    return Error(String(response.error));
   }
 }
