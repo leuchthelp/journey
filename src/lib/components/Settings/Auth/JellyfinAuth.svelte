@@ -1,6 +1,7 @@
 <script lang="ts">
+  import type { ProviderDTO } from "#lib/bindings.ts";
+  import { strip } from "#lib/components/helpers.ts";
   import { API } from "#lib/proxy.ts";
-  import { getIndexing } from "#lib/signals/index.svelte";
 
   type Props = {
     key?: number;
@@ -8,20 +9,27 @@
 
   let { key }: Props = $props();
 
+  let success = $state(false);
   let uname = $state("");
   let psw = $state("");
+  let url = $state("");
 
-  let signal = getIndexing();
+  let provider: ProviderDTO | null = $state(null);
 
-  let test = await API.provider.get_provider(key);
-  $inspect(test);
-
-  let provider = $derived((await API.provider.get_provider(key)).data);
-
-  let success = $derived(provider.authenticated);
-  let serverURL = $derived(provider.url);
-
-  $inspect(provider);
+  $effect(() => {
+    if (key)
+      (async () => {
+        provider = await API.provider
+          .get_provider(key)
+          .then((response) => {
+            return strip(response);
+          })
+          .catch((err) => {
+            console.error(err);
+            return null;
+          });
+      })();
+  });
 </script>
 
 <div class="">
@@ -32,8 +40,8 @@
     <button onclick={() => console.debug("no impl")}>Remove Connection</button>
   {:else}
     <form>
-      <label for="serverURL">Server Address</label>
-      <input type="url" required bind:value={serverURL} />
+      <label for="url">Server Address</label>
+      <input type="url" required bind:value={url} />
 
       <label for="uname">Username</label>
       <input required bind:value={uname} />

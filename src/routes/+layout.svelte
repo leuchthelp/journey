@@ -5,8 +5,6 @@
   import ProviderAccordion from "#lib/components/Settings/Provider/ProviderAccordion.svelte";
   import Settings from "#lib/components/Settings/Settings.svelte";
   import { toAuthComponent } from "#lib/snippets/ToAuthComponent.svelte";
-  import { setIndexing } from "#lib/signals/index.svelte.ts";
-  import { setMediaSource } from "#lib/signals/mediaSource.svelte.ts";
   import "@videojs/html/audio/player";
   import "@videojs/html/audio/minimal-skin";
   import "@videojs/html/ui/controls";
@@ -27,12 +25,6 @@
     displayable.push("JellyfinProvider");
   }
 
-  let signal = $state({ value: { type: "", uuid: "" } });
-  setIndexing(signal);
-
-  let src = $state({ url: "" });
-  setMediaSource(src);
-
   let data: ProviderDTO[] = await API.provider
     .get_providers()
     .then((result) => {
@@ -50,7 +42,6 @@
   let providers = $state(data);
 
   $inspect(providers);
-  $inspect(src);
 </script>
 
 <main
@@ -68,7 +59,7 @@
       <Playbar.Skip action={"forward"} seconds={"+15"} />
     </Playbar.Root>
 
-    <audio src={src.url}></audio>
+    <audio src={""}></audio>
   </media-container>
 </audio-player>
 

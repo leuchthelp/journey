@@ -1,12 +1,10 @@
 <script lang="ts">
-  import { getMediaSource } from "#lib/signals/mediaSource.svelte";
   import { store } from "./PlayerControlls.svelte";
 
   let test = $state(store);
-  let src = getMediaSource();
 
   function play() {
-    store.loadSource(src.url);
+    store.loadSource("");
     if (store.canPlay) store.play();
   }
 
