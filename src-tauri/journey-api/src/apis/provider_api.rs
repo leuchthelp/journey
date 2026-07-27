@@ -39,13 +39,11 @@ pub struct ProviderApiImpl {
 #[taurpc::resolvers]
 impl ProviderApi for ProviderApiImpl {
     async fn get_providers(self) -> ProviderApiResult<Vec<ProviderDTO>> {
-        let locked = self.state.lock().await;
-        let providers = locked.provider_manager.get_providers().await?;
+        let providers = self.state.provider_manager.get_providers().await?;
         Ok(providers)
     }
     async fn get_provider(self, key: u64) -> ProviderApiResult<ProviderDTO> {
-        let locked = self.state.lock().await;
-        let provider = locked.provider_manager.get_provider(&key)?;
+        let provider = self.state.provider_manager.get_provider(&key)?;
         Ok(provider)
     }
 }

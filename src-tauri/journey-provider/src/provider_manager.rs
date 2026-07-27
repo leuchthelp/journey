@@ -106,15 +106,6 @@ impl ProviderManagerFn for ProviderManager {
                 .build();
             providers.push(new);
         }
-
-        let new = ProviderDTO::builder()
-            .authenticated(false)
-            .hash(64)
-            .kind("JellyfinProvider".into())
-            .url(Url::parse("https://example.net")?)
-            .build();
-        providers.push(new);
-
         Ok(providers)
     }
     pub fn register(
