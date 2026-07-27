@@ -1,6 +1,6 @@
 use anyhow::Result;
 use journey_db::{entity::ProviderDTO, sea_orm::sqlx::types::Uuid};
-use journey_provider::{ProviderError, ProviderManagerError};
+use journey_provider::{ProviderError, ProviderManagerError, ProviderManagerFn};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::{Url, ipc::Channel};
@@ -29,7 +29,7 @@ type ProviderApiResult<T> = Result<T, ProviderApiError>;
 
 #[taurpc::procedures(path = "provider")]
 pub trait ProviderApi {
-    async fn get_providers(on_event: Channel<ProviderDTO>) -> ProviderApiResult<()>;
+    async fn get_existing_keys() -> ProviderApiResult<Vec<ProviderDTO>>;
 }
 
 #[derive(Clone, Debug)]
@@ -39,39 +39,9 @@ pub struct ProviderApiImpl {
 
 #[taurpc::resolvers]
 impl ProviderApi for ProviderApiImpl {
-    async fn get_providers(self, on_event: Channel<ProviderDTO>) -> ProviderApiResult<()> {
+    async fn get_existing_keys(self) -> ProviderApiResult<Vec<ProviderDTO>> {
         let locked = self.state.lock().await;
-
-        let dto = ProviderDTO {
-            url: Url::parse("https://example.net").unwrap(),
-            kind: "JellyfinProvider".into(),
-            server_id: Uuid::now_v7(),
-            user_id: Uuid::now_v7(),
-            images: None,
-            media_items: None,
-        };
-        warn!("passing providers to frontend");
-        on_event.send(dto)?;
-
-        let providers = locked
-            .provider_manager
-            .get_providers()?
-            .values()
-            .collect::<Vec<&Box<_>>>();
-
-        for provider in providers {
-            let dto = ProviderDTO {
-                url: provider.url()?.clone(),
-                server_id: provider.server_id()?,
-                user_id: provider.user_id()?,
-                kind: provider.type_(),
-                media_items: None,
-                images: None,
-            };
-
-            on_event.send(dto)?;
-        }
-
-        Ok(())
+        let providers = locked.provider_manager.get_existing_keys().await?;
+        Ok(providers)
     }
 }

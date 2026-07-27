@@ -1,4 +1,5 @@
 use anyhow::Result;
+use bon::Builder;
 use inherent::inherent;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -18,6 +19,7 @@ pub struct Model {
     pub server_id: Uuid,
     #[sea_orm(unique)]
     pub user_id: Uuid,
+    pub hash: u64,
     pub kind: String,
     pub url: String,
     #[sea_orm(has_many, via = "jt_media_item_to_provider")]
@@ -29,14 +31,15 @@ pub struct Model {
 impl ActiveModelBehavior for ActiveModel {}
 
 #[taurpc::ipc_type]
-#[derive(Debug)]
+#[derive(Debug, Builder)]
 #[serde(rename_all = "camelCase")]
 pub struct ProviderDTO {
-    pub server_id: Uuid,
-    pub user_id: Uuid,
+    pub hash: u64,
+    pub server_id: Option<Uuid>,
+    pub user_id: Option<Uuid>,
     #[serde(rename = "type")]
     pub kind: String,
-    pub url: Url,
+    pub url: Option<Url>,
     pub media_items: Option<Vec<MediaItemDTO>>,
     pub images: Option<Vec<ImageDTO>>,
 }
@@ -50,10 +53,11 @@ impl Convertible<ModelEx> for ProviderDTO {
         let images = ImageDTO::to_vec(item.images)?;
 
         Ok(ProviderDTO {
-            user_id: item.user_id,
-            server_id: item.server_id,
+            hash: item.hash,
+            user_id: Some(item.user_id),
+            server_id: Some(item.server_id),
             kind: item.kind,
-            url: Url::parse(&item.url)?,
+            url: Some(Url::parse(&item.url)?),
             media_items: parents,
             images: images,
         })

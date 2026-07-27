@@ -33,16 +33,23 @@
   let src = $state({ url: "" });
   setMediaSource(src);
 
-  let providers: ProviderDTO[] = $state([]);
-  $effect(() => {
-    (async () => {
-      await API.provider.get_providers((provider) => {
-        console.warn(provider);
-        providers.push(provider);
-      });
-    })();
-  });
+  let data: ProviderDTO[] = await API.provider
+    .get_existing_keys()
+    .then((result) => {
+      if (result.status == "ok") {
+        return result.data;
+      } else {
+        return [];
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      return [];
+    });
 
+  let providers = $state(data);
+
+  $inspect(providers);
   $inspect(src);
 </script>
 
@@ -81,7 +88,7 @@
             {@render toAuthComponent(type)}
           {/each}
           {#each providers as provider}
-            {@render toAuthComponent(provider.type, provider.serverId)}
+            {@render toAuthComponent(provider.type, String(provider.hash))}
           {/each}
         </ProviderAccordion>
       </ProviderAccordion>

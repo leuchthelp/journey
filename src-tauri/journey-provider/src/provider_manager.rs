@@ -2,7 +2,9 @@ use anyhow::Result;
 use async_trait::async_trait;
 use futures::TryStreamExt;
 use inherent::inherent;
+use journey_db::entity::ProviderDTO;
 use journey_db::entity::Providers;
+use journey_db::entity::providers::Model;
 use journey_db::get_conn;
 use journey_db::sea_orm::EntityTrait;
 use journey_db::sea_orm::IntoActiveModel;
@@ -66,6 +68,27 @@ pub trait ProviderManagerFn {
         &self,
     ) -> ProviderManagerResult<&HashMap<u64, Box<dyn Provider + Send + Sync>>>;
     fn get_provider(&self, key: &u64) -> ProviderManagerResult<&Box<dyn Provider + Send + Sync>>;
+    async fn get_existing_keys(&self) -> ProviderManagerResult<Vec<ProviderDTO>> {
+        let conn = get_conn().await?;
+        let models_task = Providers::find().all(&conn);
+
+        let closure = |model: &Model| -> ProviderDTO {
+            ProviderDTO::builder()
+                .hash(model.hash)
+                .kind(model.kind.clone())
+                .build()
+        };
+
+        let models = models_task.await?;
+        let mut keys = models.iter().map(closure).collect::<Vec<ProviderDTO>>();
+
+        let test_dto = ProviderDTO::builder()
+            .hash(64)
+            .kind("JellyfinProvider".into())
+            .build();
+        keys.push(test_dto);
+        Ok(keys)
+    }
     fn register(&mut self, provider: Box<dyn Provider + Send + Sync>) -> ProviderManagerResult<()>;
     async fn deregister(&mut self, key: &u64) -> ProviderManagerResult<()>;
 }
