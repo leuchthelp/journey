@@ -64,9 +64,6 @@ pub trait ProviderManagerFn {
         }
         Ok(())
     }
-    fn get_providers(
-        &self,
-    ) -> ProviderManagerResult<&HashMap<u64, Box<dyn Provider + Send + Sync>>>;
     fn get_provider(&self, key: &u64) -> ProviderManagerResult<&Box<dyn Provider + Send + Sync>>;
     async fn get_existing_keys(&self) -> ProviderManagerResult<Vec<ProviderDTO>> {
         let conn = get_conn().await?;
@@ -101,14 +98,6 @@ pub struct ProviderManager {
 #[async_trait]
 #[inherent]
 impl ProviderManagerFn for ProviderManager {
-    pub fn get_providers(
-        &self,
-    ) -> ProviderManagerResult<&HashMap<u64, Box<dyn Provider + Send + Sync>>> {
-        if self.variants.is_empty() {
-            return Err(ProviderManagerError::NoProviderError);
-        }
-        Ok(&self.variants)
-    }
     pub fn get_provider(
         &self,
         key: &u64,
