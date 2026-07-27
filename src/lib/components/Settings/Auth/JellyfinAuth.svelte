@@ -1,29 +1,33 @@
 <script lang="ts">
+  import { API } from "#lib/proxy.ts";
   import { getIndexing } from "#lib/signals/index.svelte";
 
   type Props = {
-    userId?: string;
+    key?: number;
   };
 
-  let { userId }: Props = $props();
+  let { key }: Props = $props();
 
   let uname = $state("");
   let psw = $state("");
 
   let signal = getIndexing();
 
-  let provider = $derived.by(() => {
-    console.log(signal);
-  });
+  let test = await API.provider.get_provider(key);
+  $inspect(test);
 
-  let success = $derived(false);
-  let serverURL = $derived("");
+  let provider = $derived((await API.provider.get_provider(key)).data);
+
+  let success = $derived(provider.authenticated);
+  let serverURL = $derived(provider.url);
+
+  $inspect(provider);
 </script>
 
 <div class="">
   {#if success}
     <div>Connected</div>
-    <div>{userId}</div>
+    <div>{key}</div>
     <div>{provider}</div>
     <button onclick={() => console.debug("no impl")}>Remove Connection</button>
   {:else}

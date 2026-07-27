@@ -55,6 +55,7 @@ export type OriginalDTO = {
 export type ProviderApiError = string;
 
 export type ProviderDTO = {
+  authenticated: boolean;
   hash: number;
   serverId: string | null;
   userId: string | null;
@@ -73,7 +74,7 @@ const ARGS_MAP = {
   image: { get_images: [] },
   mediaItem: { get_media_items: [] },
   original: { get_original: [] },
-  provider: { get_existing_keys: [] },
+  provider: { get_provider: ["key"], get_providers: [] },
 };
 
 const RESULT_MAP = {
@@ -81,7 +82,7 @@ const RESULT_MAP = {
   image: { get_images: true },
   mediaItem: { get_media_items: true },
   original: { get_original: true },
-  provider: { get_existing_keys: true },
+  provider: { get_provider: true, get_providers: true },
 };
 
 export type Router = {
@@ -100,9 +101,10 @@ export type Router = {
     get_original: () => Promise<TauRpcResult<OriginalDTO, OriginalApiError>>;
   };
   provider: {
-    get_existing_keys: () => Promise<
-      TauRpcResult<ProviderDTO[], ProviderApiError>
-    >;
+    get_provider: (
+      key: number,
+    ) => Promise<TauRpcResult<ProviderDTO, ProviderApiError>>;
+    get_providers: () => Promise<TauRpcResult<ProviderDTO[], ProviderApiError>>;
   };
 };
 export const createTauRPCProxy = () =>

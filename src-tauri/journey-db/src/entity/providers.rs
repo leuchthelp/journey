@@ -34,6 +34,7 @@ impl ActiveModelBehavior for ActiveModel {}
 #[derive(Debug, Builder)]
 #[serde(rename_all = "camelCase")]
 pub struct ProviderDTO {
+    pub authenticated: bool,
     pub hash: u64,
     pub server_id: Option<Uuid>,
     pub user_id: Option<Uuid>,
@@ -53,6 +54,7 @@ impl Convertible<ModelEx> for ProviderDTO {
         let images = ImageDTO::to_vec(item.images)?;
 
         Ok(ProviderDTO {
+            authenticated: false,
             hash: item.hash,
             user_id: Some(item.user_id),
             server_id: Some(item.server_id),

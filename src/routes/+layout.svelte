@@ -34,7 +34,7 @@
   setMediaSource(src);
 
   let data: ProviderDTO[] = await API.provider
-    .get_existing_keys()
+    .get_providers()
     .then((result) => {
       if (result.status == "ok") {
         return result.data;
@@ -88,7 +88,7 @@
             {@render toAuthComponent(type)}
           {/each}
           {#each providers as provider}
-            {@render toAuthComponent(provider.type, String(provider.hash))}
+            {@render toAuthComponent(provider.type, provider.hash)}
           {/each}
         </ProviderAccordion>
       </ProviderAccordion>

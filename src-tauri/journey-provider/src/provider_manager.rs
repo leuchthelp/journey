@@ -4,13 +4,13 @@ use futures::TryStreamExt;
 use inherent::inherent;
 use journey_db::entity::ProviderDTO;
 use journey_db::entity::Providers;
-use journey_db::entity::providers::Model;
 use journey_db::get_conn;
 use journey_db::sea_orm::EntityTrait;
 use journey_db::sea_orm::IntoActiveModel;
 use std::any::type_name;
 use std::collections::HashMap;
 use thiserror::Error;
+use url::Url;
 
 use crate::ProviderResult;
 use crate::jellyfin_provider::JellyfinProvider;
@@ -64,28 +64,8 @@ pub trait ProviderManagerFn {
         }
         Ok(())
     }
-    fn get_provider(&self, key: &u64) -> ProviderManagerResult<&Box<dyn Provider + Send + Sync>>;
-    async fn get_existing_keys(&self) -> ProviderManagerResult<Vec<ProviderDTO>> {
-        let conn = get_conn().await?;
-        let models_task = Providers::find().all(&conn);
-
-        let closure = |model: &Model| -> ProviderDTO {
-            ProviderDTO::builder()
-                .hash(model.hash)
-                .kind(model.kind.clone())
-                .build()
-        };
-
-        let models = models_task.await?;
-        let mut keys = models.iter().map(closure).collect::<Vec<ProviderDTO>>();
-
-        let test_dto = ProviderDTO::builder()
-            .hash(64)
-            .kind("JellyfinProvider".into())
-            .build();
-        keys.push(test_dto);
-        Ok(keys)
-    }
+    fn get_provider(&self, key: &u64) -> ProviderManagerResult<ProviderDTO>;
+    async fn get_providers(&self) -> ProviderManagerResult<Vec<ProviderDTO>>;
     fn register(&mut self, provider: Box<dyn Provider + Send + Sync>) -> ProviderManagerResult<()>;
     async fn deregister(&mut self, key: &u64) -> ProviderManagerResult<()>;
 }
@@ -98,17 +78,51 @@ pub struct ProviderManager {
 #[async_trait]
 #[inherent]
 impl ProviderManagerFn for ProviderManager {
-    pub fn get_provider(
-        &self,
-        key: &u64,
-    ) -> ProviderManagerResult<&Box<dyn Provider + Send + Sync>> {
+    pub fn get_provider(&self, key: &u64) -> ProviderManagerResult<ProviderDTO> {
         let provider = self.variants.get(key);
+        let new = ProviderDTO::builder()
+            .authenticated(false)
+            .hash(64)
+            .kind("JellyfinProvider".into())
+            .url(Url::parse("https://example.net")?)
+            .build();
+        
 
-        if provider.is_none() {
-            return Err(ProviderManagerError::NoProviderError);
+        // if provider.is_none() {
+        //     return Err(ProviderManagerError::NoProviderError);
+        // }
+
+        // let provider = provider.unwrap();
+        // let provider = ProviderDTO::builder()
+        //     .authenticated(provider.authenticated()?)
+        //     .hash(provider.hash()?)
+        //     .kind(provider.type_())
+        //     .build();
+
+        Ok(new)
+    }
+    pub async fn get_providers(&self) -> ProviderManagerResult<Vec<ProviderDTO>> {
+        let mut providers: Vec<ProviderDTO> = vec![];
+
+        for (_, provider) in &self.variants {
+            let new = ProviderDTO::builder()
+                .authenticated(provider.authenticated()?)
+                .hash(provider.hash()?)
+                .kind(provider.type_())
+                .url(provider.url()?)
+                .build();
+            providers.push(new);
         }
 
-        Ok(provider.unwrap())
+        let new = ProviderDTO::builder()
+            .authenticated(false)
+            .hash(64)
+            .kind("JellyfinProvider".into())
+            .url(Url::parse("https://example.net")?)
+            .build();
+        providers.push(new);
+
+        Ok(providers)
     }
     pub fn register(
         &mut self,
@@ -192,9 +206,8 @@ mod provider_manager_test {
         let provider = provider_manager.get_provider(&key).unwrap();
 
         warn!(
-            "user_id: {}, server_id: {}",
-            provider.user_id().unwrap(),
-            provider.server_id().unwrap()
+            "user_id: {:#?}, server_id: {:#?}",
+            provider.user_id, provider.server_id
         );
         provider_manager.deregister(&key).await.unwrap();
 
