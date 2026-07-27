@@ -80,26 +80,19 @@ pub struct ProviderManager {
 impl ProviderManagerFn for ProviderManager {
     pub fn get_provider(&self, key: &u64) -> ProviderManagerResult<ProviderDTO> {
         let provider = self.variants.get(key);
-        let new = ProviderDTO::builder()
-            .authenticated(false)
-            .hash(64)
-            .kind("JellyfinProvider".into())
-            .url(Url::parse("https://example.net")?)
+
+        if provider.is_none() {
+            return Err(ProviderManagerError::NoProviderError);
+        }
+
+        let provider = provider.unwrap();
+        let provider = ProviderDTO::builder()
+            .authenticated(provider.authenticated()?)
+            .hash(provider.hash()?)
+            .kind(provider.type_())
             .build();
-        
 
-        // if provider.is_none() {
-        //     return Err(ProviderManagerError::NoProviderError);
-        // }
-
-        // let provider = provider.unwrap();
-        // let provider = ProviderDTO::builder()
-        //     .authenticated(provider.authenticated()?)
-        //     .hash(provider.hash()?)
-        //     .kind(provider.type_())
-        //     .build();
-
-        Ok(new)
+        Ok(provider)
     }
     pub async fn get_providers(&self) -> ProviderManagerResult<Vec<ProviderDTO>> {
         let mut providers: Vec<ProviderDTO> = vec![];
