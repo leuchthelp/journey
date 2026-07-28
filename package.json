@@ -14,7 +14,7 @@
     "generate": "dx drizzle-kit generate && deno ./src/lib/db/compile-migrations.ts"
   },
   "dependencies": {
-    "@lucide/svelte": "^1.26.0",
+    "@lucide/svelte": "^1.27.0",
     "@sveltejs/adapter-static": "^4.0.0-next.1",
     "@sveltejs/enhanced-img": "^1.0.0-next.2",
     "@sveltejs/kit": "3.0.0-next.11",
@@ -23,7 +23,7 @@
     "@tauri-apps/plugin-fs": "~2.5.1",
     "@tauri-apps/plugin-os": "^2.3.2",
     "@tauri-apps/plugin-window-state": "^2.4.1",
-    "@types/node": "26.1.1",
+    "@types/node": "26.1.2",
     "@videojs/core": "^10.0.0-beta.25",
     "@videojs/html": "^10.0.0-beta.25",
     "@videojs/store": "^10.0.0-beta.25",
@@ -44,7 +44,7 @@
     "prettier-plugin-svelte": "^4.1.1",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "svelte": "^5.56.8",
-    "svelte-check": "^4.7.3",
+    "svelte-check": "^4.7.4",
     "vite": "^8.1.5"
   },
   "imports": { "#lib": "./src/lib/index.ts", "#lib/*": "./src/lib/*" }

@@ -3,6 +3,24 @@
   import { strip } from "#lib/components/helpers.ts";
   import { API } from "#lib/proxy.ts";
 
+  const authenticateProvider = async (
+    url: string,
+    uname: string,
+    psw: string,
+  ) => {
+    let response = await API.provider
+      .password_auth(url, "JellyfinProvider", uname, psw)
+      .then((response) => {
+        return strip(response);
+      })
+      .catch((err: ProviderApiError) => {
+        console.error(err);
+        return Error(err);
+      });
+
+    if (response == null) success = true;
+  };
+
   const getProvider = async (key?: number): Promise<ProviderDTO | Error> => {
     if (!key) return Error("no key yet");
 
@@ -53,7 +71,10 @@
         <label for="psw">Password</label>
         <input type="password" required bind:value={psw} />
 
-        <button onclick={async () => console.debug("no impl")}>Connect</button>
+        <button
+          onclick={async () => await authenticateProvider(url, uname, psw)}
+          >Connect</button
+        >
       </form>
     {/if}
   {/await}

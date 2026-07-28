@@ -40,7 +40,6 @@ pub struct JellyfinProvider {
     pub(crate) device_info: DeviceInfo,
 }
 
-#[async_trait]
 impl ProviderNew for JellyfinProvider {
     type Provider = JellyfinProvider;
 
@@ -69,8 +68,38 @@ impl ProviderNew for JellyfinProvider {
             device_info,
         }))
     }
+}
 
-    async fn authenticate_with_pw(&mut self, uname: String, psw: String) -> ProviderResult<()> {
+#[async_trait]
+#[inherent]
+impl Provider for JellyfinProvider {
+    pub fn user_id(&self) -> ProviderResult<Uuid> {
+        let model = self.params.clone().try_into_model()?;
+
+        match model.user_id {
+            user_id if user_id != Uuid::nil() => Ok(user_id),
+            _ => Err(JellyfinProviderError::MissingServerIdError.into()),
+        }
+    }
+
+    pub fn server_id(&self) -> ProviderResult<Uuid> {
+        let model = self.params.clone().try_into_model()?;
+
+        match model.server_id {
+            server_id if server_id != Uuid::nil() => Ok(server_id),
+            _ => Err(JellyfinProviderError::MissingServerIdError.into()),
+        }
+    }
+
+    pub fn url(&self) -> ProviderResult<Url> {
+        let model = self.params.clone().try_into_model();
+        match model {
+            Ok(model) => Ok(Url::parse(&model.url)?),
+            Err(_) => Err(JellyfinProviderError::MissingUrlError.into()),
+        }
+    }
+
+    pub async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<()> {
         if self.authenticated()? {
             return Ok(());
         }
@@ -106,36 +135,6 @@ impl ProviderNew for JellyfinProvider {
         self.save_token(&access_token)?;
         self.config = Some(client_config);
         Ok(())
-    }
-}
-
-#[async_trait]
-#[inherent]
-impl Provider for JellyfinProvider {
-    pub fn user_id(&self) -> ProviderResult<Uuid> {
-        let model = self.params.clone().try_into_model()?;
-
-        match model.user_id {
-            user_id if user_id != Uuid::nil() => Ok(user_id),
-            _ => Err(JellyfinProviderError::MissingServerIdError.into()),
-        }
-    }
-
-    pub fn server_id(&self) -> ProviderResult<Uuid> {
-        let model = self.params.clone().try_into_model()?;
-
-        match model.server_id {
-            server_id if server_id != Uuid::nil() => Ok(server_id),
-            _ => Err(JellyfinProviderError::MissingServerIdError.into()),
-        }
-    }
-
-    pub fn url(&self) -> ProviderResult<Url> {
-        let model = self.params.clone().try_into_model();
-        match model {
-            Ok(model) => Ok(Url::parse(&model.url)?),
-            Err(_) => Err(JellyfinProviderError::MissingUrlError.into()),
-        }
     }
 
     pub async fn invalidate(&mut self) -> ProviderResult<()> {
@@ -245,7 +244,7 @@ mod variant_jellyfin {
         assert!(provider.url().is_ok());
 
         provider
-            .authenticate_with_pw(
+            .password_auth(
                 env_map.var("TEST_JELLYFIN_USER").unwrap(),
                 env_map.var("TEST_JELLYFIN_PW").unwrap(),
             )

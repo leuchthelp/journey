@@ -5,12 +5,14 @@ use inherent::inherent;
 use journey_db::entity::ProviderDTO;
 use journey_db::entity::Providers;
 use journey_db::get_conn;
+use journey_db::sea_orm::ActiveModelTrait;
 use journey_db::sea_orm::EntityTrait;
 use journey_db::sea_orm::IntoActiveModel;
+use journey_db::{entity::providers::ActiveModel, sea_orm::ActiveValue::Set};
 use std::any::type_name;
 use std::collections::HashMap;
 use thiserror::Error;
-use url::Url;
+use tracing::warn;
 
 use crate::ProviderResult;
 use crate::jellyfin_provider::JellyfinProvider;
@@ -66,6 +68,32 @@ pub trait ProviderManagerFn {
     }
     fn get_provider(&self, key: &u64) -> ProviderManagerResult<ProviderDTO>;
     async fn get_providers(&self) -> ProviderManagerResult<Vec<ProviderDTO>>;
+    async fn password_auth(
+        &mut self,
+        url: String,
+        kind: String,
+        uname: String,
+        psw: String,
+    ) -> ProviderManagerResult<()> {
+        let model = ActiveModel {
+            url: Set(url),
+            ..ActiveModel::default_values()
+        };
+
+        warn!("{}", kind);
+
+        let provider: Result<Box<dyn Provider + Send + Sync>, ProviderManagerError> = match kind
+            .as_str()
+        {
+            value if value == type_name::<JellyfinProvider>() => Ok(JellyfinProvider::new(model)?),
+            _ => return Err(ProviderManagerError::UnknownProviderKindError),
+        };
+
+        let mut provider = provider?;
+        provider.password_auth(uname, psw).await?;
+        self.register(provider)?;
+        Ok(())
+    }
     fn register(&mut self, provider: Box<dyn Provider + Send + Sync>) -> ProviderManagerResult<()>;
     async fn deregister(&mut self, key: &u64) -> ProviderManagerResult<()>;
 }
@@ -175,7 +203,7 @@ mod provider_manager_test {
         let mut provider = JellyfinProvider::new(params).unwrap();
 
         provider
-            .authenticate_with_pw(
+            .password_auth(
                 env_map.var("TEST_JELLYFIN_USER").unwrap(),
                 env_map.var("TEST_JELLYFIN_PW").unwrap(),
             )

@@ -57,12 +57,10 @@ pub enum ProviderError {
 
 pub type ProviderResult<T> = Result<T, ProviderError>;
 
-#[async_trait]
 pub trait ProviderNew {
     type Provider;
 
     fn new(params: ActiveModel) -> ProviderResult<Box<Self::Provider>>;
-    async fn authenticate_with_pw(&mut self, uname: String, psw: String) -> ProviderResult<()>;
 }
 
 #[async_trait]
@@ -125,6 +123,7 @@ pub trait Provider: DynClone + Debug {
 
         Ok(true)
     }
+    async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<()>;
     async fn invalidate(&mut self) -> ProviderResult<()>;
     async fn add_to_db(&self) -> ProviderResult<()> {
         let provider = ActiveModel {

@@ -1,6 +1,6 @@
 use anyhow::Result;
 use journey_db::entity::ProviderDTO;
-use journey_provider::{ProviderError, ProviderManagerError};
+use journey_provider::{ProviderError, ProviderManagerError, ProviderManagerFn};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use thiserror::Error;
@@ -29,6 +29,12 @@ type ProviderApiResult<T> = Result<T, ProviderApiError>;
 pub trait ProviderApi {
     async fn get_providers() -> ProviderApiResult<Vec<ProviderDTO>>;
     async fn get_provider(key: u64) -> ProviderApiResult<ProviderDTO>;
+    async fn password_auth(
+        url: String,
+        kind: String,
+        uname: String,
+        psw: String,
+    ) -> ProviderApiResult<()>;
 }
 
 #[derive(Clone, Debug)]
@@ -39,11 +45,27 @@ pub struct ProviderApiImpl {
 #[taurpc::resolvers]
 impl ProviderApi for ProviderApiImpl {
     async fn get_providers(self) -> ProviderApiResult<Vec<ProviderDTO>> {
-        let providers = self.state.provider_manager.get_providers().await?;
+        let lock = self.state.lock().await;
+        let providers = lock.provider_manager.get_providers().await?;
         Ok(providers)
     }
     async fn get_provider(self, key: u64) -> ProviderApiResult<ProviderDTO> {
-        let provider = self.state.provider_manager.get_provider(&key)?;
+        let lock = self.state.lock().await;
+        let provider = lock.provider_manager.get_provider(&key)?;
         Ok(provider)
+    }
+    async fn password_auth(
+        self,
+        url: String,
+        kind: String,
+        uname: String,
+        psw: String,
+    ) -> ProviderApiResult<()> {
+        let mut lock = self.state.lock().await;
+
+        lock.provider_manager
+            .password_auth(url, kind, uname, psw)
+            .await?;
+        Ok(())
     }
 }
