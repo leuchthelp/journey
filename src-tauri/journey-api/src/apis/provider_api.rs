@@ -45,12 +45,12 @@ pub struct ProviderApiImpl {
 #[taurpc::resolvers]
 impl ProviderApi for ProviderApiImpl {
     async fn get_providers(self) -> ProviderApiResult<Vec<ProviderDTO>> {
-        let lock = self.state.lock().await;
+        let lock = self.state.read().await;
         let providers = lock.provider_manager.get_providers().await?;
         Ok(providers)
     }
     async fn get_provider(self, key: u64) -> ProviderApiResult<ProviderDTO> {
-        let lock = self.state.lock().await;
+        let lock = self.state.read().await;
         let provider = lock.provider_manager.get_provider(&key)?;
         Ok(provider)
     }
@@ -61,8 +61,7 @@ impl ProviderApi for ProviderApiImpl {
         uname: String,
         psw: String,
     ) -> ProviderApiResult<()> {
-        let mut lock = self.state.lock().await;
-
+        let mut lock = self.state.write().await;
         lock.provider_manager
             .password_auth(url, kind, uname, psw)
             .await?;
