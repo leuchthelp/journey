@@ -19,10 +19,10 @@ use uuid::Uuid;
 
 use crate::jellyfin::jellyfin_provider::JellyfinProviderError;
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use specta::Type;
 
-#[derive(Debug, Error, Serialize, Deserialize, Type)]
+#[derive(Debug, Error, Serialize, Type)]
 pub enum ProviderError {
     #[error("Failed to save access token to native keyring: {0}")]
     #[serde(skip)]

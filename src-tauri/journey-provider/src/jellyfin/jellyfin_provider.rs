@@ -17,10 +17,10 @@ use uuid::Uuid;
 
 use crate::provider::{Provider, ProviderNew, ProviderResult};
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use specta::Type;
 
-#[derive(Debug, Error, Serialize, Deserialize, Type)]
+#[derive(Debug, Error, Serialize, Type)]
 pub enum JellyfinProviderError {
     #[error("Failed to retrieve Jellyfin API response entry.")]
     ApiEntryRetrievalError,
@@ -44,6 +44,7 @@ impl ProviderNew for JellyfinProvider {
     type Provider = JellyfinProvider;
 
     fn new(params: ActiveModel) -> ProviderResult<Box<Self>> {
+
         let client_info = ClientInfo {
             name: get_env_prod()?.var("VITE_JOURNEY_NAME")?,
             version: get_env_prod()?.var("VITE_JOURNEY_VERSION")?.to_string(),

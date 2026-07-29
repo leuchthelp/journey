@@ -1,14 +1,14 @@
 use anyhow::Result;
 use journey_db::entity::ProviderDTO;
 use journey_provider::{ProviderError, ProviderManagerError, ProviderManagerFn};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
 use tokio::sync::TryLockError;
 
 use crate::AppState;
 
-#[derive(Debug, Error, Serialize, Deserialize, Type)]
+#[derive(Debug, Error, Serialize, Type)]
 #[specta(type = String)]
 pub enum ProviderApiError {
     #[error(transparent)]

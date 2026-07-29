@@ -9,7 +9,6 @@ use journey_db::sea_orm::ActiveModelTrait;
 use journey_db::sea_orm::EntityTrait;
 use journey_db::sea_orm::IntoActiveModel;
 use journey_db::{entity::providers::ActiveModel, sea_orm::ActiveValue::Set};
-use std::any::type_name;
 use std::collections::HashMap;
 use thiserror::Error;
 use tracing::warn;
@@ -19,10 +18,10 @@ use crate::jellyfin_provider::JellyfinProvider;
 use crate::provider::Provider;
 use crate::provider::ProviderError;
 use crate::provider::ProviderNew;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use specta::Type;
 
-#[derive(Debug, Error, Serialize, Deserialize, Type)]
+#[derive(Debug, Error, Serialize, Type)]
 pub enum ProviderManagerError {
     #[error("No providers registered yet. Please add some first")]
     NoProviderError,
@@ -55,7 +54,7 @@ pub trait ProviderManagerFn {
         while let Some(known) = known_providers.try_next().await? {
             let new_provider: ProviderResult<Box<dyn Provider + Send + Sync>> =
                 match known.kind.as_str() {
-                    value if value == type_name::<JellyfinProvider>() => {
+                    value if value == "JellyfinProvider" => {
                         Ok(JellyfinProvider::new(known.into_active_model())?)
                     }
                     _ => return Err(ProviderManagerError::UnknownProviderKindError),
@@ -82,12 +81,11 @@ pub trait ProviderManagerFn {
 
         warn!("{}", kind);
 
-        let provider: Result<Box<dyn Provider + Send + Sync>, ProviderManagerError> = match kind
-            .as_str()
-        {
-            value if value == type_name::<JellyfinProvider>() => Ok(JellyfinProvider::new(model)?),
-            _ => return Err(ProviderManagerError::UnknownProviderKindError),
-        };
+        let provider: Result<Box<dyn Provider + Send + Sync>, ProviderManagerError> =
+            match kind.as_str() {
+                value if value == "JellyfinProvider" => Ok(JellyfinProvider::new(model)?),
+                _ => return Err(ProviderManagerError::UnknownProviderKindError),
+            };
 
         let mut provider = provider?;
         provider.password_auth(uname, psw).await?;
