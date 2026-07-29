@@ -19,7 +19,8 @@ pub struct Model {
     pub server_id: Uuid,
     #[sea_orm(unique)]
     pub user_id: Uuid,
-    pub hash: u64,
+    #[sea_orm(column_type = "BigInteger")]
+    pub hash: i64,
     pub kind: String,
     pub url: String,
     #[sea_orm(has_many, via = "jt_media_item_to_provider")]
@@ -35,7 +36,7 @@ impl ActiveModelBehavior for ActiveModel {}
 #[serde(rename_all = "camelCase")]
 pub struct ProviderDTO {
     pub authenticated: bool,
-    pub hash: u64,
+    pub hash: i64,
     pub server_id: Option<Uuid>,
     pub user_id: Option<Uuid>,
     #[serde(rename = "type")]

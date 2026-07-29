@@ -116,7 +116,7 @@ impl ProviderManagerFn for ProviderManager {
         let provider = provider.unwrap();
         let provider = ProviderDTO::builder()
             .authenticated(provider.authenticated()?)
-            .hash(provider.hash()?)
+            .hash(provider.hash()?.try_into().unwrap())
             .kind(provider.type_())
             .build();
 
@@ -128,7 +128,7 @@ impl ProviderManagerFn for ProviderManager {
         for (_, provider) in &self.variants {
             let new = ProviderDTO::builder()
                 .authenticated(provider.authenticated()?)
-                .hash(provider.hash()?)
+                .hash(provider.hash()?.try_into().unwrap())
                 .kind(provider.type_())
                 .url(provider.url()?)
                 .build();

@@ -129,7 +129,7 @@ pub trait Provider: DynClone + Debug {
         let provider = ActiveModel {
             user_id: Set(self.user_id()?),
             server_id: Set(self.server_id()?),
-            hash: Set(self.hash()?),
+            hash: Set(self.hash()?.try_into().unwrap()),
             kind: Set(self.type_()),
             url: Set(self.url()?.to_string()),
         };
