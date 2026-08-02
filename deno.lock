@@ -2,7 +2,7 @@
   "version": "5",
   "specifiers": {
     "npm:@lucide/svelte@^1.27.0": "1.27.0_svelte@5.56.8",
-    "npm:@sveltejs/adapter-static@^4.0.0-next.1": "4.0.0-next.1_@sveltejs+kit@3.0.0-next.11__@sveltejs+vite-plugin-svelte@7.2.0___svelte@5.56.8___vite@8.1.5____@types+node@26.1.2___@types+node@26.1.2__svelte@5.56.8__typescript@7.0.2__vite@8.1.5___@types+node@26.1.2__@types+node@26.1.2_@types+node@26.1.2_typescript@7.0.2",
+    "npm:@sveltejs/adapter-static@^4.0.0-next.2": "4.0.0-next.2_@sveltejs+kit@3.0.0-next.11__@sveltejs+vite-plugin-svelte@7.2.0___svelte@5.56.8___vite@8.1.5____@types+node@26.1.2___@types+node@26.1.2__svelte@5.56.8__typescript@7.0.2__vite@8.1.5___@types+node@26.1.2__@types+node@26.1.2",
     "npm:@sveltejs/enhanced-img@^1.0.0-next.2": "1.0.0-next.2_@sveltejs+vite-plugin-svelte@7.2.0__svelte@5.56.8__vite@8.1.5___@types+node@26.1.2__@types+node@26.1.2_svelte@5.56.8_vite@8.1.5__@types+node@26.1.2_@types+node@26.1.2",
     "npm:@sveltejs/kit@3.0.0-next.11": "3.0.0-next.11_@sveltejs+vite-plugin-svelte@7.2.0__svelte@5.56.8__vite@8.1.5___@types+node@26.1.2__@types+node@26.1.2_svelte@5.56.8_typescript@7.0.2_vite@8.1.5__@types+node@26.1.2_@types+node@26.1.2",
     "npm:@sveltejs/vite-plugin-svelte@^7.2.0": "7.2.0_svelte@5.56.8_vite@8.1.5__@types+node@26.1.2_@types+node@26.1.2",
@@ -381,8 +381,8 @@
         "acorn"
       ]
     },
-    "@sveltejs/adapter-static@4.0.0-next.1_@sveltejs+kit@3.0.0-next.11__@sveltejs+vite-plugin-svelte@7.2.0___svelte@5.56.8___vite@8.1.5____@types+node@26.1.2___@types+node@26.1.2__svelte@5.56.8__typescript@7.0.2__vite@8.1.5___@types+node@26.1.2__@types+node@26.1.2_@types+node@26.1.2_typescript@7.0.2": {
-      "integrity": "sha512-B8Go4HflODgz7wjwblL4KCg8nlIB5Twj0LZOTULai7ssfs/yKaPQxtQphwn5zrbo+k7gLL/ddf+Ak4BmsYYwmw==",
+    "@sveltejs/adapter-static@4.0.0-next.2_@sveltejs+kit@3.0.0-next.11__@sveltejs+vite-plugin-svelte@7.2.0___svelte@5.56.8___vite@8.1.5____@types+node@26.1.2___@types+node@26.1.2__svelte@5.56.8__typescript@7.0.2__vite@8.1.5___@types+node@26.1.2__@types+node@26.1.2": {
+      "integrity": "sha512-j21jhbCVftKt4HAzcKp9XMjSqebtKwIRtKZKpqSBk+fl6S2B6ad6Ybf0vHJ6MjKKBWSBGLtXQuDS+lgHNkos9w==",
       "dependencies": [
         "@sveltejs/kit"
       ]
@@ -1476,7 +1476,7 @@
     "packageJson": {
       "dependencies": [
         "npm:@lucide/svelte@^1.27.0",
-        "npm:@sveltejs/adapter-static@^4.0.0-next.1",
+        "npm:@sveltejs/adapter-static@^4.0.0-next.2",
         "npm:@sveltejs/enhanced-img@^1.0.0-next.2",
         "npm:@sveltejs/kit@3.0.0-next.11",
         "npm:@sveltejs/vite-plugin-svelte@^7.2.0",
