@@ -73,7 +73,7 @@ pub trait Provider: DynClone + Debug {
     }
     fn save_token(&self, access_token: &String) -> ProviderResult<()> {
         let token_entry = Entry::new(
-            &get_env_prod()?.var("VITE_JOURNEY_NAME")?,
+            &get_env_prod()?.var("VITE_PRODUCT_NAME")?,
             format!("{}-{}", self.server_id()?, self.user_id()?).as_str(),
         )?;
         token_entry.set_password(&access_token)?;

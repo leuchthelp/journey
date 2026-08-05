@@ -44,10 +44,9 @@ impl ProviderNew for JellyfinProvider {
     type Provider = JellyfinProvider;
 
     fn new(params: ActiveModel) -> ProviderResult<Box<Self>> {
-
         let client_info = ClientInfo {
-            name: get_env_prod()?.var("VITE_JOURNEY_NAME")?,
-            version: get_env_prod()?.var("VITE_JOURNEY_VERSION")?.to_string(),
+            name: get_env_prod()?.var("VITE_PRODUCT_NAME")?,
+            version: get_env_prod()?.var("VITE_PRODUCT_VERSION")?,
         };
 
         let device_info = DeviceInfo {

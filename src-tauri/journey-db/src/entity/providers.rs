@@ -2,7 +2,6 @@ use anyhow::Result;
 use bon::Builder;
 use inherent::inherent;
 use sea_orm::entity::prelude::*;
-use serde::{Deserialize, Serialize};
 use url::Url;
 use uuid::Uuid;
 
@@ -12,14 +11,13 @@ use crate::{
 };
 
 #[sea_orm::model]
-#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
 #[sea_orm(table_name = "providers")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub server_id: Uuid,
     #[sea_orm(unique)]
     pub user_id: Uuid,
-    #[sea_orm(column_type = "BigInteger")]
     pub hash: i64,
     pub kind: String,
     pub url: String,

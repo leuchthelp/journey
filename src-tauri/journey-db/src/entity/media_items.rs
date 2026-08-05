@@ -3,11 +3,10 @@ use crate::entity::{ContentDTO, ImageDTO, OriginalDTO, ProviderDTO};
 use anyhow::Result;
 use inherent::inherent;
 use sea_orm::entity::prelude::*;
-use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[sea_orm::model]
-#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
 #[sea_orm(table_name = "media_items")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
