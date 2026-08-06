@@ -79,7 +79,14 @@
             {@render toAuthComponent(type)}
           {/each}
           {#each providers as provider}
-            {@render toAuthComponent(provider.type, provider.hash)}
+            {#if provider.userId && provider.serverId}
+              {@render toAuthComponent(provider.type, [
+                provider.userId,
+                provider.serverId,
+              ])}
+            {:else}
+              error
+            {/if}
           {/each}
         </ProviderAccordion>
       </ProviderAccordion>

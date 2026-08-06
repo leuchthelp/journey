@@ -18,7 +18,6 @@ pub struct Model {
     pub server_id: Uuid,
     #[sea_orm(unique)]
     pub user_id: Uuid,
-    pub hash: i64,
     pub kind: String,
     pub url: String,
     #[sea_orm(has_many, via = "jt_media_item_to_provider")]
@@ -34,7 +33,6 @@ impl ActiveModelBehavior for ActiveModel {}
 #[serde(rename_all = "camelCase")]
 pub struct ProviderDTO {
     pub authenticated: bool,
-    pub hash: i64,
     pub server_id: Option<Uuid>,
     pub user_id: Option<Uuid>,
     #[serde(rename = "type")]
@@ -54,7 +52,6 @@ impl Convertible<ModelEx> for ProviderDTO {
 
         Ok(ProviderDTO {
             authenticated: false,
-            hash: item.hash,
             user_id: Some(item.user_id),
             server_id: Some(item.server_id),
             kind: item.kind,

@@ -9,9 +9,10 @@ use journey_db::sea_orm::ActiveModelTrait;
 use journey_db::sea_orm::EntityTrait;
 use journey_db::sea_orm::IntoActiveModel;
 use journey_db::{entity::providers::ActiveModel, sea_orm::ActiveValue::Set};
-use std::collections::HashMap;
+use rapidhash::RapidHashMap;
 use thiserror::Error;
 use tracing::warn;
+use uuid::Uuid;
 
 use crate::ProviderResult;
 use crate::jellyfin_provider::JellyfinProvider;
@@ -65,7 +66,7 @@ pub trait ProviderManagerFn {
         }
         Ok(())
     }
-    fn get_provider(&self, key: &u64) -> ProviderManagerResult<ProviderDTO>;
+    fn get_provider(&self, key: &(Uuid, Uuid)) -> ProviderManagerResult<ProviderDTO>;
     async fn get_providers(&self) -> ProviderManagerResult<Vec<ProviderDTO>>;
     async fn password_auth(
         &mut self,
@@ -73,7 +74,7 @@ pub trait ProviderManagerFn {
         kind: String,
         uname: String,
         psw: String,
-    ) -> ProviderManagerResult<()> {
+    ) -> ProviderManagerResult<(Uuid, Uuid)> {
         let model = ActiveModel {
             url: Set(url),
             ..ActiveModel::default_values()
@@ -89,22 +90,24 @@ pub trait ProviderManagerFn {
 
         let mut provider = provider?;
         provider.password_auth(uname, psw).await?;
+
+        let key = provider.key()?;
         self.register(provider)?;
-        Ok(())
+        Ok(key)
     }
     fn register(&mut self, provider: Box<dyn Provider + Send + Sync>) -> ProviderManagerResult<()>;
-    async fn deregister(&mut self, key: &u64) -> ProviderManagerResult<()>;
+    async fn deregister(&mut self, key: &(Uuid, Uuid)) -> ProviderManagerResult<()>;
 }
 
 #[derive(Default, Clone, Debug)]
 pub struct ProviderManager {
-    pub(crate) variants: HashMap<u64, Box<dyn Provider + Send + Sync>>,
+    pub(crate) variants: RapidHashMap<(Uuid, Uuid), Box<dyn Provider + Send + Sync>>,
 }
 
 #[async_trait]
 #[inherent]
 impl ProviderManagerFn for ProviderManager {
-    pub fn get_provider(&self, key: &u64) -> ProviderManagerResult<ProviderDTO> {
+    pub fn get_provider(&self, key: &(Uuid, Uuid)) -> ProviderManagerResult<ProviderDTO> {
         let provider = self.variants.get(key);
 
         if provider.is_none() {
@@ -114,7 +117,6 @@ impl ProviderManagerFn for ProviderManager {
         let provider = provider.unwrap();
         let provider = ProviderDTO::builder()
             .authenticated(provider.authenticated()?)
-            .hash(provider.hash()?.try_into().unwrap())
             .kind(provider.type_())
             .build();
 
@@ -126,7 +128,6 @@ impl ProviderManagerFn for ProviderManager {
         for (_, provider) in &self.variants {
             let new = ProviderDTO::builder()
                 .authenticated(provider.authenticated()?)
-                .hash(provider.hash()?.try_into().unwrap())
                 .kind(provider.type_())
                 .url(provider.url()?)
                 .build();
@@ -139,12 +140,12 @@ impl ProviderManagerFn for ProviderManager {
         provider: Box<dyn Provider + Send + Sync>,
     ) -> ProviderManagerResult<()> {
         if provider.authenticated()? {
-            self.variants.insert(provider.hash()?, provider);
+            self.variants.insert(provider.key()?, provider);
             return Ok(());
         }
         Err(ProviderManagerError::RegisterError)
     }
-    pub async fn deregister(&mut self, key: &u64) -> ProviderManagerResult<()> {
+    pub async fn deregister(&mut self, key: &(Uuid, Uuid)) -> ProviderManagerResult<()> {
         let provider = self.variants.remove(key);
 
         match provider {
@@ -177,7 +178,7 @@ mod provider_manager_test {
 
         let provider = JellyfinProvider::new(params).unwrap();
 
-        let hash = provider.hash();
+        let hash = provider.key();
         assert!(hash.is_err())
     }
 
@@ -210,7 +211,7 @@ mod provider_manager_test {
 
         let mut provider_manager = ProviderManager::default();
 
-        let key = provider.hash().unwrap();
+        let key = provider.key().unwrap();
         provider_manager.register(provider).unwrap();
 
         let provider = provider_manager.get_provider(&key).unwrap();

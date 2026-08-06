@@ -12,7 +12,6 @@ use journey_utils::get_env_prod;
 use std::any::type_name_of_val;
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::hash::{DefaultHasher, Hash, Hasher};
 use thiserror::Error;
 use url::Url;
 use uuid::Uuid;
@@ -104,11 +103,8 @@ pub trait Provider: DynClone + Debug {
             _ => return Ok(()),
         };
     }
-    fn hash(&self) -> ProviderResult<u64> {
-        let mut s = DefaultHasher::new();
-        self.user_id()?.hash(&mut s);
-        self.server_id()?.hash(&mut s);
-        Ok(s.finish())
+    fn key(&self) -> ProviderResult<(Uuid, Uuid)> {
+        Ok((self.user_id()?, self.server_id()?))
     }
     fn authenticated(&self) -> ProviderResult<bool> {
         let tokens = self.retrieve_token();
@@ -123,13 +119,12 @@ pub trait Provider: DynClone + Debug {
 
         Ok(true)
     }
-    async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<()>;
+    async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<(Uuid, Uuid)>;
     async fn invalidate(&mut self) -> ProviderResult<()>;
     async fn add_to_db(&self) -> ProviderResult<()> {
         let provider = ActiveModel {
             user_id: Set(self.user_id()?),
             server_id: Set(self.server_id()?),
-            hash: Set(self.hash()?.try_into().unwrap()),
             kind: Set(self.type_()),
             url: Set(self.url()?.to_string()),
         };

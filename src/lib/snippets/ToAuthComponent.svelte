@@ -4,7 +4,7 @@
   export { toAuthComponent };
 </script>
 
-{#snippet toAuthComponent(type: string, key?: number)}
+{#snippet toAuthComponent(type: string, key?: [string, string])}
   <ProviderAccordionItem>
     {#if providerAuthOptions.has(type)}
       {@const SvelteComponent = providerAuthOptions.get(type)}

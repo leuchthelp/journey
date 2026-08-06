@@ -5,6 +5,7 @@ use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
 use tokio::sync::TryLockError;
+use uuid::Uuid;
 
 use crate::AppState;
 
@@ -28,13 +29,13 @@ type ProviderApiResult<T> = Result<T, ProviderApiError>;
 #[taurpc::procedures(path = "provider")]
 pub trait ProviderApi {
     async fn get_providers() -> ProviderApiResult<Vec<ProviderDTO>>;
-    async fn get_provider(key: u64) -> ProviderApiResult<ProviderDTO>;
+    async fn get_provider(key: (Uuid, Uuid)) -> ProviderApiResult<ProviderDTO>;
     async fn password_auth(
         url: String,
         kind: String,
         uname: String,
         psw: String,
-    ) -> ProviderApiResult<()>;
+    ) -> ProviderApiResult<(Uuid, Uuid)>;
 }
 
 #[derive(Clone, Debug)]
@@ -49,7 +50,7 @@ impl ProviderApi for ProviderApiImpl {
         let providers = lock.provider_manager.get_providers().await?;
         Ok(providers)
     }
-    async fn get_provider(self, key: u64) -> ProviderApiResult<ProviderDTO> {
+    async fn get_provider(self, key: (Uuid, Uuid)) -> ProviderApiResult<ProviderDTO> {
         let lock = self.state.read().await;
         let provider = lock.provider_manager.get_provider(&key)?;
         Ok(provider)
@@ -60,11 +61,12 @@ impl ProviderApi for ProviderApiImpl {
         kind: String,
         uname: String,
         psw: String,
-    ) -> ProviderApiResult<()> {
+    ) -> ProviderApiResult<(Uuid, Uuid)> {
         let mut lock = self.state.write().await;
-        lock.provider_manager
+        let key = lock
+            .provider_manager
             .password_auth(url, kind, uname, psw)
             .await?;
-        Ok(())
+        Ok(key)
     }
 }

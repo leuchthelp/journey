@@ -56,7 +56,6 @@ export type ProviderApiError = string;
 
 export type ProviderDTO = {
   authenticated: boolean;
-  hash: number;
   serverId: string | null;
   userId: string | null;
   type: string;
@@ -106,7 +105,7 @@ export type Router = {
   };
   provider: {
     get_provider: (
-      key: number,
+      key: [string, string],
     ) => Promise<TauRpcResult<ProviderDTO, ProviderApiError>>;
     get_providers: () => Promise<TauRpcResult<ProviderDTO[], ProviderApiError>>;
     password_auth: (
@@ -114,7 +113,7 @@ export type Router = {
       kind: string,
       uname: string,
       psw: string,
-    ) => Promise<TauRpcResult<null, ProviderApiError>>;
+    ) => Promise<TauRpcResult<[string, string], ProviderApiError>>;
   };
 };
 export const createTauRPCProxy = () =>

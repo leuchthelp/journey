@@ -14,29 +14,33 @@
         return strip(response);
       })
       .catch((err: ProviderApiError) => {
-        console.error(err);
-        return Error(err);
+        throw Error(err);
       });
 
-    if (response == null) success = true;
+    key = response;
+    success = true;
   };
 
-  const getProvider = async (key?: number): Promise<ProviderDTO | Error> => {
-    if (!key) return Error("no key yet");
+  const getProvider = async (
+    key?: [string, string],
+  ): Promise<ProviderDTO | undefined> => {
+    if (!key) {
+      console.warn("No known provider yet, offering to create new one.");
+      return;
+    }
 
-    return await API.provider
+    return API.provider
       .get_provider(key)
       .then((response) => {
         return strip(response);
       })
       .catch((err: ProviderApiError) => {
-        console.error(err);
-        return Error(err);
+        throw Error(err);
       });
   };
 
   type Props = {
-    key?: number;
+    key?: [string, string];
   };
 
   let { key }: Props = $props();
@@ -46,7 +50,7 @@
   let psw = $state("");
   let url = $state("");
 
-  let provider = $derived(await getProvider(key));
+  let provider = $derived(getProvider(key));
   $inspect(provider);
 </script>
 

@@ -99,9 +99,13 @@ impl Provider for JellyfinProvider {
         }
     }
 
-    pub async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<()> {
+    pub async fn password_auth(
+        &mut self,
+        uname: String,
+        psw: String,
+    ) -> ProviderResult<(Uuid, Uuid)> {
         if self.authenticated()? {
-            return Ok(());
+            return Ok(self.key()?);
         }
         let mut client_config = configure()
             .base_url(&self.url()?)
@@ -134,7 +138,7 @@ impl Provider for JellyfinProvider {
         add_db_task.await?;
         self.save_token(&access_token)?;
         self.config = Some(client_config);
-        Ok(())
+        Ok(self.key()?)
     }
 
     pub async fn invalidate(&mut self) -> ProviderResult<()> {
