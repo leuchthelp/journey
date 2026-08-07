@@ -18,7 +18,6 @@
       });
 
     key = response;
-    success = true;
   };
 
   const getProvider = async (
@@ -45,7 +44,6 @@
 
   let { key }: Props = $props();
 
-  let success = $state(false);
   let uname = $state("");
   let psw = $state("");
   let url = $state("");
@@ -58,7 +56,7 @@
   {#await provider}
     <div>Loading</div>
   {:then provider}
-    {#if success}
+    {#if provider?.authenticated}
       <div>Connected</div>
       <div>{key}</div>
       <div>{provider}</div>

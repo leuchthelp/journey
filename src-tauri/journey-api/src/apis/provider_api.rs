@@ -1,5 +1,5 @@
 use anyhow::Result;
-use journey_db::entity::ProviderDTO;
+use journey_db::entity::{ProviderDTO, ProviderVariant};
 use journey_provider::{ProviderError, ProviderManagerError, ProviderManagerFn};
 use serde::Serialize;
 use specta::Type;
@@ -32,7 +32,7 @@ pub trait ProviderApi {
     async fn get_provider(key: (Uuid, Uuid)) -> ProviderApiResult<ProviderDTO>;
     async fn password_auth(
         url: String,
-        kind: String,
+        ty: ProviderVariant,
         uname: String,
         psw: String,
     ) -> ProviderApiResult<(Uuid, Uuid)>;
@@ -58,14 +58,14 @@ impl ProviderApi for ProviderApiImpl {
     async fn password_auth(
         self,
         url: String,
-        kind: String,
+        ty: ProviderVariant,
         uname: String,
         psw: String,
     ) -> ProviderApiResult<(Uuid, Uuid)> {
         let mut lock = self.state.write().await;
         let key = lock
             .provider_manager
-            .password_auth(url, kind, uname, psw)
+            .password_auth(url, ty, uname, psw)
             .await?;
         Ok(key)
     }

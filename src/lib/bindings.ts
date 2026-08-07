@@ -54,17 +54,19 @@ export type ProviderDTO = {
 	authenticated: boolean,
 	serverId: string | null,
 	userId: string | null,
-	type: string,
+	type: ProviderVariant,
 	url: string | null,
 	mediaItems: MediaItemDTO[] | null,
 	images: ImageDTO[] | null,
 };
 
+export type ProviderVariant = "JellyfinProvider";
+
 export type Result<T, E> = {
 	ok: T,
 	err: E,
 };
-const ARGS_MAP = {"content":{"get_content":[]},"image":{"get_images":[]},"mediaItem":{"get_media_items":[]},"original":{"get_original":[]},"provider":{"get_provider":["key"],"get_providers":[],"password_auth":["url","kind","uname","psw"]}};
+const ARGS_MAP = {"content":{"get_content":[]},"image":{"get_images":[]},"mediaItem":{"get_media_items":[]},"original":{"get_original":[]},"provider":{"get_provider":["key"],"get_providers":[],"password_auth":["url","ty","uname","psw"]}};
 
 const RESULT_MAP = {"content":{"get_content":true},"image":{"get_images":true},"mediaItem":{"get_media_items":true},"original":{"get_original":true},"provider":{"get_provider":true,"get_providers":true,"password_auth":true}};
 
@@ -84,7 +86,7 @@ export type Router = {
 	provider: {
 		get_provider: (key: [string, string]) => Promise<TauRpcResult<ProviderDTO, ProviderApiError>>,
 		get_providers: () => Promise<TauRpcResult<ProviderDTO[], ProviderApiError>>,
-		password_auth: (url: string, kind: string, uname: string, psw: string) => Promise<TauRpcResult<[string, string], ProviderApiError>>,
+		password_auth: (url: string, ty: ProviderVariant, uname: string, psw: string) => Promise<TauRpcResult<[string, string], ProviderApiError>>,
 	},
 };
 export const createTauRPCProxy = () => createProxy<Router>({

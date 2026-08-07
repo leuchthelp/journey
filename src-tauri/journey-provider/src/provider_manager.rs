@@ -7,6 +7,7 @@ use async_trait::async_trait;
 use futures::TryStreamExt;
 use inherent::inherent;
 use journey_db::entity::ProviderDTO;
+use journey_db::entity::ProviderVariant;
 use journey_db::entity::Providers;
 use journey_db::get_conn;
 use journey_db::sea_orm::ActiveModelTrait;
@@ -27,8 +28,6 @@ pub enum ProviderManagerError {
     RegisterError,
     #[error("Provider is not registered, can not unregister.")]
     DeregisterError,
-    #[error("Provider kind is not known")]
-    UnknownProviderKindError,
     #[error(transparent)]
     ProviderError(#[from] ProviderError),
     #[error(transparent)]
@@ -45,14 +44,13 @@ pub type ProviderManagerResult<T> = Result<T, ProviderManagerError>;
 
 #[async_trait]
 pub trait ProviderManagerFn {
-    fn get_kind(
+    fn get_type(
         &self,
-        kind: &String,
+        ty: ProviderVariant,
         model: ActiveModel,
     ) -> Result<Box<dyn Provider + Send + Sync>, ProviderManagerError> {
-        let provider: Result<Box<dyn Provider + Send + Sync>, ProviderManagerError> = match kind {
-            value if value == "JellyfinProvider" => Ok(JellyfinProvider::new(model)?),
-            _ => Err(ProviderManagerError::UnknownProviderKindError),
+        let provider: Result<Box<dyn Provider + Send + Sync>, ProviderManagerError> = match ty {
+            ProviderVariant::JellyfinProvider => Ok(JellyfinProvider::new(model)?),
         };
 
         Ok(provider?)
@@ -62,7 +60,7 @@ pub trait ProviderManagerFn {
         let mut known_providers = Providers::find().stream(conn).await?;
 
         while let Some(known) = known_providers.try_next().await? {
-            let new_provider = self.get_kind(&known.kind.clone(), known.into_active_model())?;
+            let new_provider = self.get_type(known.ty.clone(), known.into_active_model())?;
             self.register(new_provider)?;
         }
         Ok(())
@@ -72,7 +70,7 @@ pub trait ProviderManagerFn {
     async fn password_auth(
         &mut self,
         url: String,
-        kind: String,
+        ty: ProviderVariant,
         uname: String,
         psw: String,
     ) -> ProviderManagerResult<(Uuid, Uuid)> {
@@ -81,7 +79,7 @@ pub trait ProviderManagerFn {
             ..ActiveModel::default_values()
         };
 
-        let mut provider = self.get_kind(&kind, model)?;
+        let mut provider = self.get_type(ty, model)?;
         provider.password_auth(uname, psw).await?;
 
         let key = provider.key()?;
@@ -108,7 +106,10 @@ impl ProviderManagerFn for ProviderManager {
 
         let provider_dto = ProviderDTO::builder()
             .authenticated(provider.authenticated()?)
-            .kind(provider.ty())
+            .ty(provider.ty())
+            .url(provider.url()?)
+            .user_id(provider.user_id()?)
+            .server_id(provider.server_id()?)
             .build();
 
         Ok(provider_dto)
@@ -119,8 +120,10 @@ impl ProviderManagerFn for ProviderManager {
         for (_, provider) in &self.variants {
             let new = ProviderDTO::builder()
                 .authenticated(provider.authenticated()?)
-                .kind(provider.ty())
+                .ty(provider.ty())
                 .url(provider.url()?)
+                .user_id(provider.user_id()?)
+                .server_id(provider.server_id()?)
                 .build();
             providers.push(new);
         }

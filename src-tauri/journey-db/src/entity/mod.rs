@@ -1,7 +1,7 @@
-pub mod content;
-pub mod images;
-pub mod media_items;
-pub mod original;
+mod content;
+mod images;
+mod media_items;
+mod original;
 pub mod providers;
 
 // Junction tables
@@ -20,3 +20,5 @@ pub use images::Entity as Images;
 pub use media_items::Entity as MediaItems;
 pub use original::Entity as Original;
 pub use providers::Entity as Providers;
+
+pub use providers::ProviderVariant;

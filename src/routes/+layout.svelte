@@ -11,7 +11,7 @@
   import "@videojs/html/ui/play-button";
   import Player from "#lib/components/Player/Player.svelte";
   import { API } from "#lib/proxy.ts";
-  import type { ProviderDTO } from "#lib/bindings.ts";
+  import type { ProviderDTO, ProviderVariant } from "#lib/bindings.ts";
 
   function toggleVisible() {
     visible = !visible;
@@ -20,7 +20,7 @@
   let { children } = $props();
   let visible = $state(false);
 
-  let displayable: string[] = $state([]);
+  let displayable: ProviderVariant[] = $state([]);
   function addComponent() {
     displayable.push("JellyfinProvider");
   }

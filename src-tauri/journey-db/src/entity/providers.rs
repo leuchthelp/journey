@@ -1,14 +1,22 @@
-use anyhow::Result;
-use bon::Builder;
-use inherent::inherent;
-use sea_orm::entity::prelude::*;
-use url::Url;
-use uuid::Uuid;
-
 use crate::{
     db::Convertible,
     entity::{ImageDTO, MediaItemDTO},
 };
+use anyhow::Result;
+use bon::Builder;
+use inherent::inherent;
+use sea_orm::entity::prelude::*;
+use serde::{Deserialize, Serialize};
+use specta::Type;
+use url::Url;
+use uuid::Uuid;
+
+#[derive(Debug, Serialize, Deserialize, Type, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[sea_orm(rs_type = "i32", db_type = "Integer")]
+pub enum ProviderVariant {
+    #[sea_orm(num_value = 0)]
+    JellyfinProvider,
+}
 
 #[sea_orm::model]
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
@@ -18,7 +26,7 @@ pub struct Model {
     pub server_id: Uuid,
     #[sea_orm(unique)]
     pub user_id: Uuid,
-    pub kind: String,
+    pub ty: ProviderVariant,
     pub url: String,
     #[sea_orm(has_many, via = "jt_media_item_to_provider")]
     pub media_items: HasMany<super::media_items::Entity>,
@@ -36,7 +44,7 @@ pub struct ProviderDTO {
     pub server_id: Option<Uuid>,
     pub user_id: Option<Uuid>,
     #[serde(rename = "type")]
-    pub kind: String,
+    pub ty: ProviderVariant,
     pub url: Option<Url>,
     pub media_items: Option<Vec<MediaItemDTO>>,
     pub images: Option<Vec<ImageDTO>>,
@@ -54,7 +62,7 @@ impl Convertible<ModelEx> for ProviderDTO {
             authenticated: false,
             user_id: Some(item.user_id),
             server_id: Some(item.server_id),
-            kind: item.kind,
+            ty: item.ty,
             url: Some(Url::parse(&item.url)?),
             media_items: parents,
             images: images,

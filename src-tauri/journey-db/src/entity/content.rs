@@ -14,7 +14,7 @@ pub struct Model {
     #[sea_orm(belongs_to, from = "parent_id", to = "uuid")]
     pub parent: BelongsTo<Option<super::media_items::Entity>>,
     #[sea_orm(unique)]
-    pub kind: String,
+    pub ty: String,
     pub description: String,
 }
 
@@ -28,7 +28,7 @@ pub struct ContentDTO {
     pub parent_id: Option<Uuid>,
     pub parent: Option<MediaItemDTO>,
     #[serde(rename = "type")]
-    pub kind: String,
+    pub ty: String,
     pub description: String,
 }
 
@@ -46,7 +46,7 @@ impl Convertible<ModelEx> for ContentDTO {
             id: item.id,
             parent_id: item.parent_id,
             parent: parent,
-            kind: item.kind,
+            ty: item.ty,
             description: item.description,
         })
     }

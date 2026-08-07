@@ -12,7 +12,7 @@ pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     #[sea_orm(unique)]
     pub uuid: Uuid,
-    pub kind: String,
+    pub ty: String,
     pub outline_gradient: String,
     pub loaded: bool,
     pub local: String,
@@ -43,7 +43,7 @@ impl ActiveModelBehavior for ActiveModel {}
 pub struct MediaItemDTO {
     pub uuid: Uuid,
     #[serde(rename = "type")]
-    pub kind: String,
+    pub ty: String,
     pub outline_gradient: String,
     pub loaded: bool,
     pub local: String,
@@ -69,7 +69,7 @@ impl Convertible<ModelEx> for MediaItemDTO {
 
         Ok(MediaItemDTO {
             uuid: item.uuid,
-            kind: item.kind,
+            ty: item.ty,
             outline_gradient: item.outline_gradient,
             loaded: item.loaded,
             local: item.local,

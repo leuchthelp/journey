@@ -7,7 +7,7 @@ use jellyfin_sdk_rs::{
     required::{ClientInfo, DeviceInfo},
 };
 use journey_db::{
-    entity::providers::ActiveModel,
+    entity::{ProviderVariant, providers::ActiveModel},
     sea_orm::{ActiveValue::Set, TryIntoModel},
 };
 use journey_utils::constants::{PRODUCT_NAME, PRODUCT_VERSION};
@@ -97,6 +97,10 @@ impl Provider for JellyfinProvider {
             Ok(model) => Ok(Url::parse(&model.url)?),
             Err(_) => Err(JellyfinProviderError::MissingUrlError.into()),
         }
+    }
+
+    pub fn ty(&self) -> ProviderVariant {
+        ProviderVariant::JellyfinProvider
     }
 
     pub async fn password_auth(
@@ -198,7 +202,7 @@ mod variant_jellyfin {
         provider::{Provider, ProviderNew},
     };
     use journey_db::{
-        entity::providers::ActiveModel,
+        entity::{ProviderVariant, providers::ActiveModel},
         sea_orm::{ActiveModelTrait, ActiveValue::Set},
     };
     use journey_keyring::Entry;
@@ -215,12 +219,10 @@ mod variant_jellyfin {
             ..Default::default()
         };
 
-        assert!(
-            JellyfinProvider::new(params)
-                .unwrap()
-                .ty()
-                .contains("JellyfinProvider")
-        );
+        assert!(matches!(
+            JellyfinProvider::new(params).unwrap().ty(),
+            ProviderVariant::JellyfinProvider
+        ));
     }
 
     #[tokio::test]

@@ -18,16 +18,12 @@ pub struct Model {
     pub server_id: Option<Uuid>,
     #[sea_orm(belongs_to, from = "server_id", to = "server_id")]
     pub provider: BelongsTo<Option<super::providers::Entity>>,
-    pub kind: String,
+    pub ty: String,
     #[sea_orm(has_many, via = "jt_media_item_to_image")]
     pub media_items: HasMany<super::media_items::Entity>,
 }
 
 impl ActiveModelBehavior for ActiveModel {}
-
-pub trait ConvertableImage {
-    fn from_model(item: ModelEx) -> ImageDTO;
-}
 
 #[taurpc::ipc_type]
 #[derive(Debug)]
@@ -37,7 +33,7 @@ pub struct ImageDTO {
     pub server_id: Option<Uuid>,
     pub provider: Option<ProviderDTO>,
     #[serde(rename = "type")]
-    pub kind: String,
+    pub ty: String,
     pub media_items: Option<Vec<MediaItemDTO>>,
 }
 
@@ -57,7 +53,7 @@ impl Convertible<ModelEx> for ImageDTO {
             url: Url::parse(&item.url)?,
             server_id: item.server_id,
             provider: provider,
-            kind: item.kind,
+            ty: item.ty,
             media_items: media_items,
         })
     }
@@ -67,7 +63,7 @@ impl ImageDTO {
     pub fn new() -> Self {
         return ImageDTO {
             url: Url::parse("https://example.net").unwrap(),
-            kind: "Primary".into(),
+            ty: "Primary".into(),
             server_id: None,
             provider: None,
             media_items: None,

@@ -4,15 +4,14 @@ use async_trait::async_trait;
 use dyn_clone::{DynClone, clone_trait_object};
 use jellyfin_sdk_rs::JellyfinSDKError;
 use jellyfin_sdk_rs::apis::authentication_api::AuthenticateUserByNameError;
-use journey_db::entity::Providers;
 use journey_db::entity::providers::ActiveModel;
+use journey_db::entity::{ProviderVariant, Providers};
 use journey_db::get_conn;
 use journey_db::sea_orm::{ActiveModelTrait, Set};
 use journey_keyring::{Entry, keyring_core};
 use journey_utils::constants::PRODUCT_NAME;
 use serde::Serialize;
 use specta::Type;
-use std::any::type_name_of_val;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use thiserror::Error;
@@ -28,6 +27,8 @@ pub enum ProviderError {
     TooManyCredentialsError,
     #[error("Found no access token, nothing to remove.")]
     NoCredentialsError,
+    #[error("Found no such provider variant")]
+    NoSuchVariantError,
     #[error(transparent)]
     #[serde(skip)]
     UuidParserError(#[from] uuid::Error),
@@ -65,9 +66,7 @@ pub trait Provider: DynClone + Debug {
     fn user_id(&self) -> ProviderResult<Uuid>;
     fn server_id(&self) -> ProviderResult<Uuid>;
     fn url(&self) -> ProviderResult<Url>;
-    fn ty(&self) -> String {
-        type_name_of_val(self).to_string()
-    }
+    fn ty(&self) -> ProviderVariant;
     fn save_token(&self, access_token: &String) -> ProviderResult<()> {
         let token_entry = Entry::new(
             PRODUCT_NAME,
@@ -117,7 +116,7 @@ pub trait Provider: DynClone + Debug {
         let provider = ActiveModel {
             user_id: Set(self.user_id()?),
             server_id: Set(self.server_id()?),
-            kind: Set(self.ty()),
+            ty: Set(self.ty()),
             url: Set(self.url()?.to_string()),
         };
         provider.insert(&get_conn().await?).await?;
