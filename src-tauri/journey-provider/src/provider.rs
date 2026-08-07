@@ -1,3 +1,4 @@
+use crate::jellyfin::jellyfin_provider::JellyfinProviderError;
 use anyhow::Result;
 use async_trait::async_trait;
 use dyn_clone::{DynClone, clone_trait_object};
@@ -9,17 +10,14 @@ use journey_db::get_conn;
 use journey_db::sea_orm::{ActiveModelTrait, Set};
 use journey_keyring::{Entry, keyring_core};
 use journey_utils::constants::PRODUCT_NAME;
+use serde::Serialize;
+use specta::Type;
 use std::any::type_name_of_val;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use thiserror::Error;
 use url::Url;
 use uuid::Uuid;
-
-use crate::jellyfin::jellyfin_provider::JellyfinProviderError;
-
-use serde::Serialize;
-use specta::Type;
 
 #[derive(Debug, Error, Serialize, Type)]
 pub enum ProviderError {
@@ -67,28 +65,24 @@ pub trait Provider: DynClone + Debug {
     fn user_id(&self) -> ProviderResult<Uuid>;
     fn server_id(&self) -> ProviderResult<Uuid>;
     fn url(&self) -> ProviderResult<Url>;
-    fn type_(&self) -> String {
-        return type_name_of_val(self).to_string();
+    fn ty(&self) -> String {
+        type_name_of_val(self).to_string()
     }
     fn save_token(&self, access_token: &String) -> ProviderResult<()> {
         let token_entry = Entry::new(
             PRODUCT_NAME,
-            format!("{}-{}", self.server_id()?, self.user_id()?).as_str(),
+            &format!("{}-{}", self.server_id()?, self.user_id()?),
         )?;
-        token_entry.set_password(&access_token)?;
-
-        Ok(())
+        Ok(token_entry.set_password(&access_token)?)
     }
     fn retrieve_token(&self) -> ProviderResult<Vec<Entry>> {
-        let entries = Entry::search(&HashMap::from([
+        Ok(Entry::search(&HashMap::from([
             ("service", "journey"),
             (
                 "user",
-                format!("{}-{}", self.server_id()?, self.user_id()?).as_str(),
+                &format!("{}-{}", self.server_id()?, self.user_id()?),
             ),
-        ]))?;
-
-        Ok(entries)
+        ]))?)
     }
     fn remove_token(&self) -> ProviderResult<()> {
         let entries = self.retrieve_token()?;
@@ -97,27 +91,25 @@ pub trait Provider: DynClone + Debug {
             entry.delete_credential()?;
         }
 
-        match Some(entries.len()) {
-            Some(len) if len > 1 => return Err(ProviderError::TooManyCredentialsError),
-            Some(len) if len < 1 => return Err(ProviderError::NoCredentialsError),
-            _ => return Ok(()),
-        };
+        match entries.len() {
+            len if len > 1 => Err(ProviderError::TooManyCredentialsError),
+            len if len < 1 => Err(ProviderError::NoCredentialsError),
+            _ => Ok(()),
+        }
     }
     fn key(&self) -> ProviderResult<(Uuid, Uuid)> {
         Ok((self.user_id()?, self.server_id()?))
     }
     fn authenticated(&self) -> ProviderResult<bool> {
         let tokens = self.retrieve_token();
-        if tokens.is_err() {
-            return Ok(false);
-        }
 
-        let tokens = tokens?;
-        if tokens.len() == 0 {
-            return Ok(false);
+        match tokens {
+            Err(_) => Ok(false),
+            Ok(tokens) => match tokens.len() {
+                len if len == 0 => Ok(false),
+                _ => Ok(true),
+            },
         }
-
-        Ok(true)
     }
     async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<(Uuid, Uuid)>;
     async fn invalidate(&mut self) -> ProviderResult<()>;
@@ -125,7 +117,7 @@ pub trait Provider: DynClone + Debug {
         let provider = ActiveModel {
             user_id: Set(self.user_id()?),
             server_id: Set(self.server_id()?),
-            kind: Set(self.type_()),
+            kind: Set(self.ty()),
             url: Set(self.url()?.to_string()),
         };
         provider.insert(&get_conn().await?).await?;

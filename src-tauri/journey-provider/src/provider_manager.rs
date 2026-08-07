@@ -1,3 +1,7 @@
+use crate::jellyfin_provider::JellyfinProvider;
+use crate::provider::Provider;
+use crate::provider::ProviderError;
+use crate::provider::ProviderNew;
 use anyhow::Result;
 use async_trait::async_trait;
 use futures::TryStreamExt;
@@ -10,17 +14,10 @@ use journey_db::sea_orm::EntityTrait;
 use journey_db::sea_orm::IntoActiveModel;
 use journey_db::{entity::providers::ActiveModel, sea_orm::ActiveValue::Set};
 use rapidhash::RapidHashMap;
-use thiserror::Error;
-use tracing::warn;
-use uuid::Uuid;
-
-use crate::ProviderResult;
-use crate::jellyfin_provider::JellyfinProvider;
-use crate::provider::Provider;
-use crate::provider::ProviderError;
-use crate::provider::ProviderNew;
 use serde::Serialize;
 use specta::Type;
+use thiserror::Error;
+use uuid::Uuid;
 
 #[derive(Debug, Error, Serialize, Type)]
 pub enum ProviderManagerError {
@@ -48,20 +45,24 @@ pub type ProviderManagerResult<T> = Result<T, ProviderManagerError>;
 
 #[async_trait]
 pub trait ProviderManagerFn {
+    fn get_kind(
+        &self,
+        kind: &String,
+        model: ActiveModel,
+    ) -> Result<Box<dyn Provider + Send + Sync>, ProviderManagerError> {
+        let provider: Result<Box<dyn Provider + Send + Sync>, ProviderManagerError> = match kind {
+            value if value == "JellyfinProvider" => Ok(JellyfinProvider::new(model)?),
+            _ => Err(ProviderManagerError::UnknownProviderKindError),
+        };
+
+        Ok(provider?)
+    }
     async fn init(&mut self) -> ProviderManagerResult<()> {
         let conn = &get_conn().await?;
         let mut known_providers = Providers::find().stream(conn).await?;
 
         while let Some(known) = known_providers.try_next().await? {
-            let new_provider: ProviderResult<Box<dyn Provider + Send + Sync>> =
-                match known.kind.as_str() {
-                    value if value == "JellyfinProvider" => {
-                        Ok(JellyfinProvider::new(known.into_active_model())?)
-                    }
-                    _ => return Err(ProviderManagerError::UnknownProviderKindError),
-                };
-
-            let new_provider = new_provider?;
+            let new_provider = self.get_kind(&known.kind.clone(), known.into_active_model())?;
             self.register(new_provider)?;
         }
         Ok(())
@@ -80,15 +81,7 @@ pub trait ProviderManagerFn {
             ..ActiveModel::default_values()
         };
 
-        warn!("{}", kind);
-
-        let provider: Result<Box<dyn Provider + Send + Sync>, ProviderManagerError> =
-            match kind.as_str() {
-                value if value == "JellyfinProvider" => Ok(JellyfinProvider::new(model)?),
-                _ => return Err(ProviderManagerError::UnknownProviderKindError),
-            };
-
-        let mut provider = provider?;
+        let mut provider = self.get_kind(&kind, model)?;
         provider.password_auth(uname, psw).await?;
 
         let key = provider.key()?;
@@ -108,19 +101,17 @@ pub struct ProviderManager {
 #[inherent]
 impl ProviderManagerFn for ProviderManager {
     pub fn get_provider(&self, key: &(Uuid, Uuid)) -> ProviderManagerResult<ProviderDTO> {
-        let provider = self.variants.get(key);
+        let provider = match self.variants.get(key) {
+            Some(provider) => Ok(provider),
+            None => Err(ProviderManagerError::NoProviderError),
+        }?;
 
-        if provider.is_none() {
-            return Err(ProviderManagerError::NoProviderError);
-        }
-
-        let provider = provider.unwrap();
-        let provider = ProviderDTO::builder()
+        let provider_dto = ProviderDTO::builder()
             .authenticated(provider.authenticated()?)
-            .kind(provider.type_())
+            .kind(provider.ty())
             .build();
 
-        Ok(provider)
+        Ok(provider_dto)
     }
     pub async fn get_providers(&self) -> ProviderManagerResult<Vec<ProviderDTO>> {
         let mut providers: Vec<ProviderDTO> = vec![];
@@ -128,7 +119,7 @@ impl ProviderManagerFn for ProviderManager {
         for (_, provider) in &self.variants {
             let new = ProviderDTO::builder()
                 .authenticated(provider.authenticated()?)
-                .kind(provider.type_())
+                .kind(provider.ty())
                 .url(provider.url()?)
                 .build();
             providers.push(new);
@@ -139,18 +130,18 @@ impl ProviderManagerFn for ProviderManager {
         &mut self,
         provider: Box<dyn Provider + Send + Sync>,
     ) -> ProviderManagerResult<()> {
-        if provider.authenticated()? {
-            self.variants.insert(provider.key()?, provider);
-            return Ok(());
+        match provider.authenticated()? {
+            false => Err(ProviderManagerError::RegisterError),
+            true => {
+                self.variants.insert(provider.key()?, provider);
+                return Ok(());
+            }
         }
-        Err(ProviderManagerError::RegisterError)
     }
     pub async fn deregister(&mut self, key: &(Uuid, Uuid)) -> ProviderManagerResult<()> {
-        let provider = self.variants.remove(key);
-
-        match provider {
+        match self.variants.remove(key) {
             Some(mut provider) => Ok(provider.invalidate().await?),
-            None => return Err(ProviderManagerError::DeregisterError),
+            None => Err(ProviderManagerError::DeregisterError),
         }
     }
 }
@@ -164,7 +155,7 @@ mod provider_manager_test {
     use journey_db::sea_orm::ActiveModelTrait;
     use journey_db::sea_orm::ActiveValue::Set;
     use journey_utils::constants::PRODUCT_NAME;
-use journey_utils::get_env_local;
+    use journey_utils::get_env_local;
     use serial_test::serial;
     use test_log::test;
     use tracing::warn;

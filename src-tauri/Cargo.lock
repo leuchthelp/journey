@@ -4990,6 +4990,7 @@ dependencies = [
  "paste",
  "rustc_version",
  "specta-macros",
+ "tokio",
  "url",
  "uuid",
 ]

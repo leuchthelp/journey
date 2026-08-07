@@ -218,7 +218,7 @@ mod variant_jellyfin {
         assert!(
             JellyfinProvider::new(params)
                 .unwrap()
-                .type_()
+                .ty()
                 .contains("JellyfinProvider")
         );
     }

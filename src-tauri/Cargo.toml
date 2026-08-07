@@ -40,7 +40,7 @@ tracing = { version = "0.1" }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 test-log = { version = "0.2", features = ["trace"] }
 taurpc = "0.8.2"
-specta = { version = "2.0.0-rc.25", features = ["derive", "uuid", "url"] }
+specta = { version = "2.0.0-rc.25", features = ["derive", "uuid", "url", "tokio"] }
 specta-typescript = "0.0.12"
 bon = "3.9"
 url = { version = "2.5.8", features = ["serde"] }

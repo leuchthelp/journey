@@ -1,11 +1,10 @@
 use anyhow::Result;
 use sea_orm::{Database, DatabaseConnection, DbErr};
+use serde::Serialize;
+use specta::Type;
 use thiserror::Error;
 
-use serde::{Deserialize, Serialize};
-use specta::Type;
-
-#[derive(Debug, Error, Serialize, Deserialize, Type)]
+#[derive(Debug, Error, Serialize, Type)]
 pub enum JourneyDbError {
     #[error(transparent)]
     #[serde(skip)]
