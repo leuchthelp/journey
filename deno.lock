@@ -3,8 +3,8 @@
   "specifiers": {
     "jsr:@deno/installer-shell-setup@*": "0.3.4",
     "npm:@lucide/svelte@^1.28.0": "1.28.0_svelte@5.56.8",
-    "npm:@sveltejs/adapter-static@^4.0.0-next.2": "4.0.0-next.2_@sveltejs+kit@3.0.0-next.11__@sveltejs+vite-plugin-svelte@7.2.0___svelte@5.56.8___vite@8.2.0____@types+node@26.1.2___@types+node@26.1.2__svelte@5.56.8__typescript@7.0.2__vite@8.2.0___@types+node@26.1.2__@types+node@26.1.2_@types+node@26.1.2_vite@8.2.0__@types+node@26.1.2",
-    "npm:@sveltejs/enhanced-img@^1.0.0-next.2": "1.0.0-next.2_@sveltejs+vite-plugin-svelte@7.2.0__svelte@5.56.8__vite@8.2.0___@types+node@26.1.2__@types+node@26.1.2_svelte@5.56.8_vite@8.2.0__@types+node@26.1.2_@types+node@26.1.2",
+    "npm:@sveltejs/adapter-static@^4.0.0-next.3": "4.0.0-next.3_@sveltejs+kit@3.0.0-next.11__@sveltejs+vite-plugin-svelte@7.2.0___svelte@5.56.8___vite@8.2.0____@types+node@26.1.2___@types+node@26.1.2__svelte@5.56.8__typescript@7.0.2__vite@8.2.0___@types+node@26.1.2__@types+node@26.1.2",
+    "npm:@sveltejs/enhanced-img@^1.0.0-next.3": "1.0.0-next.3_@sveltejs+vite-plugin-svelte@7.2.0__svelte@5.56.8__vite@8.2.0___@types+node@26.1.2__@types+node@26.1.2_svelte@5.56.8_vite@8.2.0__@types+node@26.1.2",
     "npm:@sveltejs/kit@3.0.0-next.11": "3.0.0-next.11_@sveltejs+vite-plugin-svelte@7.2.0__svelte@5.56.8__vite@8.2.0___@types+node@26.1.2__@types+node@26.1.2_svelte@5.56.8_typescript@7.0.2_vite@8.2.0__@types+node@26.1.2_@types+node@26.1.2",
     "npm:@sveltejs/vite-plugin-svelte@^7.2.0": "7.2.0_svelte@5.56.8_vite@8.2.0__@types+node@26.1.2_@types+node@26.1.2",
     "npm:@tailwindcss/vite@^4.3.3": "4.3.3_vite@8.2.0__@types+node@26.1.2_@types+node@26.1.2",
@@ -39,8 +39,8 @@
     }
   },
   "npm": {
-    "@emnapi/runtime@1.11.1": {
-      "integrity": "sha512-vgj7R3y3Wgx24IQaGPA/R6YFXLHVMOZ0uVEyIQPaWs+rd1AzfEMXlAC22FYwO1XkKR6NPsq7mUandH8oIRdZFw==",
+    "@emnapi/runtime@1.11.3": {
+      "integrity": "sha512-Xz4Tpyki7XyrpbUK1jR1AhdAdaXyhhY4lZ3neLodmhpuWfy2PAQN5B46sAiU4liOXGLkHypn/qU+jvfWSCYYLA==",
       "dependencies": [
         "tslib"
       ]
@@ -357,14 +357,14 @@
         "acorn"
       ]
     },
-    "@sveltejs/adapter-static@4.0.0-next.2_@sveltejs+kit@3.0.0-next.11__@sveltejs+vite-plugin-svelte@7.2.0___svelte@5.56.8___vite@8.2.0____@types+node@26.1.2___@types+node@26.1.2__svelte@5.56.8__typescript@7.0.2__vite@8.2.0___@types+node@26.1.2__@types+node@26.1.2_@types+node@26.1.2_vite@8.2.0__@types+node@26.1.2": {
-      "integrity": "sha512-j21jhbCVftKt4HAzcKp9XMjSqebtKwIRtKZKpqSBk+fl6S2B6ad6Ybf0vHJ6MjKKBWSBGLtXQuDS+lgHNkos9w==",
+    "@sveltejs/adapter-static@4.0.0-next.3_@sveltejs+kit@3.0.0-next.11__@sveltejs+vite-plugin-svelte@7.2.0___svelte@5.56.8___vite@8.2.0____@types+node@26.1.2___@types+node@26.1.2__svelte@5.56.8__typescript@7.0.2__vite@8.2.0___@types+node@26.1.2__@types+node@26.1.2": {
+      "integrity": "sha512-oKE0ImG3onvDCeHz4mFqTsqDSC94Qp4gXYI7b7CuHGkbD702NyCrxVSg9U8SaVfPajJ457zJ3tKGUYtk+2bmPQ==",
       "dependencies": [
         "@sveltejs/kit"
       ]
     },
-    "@sveltejs/enhanced-img@1.0.0-next.2_@sveltejs+vite-plugin-svelte@7.2.0__svelte@5.56.8__vite@8.2.0___@types+node@26.1.2__@types+node@26.1.2_svelte@5.56.8_vite@8.2.0__@types+node@26.1.2_@types+node@26.1.2": {
-      "integrity": "sha512-OvvNb1ag1YbxT8hhgySLtt+DYImT/oFgKTAzPBTi0jp0fb9GMG5yRRxHG0JCdv03MmoQ5/L2hhWh0G0Pn5V6jQ==",
+    "@sveltejs/enhanced-img@1.0.0-next.3_@sveltejs+vite-plugin-svelte@7.2.0__svelte@5.56.8__vite@8.2.0___@types+node@26.1.2__@types+node@26.1.2_svelte@5.56.8_vite@8.2.0__@types+node@26.1.2": {
+      "integrity": "sha512-KeOvx8/Ja0A+6TVm1wWHwm3yIBQgr9T6doeQTvQnk/hw3ArdAnMrEAGAPvz0MiR2JR0nnlz06u7DZqT9W4GCYA==",
       "dependencies": [
         "@sveltejs/vite-plugin-svelte",
         "magic-string@0.30.21",
@@ -982,8 +982,8 @@
     "html-entities@2.6.0": {
       "integrity": "sha512-kig+rMn/QOVRvr7c86gQ8lWXq+Hkv6CbAH1hLu+RG338StTpE8Z0b44SDVaqVu7HGKf27frdmUYEs9hTUX/cLQ=="
     },
-    "imagetools-core@10.0.0": {
-      "integrity": "sha512-wirG+oESU1QTORt+fqR6DAsVMgW5CXgrRaGgf1lo4hu/3q6269GfHBmYpVWzmMIuHM/H01QcaWrHR6kHCC7bOw=="
+    "imagetools-core@11.0.0": {
+      "integrity": "sha512-BaNX7im/o7PqGmck3/wElRx4xugnJYIMtPfOIAHEd2ZV1ZyalewE0H9nm/czZcjdtsgxVW7IzL0oJQn6J8kZuA=="
     },
     "immediate@3.0.6": {
       "integrity": "sha512-XXOFtyqDjNDAQxVfYxuF7g9Il/IbWmmlQg2MYKOH8ExIT1qg6xc4zyS3HaEEATgs1btfzxq15ciUiY7gjSXRGQ=="
@@ -1448,8 +1448,8 @@
       "integrity": "sha512-6ZxzVpzDXDa3bJWaHilVayA+BH/1zmxCJoVgvmqJnid/gPoKHxUrS/aC/T6LGQtNHT+XHG9fXPJB4d+IrU30Ew==",
       "bin": true
     },
-    "vite-imagetools@10.0.1_vite@8.2.0__@types+node@26.1.2_@types+node@26.1.2": {
-      "integrity": "sha512-JfM1rUSLQoPAA+8RB9TFxxpfSjmBpLTkU5zaSFPlWYlgfc3g2gFfYH+u+HghqNy+6HCw6zJBmq+2exx6pMJFOg==",
+    "vite-imagetools@11.0.0_vite@8.2.0__@types+node@26.1.2": {
+      "integrity": "sha512-9mMuI/gum/hg7OT2VUfVJvolmACJbc1kStMmm0ydoUHX+3jsj1zvsbmI0DYt2K8u2Tex6kiTuj86xDuIYNgV2A==",
       "dependencies": [
         "@rollup/pluginutils",
         "imagetools-core",
@@ -1527,8 +1527,8 @@
     "packageJson": {
       "dependencies": [
         "npm:@lucide/svelte@^1.28.0",
-        "npm:@sveltejs/adapter-static@^4.0.0-next.2",
-        "npm:@sveltejs/enhanced-img@^1.0.0-next.2",
+        "npm:@sveltejs/adapter-static@^4.0.0-next.3",
+        "npm:@sveltejs/enhanced-img@^1.0.0-next.3",
         "npm:@sveltejs/kit@3.0.0-next.11",
         "npm:@sveltejs/vite-plugin-svelte@^7.2.0",
         "npm:@tailwindcss/vite@^4.3.3",

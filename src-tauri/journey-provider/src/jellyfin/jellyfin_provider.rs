@@ -10,7 +10,7 @@ use journey_db::{
     entity::providers::ActiveModel,
     sea_orm::{ActiveValue::Set, TryIntoModel},
 };
-use journey_utils::get_env_prod;
+use journey_utils::constants::{PRODUCT_NAME, PRODUCT_VERSION};
 use thiserror::Error;
 use url::Url;
 use uuid::Uuid;
@@ -45,12 +45,12 @@ impl ProviderNew for JellyfinProvider {
 
     fn new(params: ActiveModel) -> ProviderResult<Box<Self>> {
         let client_info = ClientInfo {
-            name: get_env_prod()?.var("VITE_PRODUCT_NAME")?,
-            version: get_env_prod()?.var("VITE_PRODUCT_VERSION")?,
+            name: PRODUCT_NAME,
+            version: PRODUCT_VERSION,
         };
 
         let device_info = DeviceInfo {
-            id: Uuid::now_v7().to_string(),
+            id: Uuid::now_v7(),
             name: format!(
                 "{}-{}-{}-{}",
                 tauri_plugin_os::hostname(),

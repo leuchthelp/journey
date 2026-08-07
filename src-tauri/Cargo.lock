@@ -160,9 +160,9 @@ checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
 name = "apple-native-keyring-store"
-version = "1.0.1"
+version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "797f94b6a53d7d10b56dc18290e0d40a2158352f108bb4ff32350825081a9f29"
+checksum = "2b350bfd03649e07aa05c0a81b3e15934374e585c98204a57e20b9d49f49bb9a"
 dependencies = [
  "keyring-core",
  "log",
@@ -2503,7 +2503,7 @@ dependencies = [
 [[package]]
 name = "jellyfin-generated-client"
 version = "0.1.0"
-source = "git+https://github.com/leuchthelp/jellyfin-sdk-rs#31e9f85c389e4f6cf0398e8dd4db4139ba44d0dd"
+source = "git+https://github.com/leuchthelp/jellyfin-sdk-rs#6cf0e5a350468375af582c5724acf28c16312d63"
 dependencies = [
  "chrono",
  "reqwest",
@@ -2520,13 +2520,14 @@ dependencies = [
 [[package]]
 name = "jellyfin-sdk-rs"
 version = "0.1.0"
-source = "git+https://github.com/leuchthelp/jellyfin-sdk-rs#31e9f85c389e4f6cf0398e8dd4db4139ba44d0dd"
+source = "git+https://github.com/leuchthelp/jellyfin-sdk-rs#6cf0e5a350468375af582c5724acf28c16312d63"
 dependencies = [
  "bon",
  "jellyfin-generated-client",
  "reqwest",
  "thiserror 2.0.19",
  "url",
+ "uuid",
 ]
 
 [[package]]
@@ -6443,6 +6444,7 @@ dependencies = [
  "js-sys",
  "serde_core",
  "wasm-bindgen",
+ "zerocopy",
 ]
 
 [[package]]
@@ -7254,18 +7256,18 @@ dependencies = [
 
 [[package]]
 name = "zerocopy"
-version = "0.8.55"
+version = "0.8.56"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5a105cd7b140f6eeec8acff2ea38135d3cab283ada58540f629fe51e46696eb"
+checksum = "556764e583adb45a9f8d413c2a147fa7e8d821e48e12b14fd560b607998b75eb"
 dependencies = [
  "zerocopy-derive",
 ]
 
 [[package]]
 name = "zerocopy-derive"
-version = "0.8.55"
+version = "0.8.56"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0fe976fb70c78cd64cccfe3a6fc142244e8a77b70959b30faf9d0ac37ee228eb"
+checksum = "f2ab42fc20575779bd240faa45f94a74256f755c0fa9e89f0ede20d91d0cdfc1"
 dependencies = [
  "proc-macro2",
  "quote",

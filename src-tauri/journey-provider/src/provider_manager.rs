@@ -163,7 +163,8 @@ mod provider_manager_test {
     use journey_db::entity::providers::ActiveModel;
     use journey_db::sea_orm::ActiveModelTrait;
     use journey_db::sea_orm::ActiveValue::Set;
-    use journey_utils::get_env_local;
+    use journey_utils::constants::PRODUCT_NAME;
+use journey_utils::get_env_local;
     use serial_test::serial;
     use test_log::test;
     use tracing::warn;
@@ -191,7 +192,7 @@ mod provider_manager_test {
         let env_map = env_map.unwrap();
         journey_keyring::use_native_store().unwrap();
 
-        warn!("{}", env_map.var("TEST_JELLYFIN_URL").unwrap());
+        warn!("{}", PRODUCT_NAME);
         let url = env_map.var("TEST_JELLYFIN_URL").unwrap();
 
         let params = ActiveModel {

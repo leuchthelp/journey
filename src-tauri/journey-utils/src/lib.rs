@@ -1,3 +1,5 @@
+pub mod constants;
+
 use dotenvy::{EnvLoader, EnvMap};
 pub fn get_env_prod() -> Result<EnvMap, dotenvy::Error> {
     return EnvLoader::with_path("../../.env.production").load();

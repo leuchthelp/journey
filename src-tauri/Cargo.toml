@@ -54,7 +54,7 @@ dyn-clone = "1.0.20"
 anyhow = "1.0.104"
 serial_test = "3.5.0"
 futures = "0.3.33"
-uuid = { version = "^1.23.4", features = ["serde", "v7"] }
+uuid = { version = "^1.23.4", features = ["serde", "v7", "zerocopy"] }
 sea-orm = { version = "2.0.0-rc.43", features = [
     "sqlx-sqlite",
     "runtime-tokio",

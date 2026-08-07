@@ -8,7 +8,7 @@ use journey_db::entity::providers::ActiveModel;
 use journey_db::get_conn;
 use journey_db::sea_orm::{ActiveModelTrait, Set};
 use journey_keyring::{Entry, keyring_core};
-use journey_utils::get_env_prod;
+use journey_utils::constants::PRODUCT_NAME;
 use std::any::type_name_of_val;
 use std::collections::HashMap;
 use std::fmt::Debug;
@@ -72,7 +72,7 @@ pub trait Provider: DynClone + Debug {
     }
     fn save_token(&self, access_token: &String) -> ProviderResult<()> {
         let token_entry = Entry::new(
-            &get_env_prod()?.var("VITE_PRODUCT_NAME")?,
+            PRODUCT_NAME,
             format!("{}-{}", self.server_id()?, self.user_id()?).as_str(),
         )?;
         token_entry.set_password(&access_token)?;
