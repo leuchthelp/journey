@@ -114,7 +114,7 @@ fn use_apple_protected_store(config: &HashMap<&str, &str>) -> Result<()> {
         set_default_store(Store::new_with_configuration(config)?);
         Ok(())
     } else {
-        use_apple_keychain_store(config);
+        use_apple_keychain_store(config)
     }
     #[cfg(target_os = "ios")]
     {
