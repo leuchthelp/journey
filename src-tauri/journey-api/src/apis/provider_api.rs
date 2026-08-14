@@ -4,31 +4,16 @@ use journey_provider::{ProviderError, ProviderManagerError, ProviderManagerFn};
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
-use tokio::sync::TryLockError;
 use uuid::Uuid;
 
 use crate::AppState;
 
-#[derive(Debug, Error, Type)]
-#[specta(type = String)]
+#[derive(Debug, Error, Serialize, Type)]
 pub enum ProviderApiError {
     #[error(transparent)]
     ProviderManagerError(#[from] ProviderManagerError),
     #[error(transparent)]
     ProviderError(#[from] ProviderError),
-    #[error(transparent)]
-    ChannelSendFailureError(#[from] tauri::Error),
-    #[error(transparent)]
-    TryLockError(#[from] TryLockError),
-}
-
-impl Serialize for ProviderApiError {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::ser::Serializer,
-    {
-        serializer.serialize_str(self.to_string().as_ref())
-    }
 }
 
 type ProviderApiResult<T> = Result<T, ProviderApiError>;

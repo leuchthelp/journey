@@ -13,11 +13,12 @@ use journey_db::{
 };
 use journey_utils::constants::{PRODUCT_NAME, PRODUCT_VERSION};
 use serde::Serialize;
+use specta::Type;
 use thiserror::Error;
 use url::Url;
 use uuid::Uuid;
 
-#[derive(Debug, Error, Serialize)]
+#[derive(Debug, Error, Serialize, Type)]
 pub enum JellyfinProviderError {
     #[error("Failed to retrieve Jellyfin API response entry.")]
     ApiEntryRetrievalError,

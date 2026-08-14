@@ -52,7 +52,9 @@ export type OriginalDTO = {
   url: string;
 };
 
-export type ProviderApiError = string;
+export type ProviderApiError =
+  | ({ ProviderManagerError: ProviderManagerError } & { ProviderError?: never })
+  | ({ ProviderError: ProviderError } & { ProviderManagerError?: never });
 
 export type ProviderDTO = {
   authenticated: boolean;
@@ -63,6 +65,10 @@ export type ProviderDTO = {
   mediaItems: MediaItemDTO[] | null;
   images: ImageDTO[] | null;
 };
+
+export type ProviderError = string;
+
+export type ProviderManagerError = string;
 
 export type ProviderVariant = "JellyfinProvider";
 

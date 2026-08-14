@@ -2535,7 +2535,7 @@ dependencies = [
 [[package]]
 name = "jellyfin-generated-client"
 version = "0.1.0"
-source = "git+https://github.com/leuchthelp/jellyfin-sdk-rs#6cf0e5a350468375af582c5724acf28c16312d63"
+source = "git+https://github.com/leuchthelp/jellyfin-sdk-rs?branch=master#f5ee4a1e8f0af64b44a7666480d726058333606c"
 dependencies = [
  "chrono",
  "reqwest",
@@ -2552,11 +2552,13 @@ dependencies = [
 [[package]]
 name = "jellyfin-sdk-rs"
 version = "0.1.0"
-source = "git+https://github.com/leuchthelp/jellyfin-sdk-rs#6cf0e5a350468375af582c5724acf28c16312d63"
+source = "git+https://github.com/leuchthelp/jellyfin-sdk-rs?branch=master#f5ee4a1e8f0af64b44a7666480d726058333606c"
 dependencies = [
  "bon",
  "jellyfin-generated-client",
  "reqwest",
+ "serde",
+ "serde_json",
  "thiserror 2.0.20",
  "url",
  "uuid",
@@ -2795,6 +2797,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serial_test",
+ "specta",
  "tauri-plugin-os",
  "test-log",
  "thiserror 2.0.20",

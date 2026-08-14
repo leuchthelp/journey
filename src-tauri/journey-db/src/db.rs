@@ -1,23 +1,30 @@
 use anyhow::Result;
-use sea_orm::{Database, DatabaseConnection, DbErr};
+use sea_orm::{Database, DatabaseConnection};
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
 
 #[derive(Debug, Error, Serialize, Type)]
 pub enum JourneyDbError {
-    #[error(transparent)]
-    #[serde(skip)]
-    ConnectionError(#[from] DbErr),
+    #[error("Failed to establish database connection.")]
+    ConnectionError,
 }
 
 pub async fn get_conn() -> Result<DatabaseConnection, JourneyDbError> {
-    let db = Database::connect("sqlite:db.sqlite?mode=rwc").await?;
+    let conn = match Database::connect("sqlite:db.sqlite?mode=rwc").await {
+        Ok(conn) => Ok(conn),
+        Err(_) => Err(JourneyDbError::ConnectionError),
+    }?;
 
-    db.get_schema_registry("journey-db::entity::*")
-        .sync(&db)
-        .await?;
-    Ok(db)
+    match conn
+        .get_schema_registry("journey-db::entity::*")
+        .sync(&conn)
+        .await
+    {
+        Ok(_) => Ok(()),
+        Err(_) => Err(JourneyDbError::ConnectionError),
+    }?;
+    Ok(conn)
 }
 
 pub trait Convertible<T> {

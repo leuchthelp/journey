@@ -23,10 +23,11 @@ dotenvy = { workspace = true }
 tracing = { workspace = true }
 futures = { workspace = true }
 serde = { workspace = true }
+specta = { workspace = true }
 journey-db = { workspace = true }
 journey-utils = { workspace = true }
 journey-keyring = { workspace = true }
-jellyfin-sdk-rs = { git = "https://github.com/leuchthelp/jellyfin-sdk-rs" }
+jellyfin-sdk-rs = { git = "https://github.com/leuchthelp/jellyfin-sdk-rs", branch = "master" }
 
 [dev-dependencies]
 tokio = { workspace = true }

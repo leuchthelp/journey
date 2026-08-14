@@ -2,7 +2,6 @@ use crate::jellyfin::jellyfin_provider::JellyfinProviderError;
 use anyhow::Result;
 use async_trait::async_trait;
 use dyn_clone::{DynClone, clone_trait_object};
-use jellyfin_sdk_rs::JellyfinSDKError;
 use jellyfin_sdk_rs::apis::authentication_api::AuthenticateUserByNameError;
 use journey_db::entity::providers::ActiveModel;
 use journey_db::entity::{ProviderVariant, Providers};
@@ -10,13 +9,16 @@ use journey_db::get_conn;
 use journey_db::sea_orm::{ActiveModelTrait, Set};
 use journey_keyring::{Entry, keyring_core};
 use journey_utils::constants::PRODUCT_NAME;
+use serde::Serialize;
+use specta::Type;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use thiserror::Error;
 use url::Url;
 use uuid::Uuid;
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Type)]
+#[specta(type = String)]
 pub enum ProviderError {
     #[error("Found more than one access token, removing all.")]
     TooManyCredentialsError,
@@ -25,23 +27,32 @@ pub enum ProviderError {
     #[error("Found no such provider variant")]
     NoSuchVariantError,
     #[error(transparent)]
+    JellyfinProviderError(#[from] JellyfinProviderError),
+    #[error(transparent)]
+    JourneyDbError(#[from] journey_db::JourneyDbError),
+    #[error(transparent)]
     KeyringCoreError(#[from] keyring_core::Error),
     #[error(transparent)]
     UuidParserError(#[from] uuid::Error),
     #[error(transparent)]
     DbError(#[from] journey_db::sea_orm::DbErr),
     #[error(transparent)]
-    JourneyDbError(#[from] journey_db::JourneyDbError),
-    #[error(transparent)]
     EnvLoadingError(#[from] dotenvy::Error),
-    #[error(transparent)]
-    JellyfinProviderError(#[from] JellyfinProviderError),
     #[error(transparent)]
     JellyfinAuthenticationError(#[from] jellyfin_sdk_rs::apis::Error<AuthenticateUserByNameError>),
     #[error(transparent)]
-    JellyfinConfigurationError(#[from] JellyfinSDKError),
+    JellyfinConfigurationError(#[from] jellyfin_sdk_rs::JellyfinSDKError),
     #[error(transparent)]
     ParseUrlError(#[from] url::ParseError),
+}
+
+impl Serialize for ProviderError {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        serializer.serialize_str(self.to_string().as_ref())
+    }
 }
 
 pub type ProviderResult<T> = Result<T, ProviderError>;

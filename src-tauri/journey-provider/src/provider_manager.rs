@@ -15,10 +15,13 @@ use journey_db::sea_orm::EntityTrait;
 use journey_db::sea_orm::IntoActiveModel;
 use journey_db::{entity::providers::ActiveModel, sea_orm::ActiveValue::Set};
 use rapidhash::RapidHashMap;
+use serde::Serialize;
+use specta::Type;
 use thiserror::Error;
 use uuid::Uuid;
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Type)]
+#[specta(type = String)]
 pub enum ProviderManagerError {
     #[error("No providers registered yet. Please add some first")]
     NoProviderError,
@@ -34,6 +37,15 @@ pub enum ProviderManagerError {
     DbError(#[from] journey_db::sea_orm::DbErr),
     #[error(transparent)]
     JourneyDbError(#[from] journey_db::JourneyDbError),
+}
+
+impl Serialize for ProviderManagerError {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        serializer.serialize_str(self.to_string().as_ref())
+    }
 }
 
 pub type ProviderManagerResult<T> = Result<T, ProviderManagerError>;
