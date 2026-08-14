@@ -1,6 +1,6 @@
+use crate::ProviderError;
 use crate::jellyfin_provider::JellyfinProvider;
 use crate::provider::Provider;
-use crate::provider::ProviderError;
 use crate::provider::ProviderNew;
 use anyhow::Result;
 use async_trait::async_trait;
@@ -15,12 +15,10 @@ use journey_db::sea_orm::EntityTrait;
 use journey_db::sea_orm::IntoActiveModel;
 use journey_db::{entity::providers::ActiveModel, sea_orm::ActiveValue::Set};
 use rapidhash::RapidHashMap;
-use serde::Serialize;
-use specta::Type;
 use thiserror::Error;
 use uuid::Uuid;
 
-#[derive(Debug, Error, Serialize, Type)]
+#[derive(Debug, Error)]
 pub enum ProviderManagerError {
     #[error("No providers registered yet. Please add some first")]
     NoProviderError,
@@ -31,10 +29,8 @@ pub enum ProviderManagerError {
     #[error(transparent)]
     ProviderError(#[from] ProviderError),
     #[error(transparent)]
-    #[serde(skip)]
     ParseUrlError(#[from] url::ParseError),
     #[error(transparent)]
-    #[serde(skip)]
     DbError(#[from] journey_db::sea_orm::DbErr),
     #[error(transparent)]
     JourneyDbError(#[from] journey_db::JourneyDbError),
@@ -80,7 +76,13 @@ pub trait ProviderManagerFn {
         };
 
         let mut provider = self.get_type(ty, model)?;
-        provider.password_auth(uname, psw).await?;
+        match provider.password_auth(uname, psw).await {
+            Ok(token) => {
+                provider.save_token(&token)?;
+                provider.add_to_db().await?;
+            }
+            Err(_) => (),
+        }
 
         let key = provider.key()?;
         self.register(provider)?;
@@ -133,13 +135,8 @@ impl ProviderManagerFn for ProviderManager {
         &mut self,
         provider: Box<dyn Provider + Send + Sync>,
     ) -> ProviderManagerResult<()> {
-        match provider.authenticated()? {
-            false => Err(ProviderManagerError::RegisterError),
-            true => {
-                self.variants.insert(provider.key()?, provider);
-                return Ok(());
-            }
-        }
+        self.variants.insert(provider.key()?, provider);
+        Ok(())
     }
     pub async fn deregister(&mut self, key: &(Uuid, Uuid)) -> ProviderManagerResult<()> {
         match self.variants.remove(key) {

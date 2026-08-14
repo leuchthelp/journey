@@ -1,7 +1,26 @@
 <script lang="ts">
-  import type { ProviderApiError, ProviderDTO } from "#lib/bindings.ts";
+  import { type ProviderDTO } from "#lib/bindings.ts";
   import { strip } from "#lib/components/helpers.ts";
   import { API } from "#lib/proxy.ts";
+
+  const removeConnection = async () => {
+    if (key == undefined) {
+      throw new Error(
+        "Key should be set if connection succeeded. Somehow it is not.",
+      );
+    }
+
+    let tmp = (await provider)?.url;
+    if (typeof tmp === "string") url = tmp;
+
+    await API.provider.deregister(key).then((response) => {
+      return strip(response);
+    });
+
+    key = undefined;
+    uname = "";
+    psw = "";
+  };
 
   const authenticateProvider = async (
     url: string,
@@ -12,9 +31,6 @@
       .password_auth(url, "JellyfinProvider", uname, psw)
       .then((response) => {
         return strip(response);
-      })
-      .catch((err: ProviderApiError) => {
-        throw Error(err);
       });
 
     key = response;
@@ -23,19 +39,14 @@
   const getProvider = async (
     key?: [string, string],
   ): Promise<ProviderDTO | undefined> => {
-    if (!key) {
+    if (key == undefined) {
       console.warn("No known provider yet, offering to create new one.");
       return;
     }
 
-    return API.provider
-      .get_provider(key)
-      .then((response) => {
-        return strip(response);
-      })
-      .catch((err: ProviderApiError) => {
-        throw Error(err);
-      });
+    return API.provider.get_provider(key).then((response) => {
+      return strip(response);
+    });
   };
 
   type Props = {
@@ -59,8 +70,9 @@
     {#if provider?.authenticated}
       <div>Connected</div>
       <div>{key}</div>
-      <div>{provider}</div>
-      <button onclick={() => console.debug("no impl")}>Remove Connection</button
+      <div>{provider.url}</div>
+      <button onclick={async () => await removeConnection()}
+        >Remove Connection</button
       >
     {:else}
       <form>

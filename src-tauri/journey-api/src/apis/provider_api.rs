@@ -9,7 +9,7 @@ use uuid::Uuid;
 
 use crate::AppState;
 
-#[derive(Debug, Error, Serialize, Type)]
+#[derive(Debug, Error, Type)]
 #[specta(type = String)]
 pub enum ProviderApiError {
     #[error(transparent)]
@@ -17,11 +17,18 @@ pub enum ProviderApiError {
     #[error(transparent)]
     ProviderError(#[from] ProviderError),
     #[error(transparent)]
-    #[serde(skip)]
     ChannelSendFailureError(#[from] tauri::Error),
     #[error(transparent)]
-    #[serde(skip)]
     TryLockError(#[from] TryLockError),
+}
+
+impl Serialize for ProviderApiError {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        serializer.serialize_str(self.to_string().as_ref())
+    }
 }
 
 type ProviderApiResult<T> = Result<T, ProviderApiError>;
@@ -36,6 +43,7 @@ pub trait ProviderApi {
         uname: String,
         psw: String,
     ) -> ProviderApiResult<(Uuid, Uuid)>;
+    async fn deregister(key: (Uuid, Uuid)) -> ProviderApiResult<()>;
 }
 
 #[derive(Clone, Debug)]
@@ -68,5 +76,9 @@ impl ProviderApi for ProviderApiImpl {
             .password_auth(url, ty, uname, psw)
             .await?;
         Ok(key)
+    }
+    async fn deregister(self, key: (Uuid, Uuid)) -> ProviderApiResult<()> {
+        let mut lock = self.state.write().await;
+        Ok(lock.provider_manager.deregister(&key).await?)
     }
 }

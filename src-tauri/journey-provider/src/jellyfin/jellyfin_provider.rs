@@ -1,3 +1,4 @@
+use crate::provider::{Provider, ProviderNew, ProviderResult};
 use async_trait::async_trait;
 use inherent::inherent;
 use jellyfin_sdk_rs::{
@@ -11,16 +12,12 @@ use journey_db::{
     sea_orm::{ActiveValue::Set, TryIntoModel},
 };
 use journey_utils::constants::{PRODUCT_NAME, PRODUCT_VERSION};
+use serde::Serialize;
 use thiserror::Error;
 use url::Url;
 use uuid::Uuid;
 
-use crate::provider::{Provider, ProviderNew, ProviderResult};
-
-use serde::Serialize;
-use specta::Type;
-
-#[derive(Debug, Error, Serialize, Type)]
+#[derive(Debug, Error, Serialize)]
 pub enum JellyfinProviderError {
     #[error("Failed to retrieve Jellyfin API response entry.")]
     ApiEntryRetrievalError,
@@ -103,14 +100,7 @@ impl Provider for JellyfinProvider {
         ProviderVariant::JellyfinProvider
     }
 
-    pub async fn password_auth(
-        &mut self,
-        uname: String,
-        psw: String,
-    ) -> ProviderResult<(Uuid, Uuid)> {
-        if self.authenticated()? {
-            return Ok(self.key()?);
-        }
+    pub async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<String> {
         let mut client_config = configure()
             .base_url(&self.url()?)
             .client_info(&self.client_info)
@@ -130,7 +120,6 @@ impl Provider for JellyfinProvider {
 
         self.set_server_id(auth_res.server_id)?;
         self.set_user_id(auth_res.user)?;
-        let add_db_task = self.add_to_db();
 
         client_config = configure()
             .base_url(&self.url()?)
@@ -139,10 +128,8 @@ impl Provider for JellyfinProvider {
             .access_token(&access_token)
             .call()?;
 
-        add_db_task.await?;
-        self.save_token(&access_token)?;
         self.config = Some(client_config);
-        Ok(self.key()?)
+        Ok(access_token)
     }
 
     pub async fn invalidate(&mut self) -> ProviderResult<()> {

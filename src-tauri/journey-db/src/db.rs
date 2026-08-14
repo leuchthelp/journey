@@ -12,7 +12,7 @@ pub enum JourneyDbError {
 }
 
 pub async fn get_conn() -> Result<DatabaseConnection, JourneyDbError> {
-    let db = Database::connect("sqlite::memory:").await?;
+    let db = Database::connect("sqlite:db.sqlite?mode=rwc").await?;
 
     db.get_schema_registry("journey-db::entity::*")
         .sync(&db)

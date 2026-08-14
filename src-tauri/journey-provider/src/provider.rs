@@ -10,19 +10,14 @@ use journey_db::get_conn;
 use journey_db::sea_orm::{ActiveModelTrait, Set};
 use journey_keyring::{Entry, keyring_core};
 use journey_utils::constants::PRODUCT_NAME;
-use serde::Serialize;
-use specta::Type;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use thiserror::Error;
 use url::Url;
 use uuid::Uuid;
 
-#[derive(Debug, Error, Serialize, Type)]
+#[derive(Debug, Error)]
 pub enum ProviderError {
-    #[error("Failed to save access token to native keyring: {0}")]
-    #[serde(skip)]
-    KeyringCoreError(#[from] keyring_core::Error),
     #[error("Found more than one access token, removing all.")]
     TooManyCredentialsError,
     #[error("Found no access token, nothing to remove.")]
@@ -30,26 +25,22 @@ pub enum ProviderError {
     #[error("Found no such provider variant")]
     NoSuchVariantError,
     #[error(transparent)]
-    #[serde(skip)]
+    KeyringCoreError(#[from] keyring_core::Error),
+    #[error(transparent)]
     UuidParserError(#[from] uuid::Error),
     #[error(transparent)]
-    #[serde(skip)]
     DbError(#[from] journey_db::sea_orm::DbErr),
     #[error(transparent)]
     JourneyDbError(#[from] journey_db::JourneyDbError),
     #[error(transparent)]
-    #[serde(skip)]
     EnvLoadingError(#[from] dotenvy::Error),
     #[error(transparent)]
     JellyfinProviderError(#[from] JellyfinProviderError),
     #[error(transparent)]
-    #[serde(skip)]
     JellyfinAuthenticationError(#[from] jellyfin_sdk_rs::apis::Error<AuthenticateUserByNameError>),
     #[error(transparent)]
-    #[serde(skip)]
     JellyfinConfigurationError(#[from] JellyfinSDKError),
     #[error(transparent)]
-    #[serde(skip)]
     ParseUrlError(#[from] url::ParseError),
 }
 
@@ -74,7 +65,7 @@ pub trait Provider: DynClone + Debug {
         )?;
         Ok(token_entry.set_password(&access_token)?)
     }
-    fn retrieve_token(&self) -> ProviderResult<Vec<Entry>> {
+    fn retrieve_tokens(&self) -> ProviderResult<Vec<Entry>> {
         Ok(Entry::search(&HashMap::from([
             ("service", "journey"),
             (
@@ -84,7 +75,7 @@ pub trait Provider: DynClone + Debug {
         ]))?)
     }
     fn remove_token(&self) -> ProviderResult<()> {
-        let entries = self.retrieve_token()?;
+        let entries = self.retrieve_tokens()?;
 
         for entry in &entries {
             entry.delete_credential()?;
@@ -100,7 +91,7 @@ pub trait Provider: DynClone + Debug {
         Ok((self.user_id()?, self.server_id()?))
     }
     fn authenticated(&self) -> ProviderResult<bool> {
-        let tokens = self.retrieve_token();
+        let tokens = self.retrieve_tokens();
 
         match tokens {
             Err(_) => Ok(false),
@@ -110,7 +101,7 @@ pub trait Provider: DynClone + Debug {
             },
         }
     }
-    async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<(Uuid, Uuid)>;
+    async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<String>;
     async fn invalidate(&mut self) -> ProviderResult<()>;
     async fn add_to_db(&self) -> ProviderResult<()> {
         let provider = ActiveModel {
