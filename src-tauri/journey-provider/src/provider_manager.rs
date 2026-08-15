@@ -18,10 +18,10 @@ use rapidhash::RapidHashMap;
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
+use tracing::warn;
 use uuid::Uuid;
 
-#[derive(Debug, Error, Type)]
-#[specta(type = String)]
+#[derive(Debug, Error, Serialize, Type)]
 pub enum ProviderManagerError {
     #[error("No providers registered yet. Please add some first")]
     NoProviderError,
@@ -29,23 +29,12 @@ pub enum ProviderManagerError {
     RegisterError,
     #[error("Provider is not registered, can not unregister.")]
     DeregisterError,
+    #[error("Could not acquire database stream of provider values.")]
+    FailedDbStreamError,
     #[error(transparent)]
     ProviderError(#[from] ProviderError),
     #[error(transparent)]
-    ParseUrlError(#[from] url::ParseError),
-    #[error(transparent)]
-    DbError(#[from] journey_db::sea_orm::DbErr),
-    #[error(transparent)]
     JourneyDbError(#[from] journey_db::JourneyDbError),
-}
-
-impl Serialize for ProviderManagerError {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::ser::Serializer,
-    {
-        serializer.serialize_str(self.to_string().as_ref())
-    }
 }
 
 pub type ProviderManagerResult<T> = Result<T, ProviderManagerError>;
@@ -65,11 +54,27 @@ pub trait ProviderManagerFn {
     }
     async fn init(&mut self) -> ProviderManagerResult<()> {
         let conn = &get_conn().await?;
-        let mut known_providers = Providers::find().stream(conn).await?;
+        let mut known_providers = match Providers::find().stream(conn).await {
+            Ok(known) => known,
+            Err(_) => return Err(ProviderManagerError::FailedDbStreamError),
+        };
 
-        while let Some(known) = known_providers.try_next().await? {
-            let new_provider = self.get_type(known.ty.clone(), known.into_active_model())?;
-            self.register(new_provider)?;
+        while let known_res = known_providers.try_next().await {
+            let known = match known_res {
+                Ok(known) => known,
+                Err(_) => return Err(ProviderManagerError::NoProviderError),
+            };
+
+            match known {
+                Some(known) => {
+                    let new_provider =
+                        self.get_type(known.ty.clone(), known.into_active_model())?;
+                    self.register(new_provider)?;
+                }
+                _ => warn!(
+                    "Somehow received a potential provider from the database stream that was empty"
+                ),
+            }
         }
         Ok(())
     }

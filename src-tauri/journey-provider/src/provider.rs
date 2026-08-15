@@ -2,12 +2,11 @@ use crate::jellyfin::jellyfin_provider::JellyfinProviderError;
 use anyhow::Result;
 use async_trait::async_trait;
 use dyn_clone::{DynClone, clone_trait_object};
-use jellyfin_sdk_rs::apis::authentication_api::AuthenticateUserByNameError;
 use journey_db::entity::providers::ActiveModel;
 use journey_db::entity::{ProviderVariant, Providers};
 use journey_db::get_conn;
 use journey_db::sea_orm::{ActiveModelTrait, Set};
-use journey_keyring::{Entry, keyring_core};
+use journey_keyring::Entry;
 use journey_utils::constants::PRODUCT_NAME;
 use serde::Serialize;
 use specta::Type;
@@ -17,8 +16,7 @@ use thiserror::Error;
 use url::Url;
 use uuid::Uuid;
 
-#[derive(Debug, Error, Type)]
-#[specta(type = String)]
+#[derive(Debug, Error, Serialize, Type)]
 pub enum ProviderError {
     #[error("Found more than one access token, removing all.")]
     TooManyCredentialsError,
@@ -26,33 +24,20 @@ pub enum ProviderError {
     NoCredentialsError,
     #[error("Found no such provider variant")]
     NoSuchVariantError,
+    #[error("Failed to create keyring entry.")]
+    FailedCreateEntryError,
+    #[error("Failed to remove keyring entry. Credentials might leak.")]
+    FailedRemoveEntryError,
+    #[error("Failed to save token to OS keyring")]
+    SaveTokenError,
+    #[error("Failed to insert provider to database.")]
+    FailedDbInsertError,
+    #[error("Failed to delete provider from database. Might not exist")]
+    FailedDbRemoveError,
     #[error(transparent)]
     JellyfinProviderError(#[from] JellyfinProviderError),
     #[error(transparent)]
     JourneyDbError(#[from] journey_db::JourneyDbError),
-    #[error(transparent)]
-    KeyringCoreError(#[from] keyring_core::Error),
-    #[error(transparent)]
-    UuidParserError(#[from] uuid::Error),
-    #[error(transparent)]
-    DbError(#[from] journey_db::sea_orm::DbErr),
-    #[error(transparent)]
-    EnvLoadingError(#[from] dotenvy::Error),
-    #[error(transparent)]
-    JellyfinAuthenticationError(#[from] jellyfin_sdk_rs::apis::Error<AuthenticateUserByNameError>),
-    #[error(transparent)]
-    JellyfinConfigurationError(#[from] jellyfin_sdk_rs::JellyfinSDKError),
-    #[error(transparent)]
-    ParseUrlError(#[from] url::ParseError),
-}
-
-impl Serialize for ProviderError {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::ser::Serializer,
-    {
-        serializer.serialize_str(self.to_string().as_ref())
-    }
 }
 
 pub type ProviderResult<T> = Result<T, ProviderError>;
@@ -70,26 +55,41 @@ pub trait Provider: DynClone + Debug {
     fn url(&self) -> ProviderResult<Url>;
     fn ty(&self) -> ProviderVariant;
     fn save_token(&self, access_token: &String) -> ProviderResult<()> {
-        let token_entry = Entry::new(
+        let token_entry = match Entry::new(
             PRODUCT_NAME,
             &format!("{}-{}", self.server_id()?, self.user_id()?),
-        )?;
-        Ok(token_entry.set_password(&access_token)?)
+        ) {
+            Ok(entry) => entry,
+            Err(_) => return Err(ProviderError::FailedCreateEntryError),
+        };
+
+        match token_entry.set_password(&access_token) {
+            Ok(_) => Ok(()),
+            Err(_) => Err(ProviderError::SaveTokenError),
+        }
     }
     fn retrieve_tokens(&self) -> ProviderResult<Vec<Entry>> {
-        Ok(Entry::search(&HashMap::from([
+        let entries_res = Entry::search(&HashMap::from([
             ("service", "journey"),
             (
                 "user",
                 &format!("{}-{}", self.server_id()?, self.user_id()?),
             ),
-        ]))?)
+        ]));
+
+        match entries_res {
+            Ok(entries) => Ok(entries),
+            Err(_) => Err(ProviderError::NoCredentialsError),
+        }
     }
     fn remove_token(&self) -> ProviderResult<()> {
         let entries = self.retrieve_tokens()?;
 
         for entry in &entries {
-            entry.delete_credential()?;
+            match entry.delete_credential() {
+                Ok(_) => (),
+                Err(_) => return Err(ProviderError::FailedRemoveEntryError),
+            };
         }
 
         match entries.len() {
@@ -121,14 +121,21 @@ pub trait Provider: DynClone + Debug {
             ty: Set(self.ty()),
             url: Set(self.url()?.to_string()),
         };
-        provider.insert(&get_conn().await?).await?;
-        Ok(())
+
+        match provider.insert(&get_conn().await?).await {
+            Ok(_) => Ok(()),
+            Err(_) => Err(ProviderError::FailedDbInsertError),
+        }
     }
     async fn remove_from_db(&self) -> ProviderResult<()> {
-        Providers::delete_by_user_id(self.user_id()?)
+        let res = Providers::delete_by_user_id(self.user_id()?)
             .exec(&get_conn().await?)
-            .await?;
-        Ok(())
+            .await;
+
+        match res {
+            Ok(_) => Ok(()),
+            Err(_) => Err(ProviderError::FailedDbRemoveError),
+        }
     }
 }
 
