@@ -55,9 +55,8 @@ export type OriginalDTO = {
 export type ProviderApiError = ({ ProviderManagerError: ProviderManagerError }) & { ProviderError?: never } | ({ ProviderError: ProviderError }) & { ProviderManagerError?: never };
 
 export type ProviderDTO = {
-	authenticated: boolean,
-	serverId: string | null,
-	userId: string | null,
+	authenticated: boolean | null,
+	key: ProviderKey | null,
 	type: ProviderVariant,
 	url: string | null,
 	mediaItems: MediaItemDTO[] | null,
@@ -71,7 +70,7 @@ export type ProviderKey = {
 	serverId: string,
 };
 
-export type ProviderManagerError = "NoProviderError" | "RegisterError" | "DeregisterError" | "FailedDbStreamError" | ({ ProviderError: ProviderError }) & { JourneyDbError?: never } | ({ JourneyDbError: JourneyDbError }) & { ProviderError?: never };
+export type ProviderManagerError = "NoProviderError" | "RegisterError" | "ProviderInUseError" | "DeregisterError" | "FailedDbStreamError" | ({ ProviderError: ProviderError }) & { JourneyDbError?: never } | ({ JourneyDbError: JourneyDbError }) & { ProviderError?: never };
 
 export type ProviderVariant = "JellyfinProvider";
 

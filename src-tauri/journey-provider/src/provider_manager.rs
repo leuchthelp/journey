@@ -26,6 +26,8 @@ pub enum ProviderManagerError {
     NoProviderError,
     #[error("Could not register provider, might be unauthenticated.")]
     RegisterError,
+    #[error("Provider for this user on this server is already in use.")]
+    ProviderInUseError,
     #[error("Provider is not registered, can not unregister.")]
     DeregisterError,
     #[error("Could not acquire database stream of provider values.")]
@@ -66,6 +68,20 @@ pub trait ProviderManagerFn {
     }
     fn get_provider(&self, key: &ProviderKey) -> ProviderManagerResult<ProviderDTO>;
     async fn get_providers(&self) -> ProviderManagerResult<Vec<ProviderDTO>>;
+    async fn validate_provider(
+        &mut self,
+        token: String,
+        provider: &Box<dyn Provider + Send + Sync>,
+    ) -> ProviderManagerResult<()> {
+        match provider.authenticated()? && self.provider_exists(&provider.key()?)? {
+            true => return Err(ProviderManagerError::ProviderInUseError),
+            false => (),
+        };
+
+        provider.save_token(&token)?;
+        provider.add_to_db().await?;
+        Ok(())
+    }
     async fn password_auth(
         &mut self,
         url: String,
@@ -79,18 +95,14 @@ pub trait ProviderManagerFn {
         };
 
         let mut provider = self.get_type(ty, model)?;
-        match provider.password_auth(uname, psw).await {
-            Ok(token) => {
-                provider.save_token(&token)?;
-                provider.add_to_db().await?;
-            }
-            Err(_) => (),
-        }
+        let token = provider.password_auth(uname, psw).await?;
+        self.validate_provider(token, &provider).await?;
 
         let key = provider.key()?;
         self.register(provider)?;
         Ok(key)
     }
+    fn provider_exists(&self, key: &ProviderKey) -> ProviderManagerResult<bool>;
     fn register(&mut self, provider: Box<dyn Provider + Send + Sync>) -> ProviderManagerResult<()>;
     async fn deregister(&mut self, key: &ProviderKey) -> ProviderManagerResult<()>;
 }
@@ -113,8 +125,7 @@ impl ProviderManagerFn for ProviderManager {
             .authenticated(provider.authenticated()?)
             .ty(provider.ty())
             .url(provider.url()?)
-            .user_id(provider.user_id()?)
-            .server_id(provider.server_id()?)
+            .key(provider.key()?)
             .build();
 
         Ok(provider_dto)
@@ -124,15 +135,15 @@ impl ProviderManagerFn for ProviderManager {
 
         for (_, provider) in &self.variants {
             let new = ProviderDTO::builder()
-                .authenticated(provider.authenticated()?)
                 .ty(provider.ty())
-                .url(provider.url()?)
-                .user_id(provider.user_id()?)
-                .server_id(provider.server_id()?)
+                .key(provider.key()?)
                 .build();
             providers.push(new);
         }
         Ok(providers)
+    }
+    pub fn provider_exists(&self, key: &ProviderKey) -> ProviderManagerResult<bool> {
+        Ok(self.variants.contains_key(key))
     }
     pub fn register(
         &mut self,
@@ -214,10 +225,7 @@ mod provider_manager_test {
 
         let provider = provider_manager.get_provider(&key).unwrap();
 
-        warn!(
-            "user_id: {:#?}, server_id: {:#?}",
-            provider.user_id, provider.server_id
-        );
+        warn!("key: {:#?}", provider.key);
         provider_manager.deregister(&key).await.unwrap();
 
         journey_keyring::release_store();

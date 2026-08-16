@@ -79,11 +79,8 @@
             {@render toAuthComponent(type)}
           {/each}
           {#each providers as provider}
-            {#if provider.userId && provider.serverId}
-              {@render toAuthComponent(provider.type, [
-                provider.userId,
-                provider.serverId,
-              ])}
+            {#if provider.key}
+              {@render toAuthComponent(provider.type, provider.key)}
             {:else}
               error
             {/if}

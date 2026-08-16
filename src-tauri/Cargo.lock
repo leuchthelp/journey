@@ -2756,6 +2756,7 @@ dependencies = [
  "bon",
  "inherent",
  "sea-orm",
+ "sea-query",
  "serde",
  "serde_json",
  "specta",
@@ -4614,6 +4615,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "546040c653a705e60ec65ecd3191a809603734bebbc225775916dea9ae409b31"
 dependencies = [
  "chrono",
+ "itoa",
  "ordered-float",
  "rust_decimal",
  "sea-query-derive",
