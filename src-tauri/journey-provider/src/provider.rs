@@ -120,6 +120,7 @@ pub trait Provider: DynClone + Debug {
             },
         }
     }
+    async fn index(&self) -> ProviderResult<()>;
     async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<String>;
     async fn invalidate(&mut self) -> ProviderResult<()>;
     async fn add_to_db(&self) -> ProviderResult<()> {

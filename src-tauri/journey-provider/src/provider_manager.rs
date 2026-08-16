@@ -1,4 +1,8 @@
+use std::collections::hash_map::Values;
+use std::pin::Pin;
+
 use crate::ProviderError;
+use crate::ProviderResult;
 use crate::jellyfin_provider::JellyfinProvider;
 use crate::provider::Provider;
 use crate::provider::ProviderNew;
@@ -32,6 +36,8 @@ pub enum ProviderManagerError {
     DeregisterError,
     #[error("Could not acquire database stream of provider values.")]
     FailedDbStreamError,
+    #[error("Failed to index the given provider.")]
+    FailedIndexingError,
     #[error(transparent)]
     ProviderError(#[from] ProviderError),
     #[error(transparent)]
@@ -41,7 +47,22 @@ pub enum ProviderManagerError {
 pub type ProviderManagerResult<T> = Result<T, ProviderManagerError>;
 
 #[async_trait]
-pub trait ProviderManagerFn {
+pub trait RequiredForProviderManager {
+    fn get_variant(
+        &self,
+        key: &ProviderKey,
+    ) -> ProviderManagerResult<&Box<dyn Provider + Send + Sync>>;
+    fn get_variants(
+        &self,
+    ) -> ProviderManagerResult<Values<'_, ProviderKey, Box<dyn Provider + Send + Sync>>>;
+    fn provider_exists(&self, key: &ProviderKey) -> ProviderManagerResult<bool>;
+    fn register(&mut self, provider: Box<dyn Provider + Send + Sync>) -> ProviderManagerResult<()>;
+    async fn deregister(&mut self, key: &ProviderKey) -> ProviderManagerResult<()>;
+    async fn start_indexing(&self) -> ProviderManagerResult<()>;
+}
+
+#[async_trait]
+pub trait ProviderManagerFn: RequiredForProviderManager {
     fn get_type(
         &self,
         ty: ProviderVariant,
@@ -66,8 +87,30 @@ pub trait ProviderManagerFn {
         }
         Ok(())
     }
-    fn get_provider(&self, key: &ProviderKey) -> ProviderManagerResult<ProviderDTO>;
-    async fn get_providers(&self) -> ProviderManagerResult<Vec<ProviderDTO>>;
+    fn get_provider(&self, key: &ProviderKey) -> ProviderManagerResult<ProviderDTO> {
+        let provider = self.get_variant(key)?;
+
+        let provider_dto = ProviderDTO::builder()
+            .authenticated(provider.authenticated()?)
+            .ty(provider.ty())
+            .url(provider.url()?)
+            .key(provider.key()?)
+            .build();
+
+        Ok(provider_dto)
+    }
+    async fn get_providers(&self) -> ProviderManagerResult<Vec<ProviderDTO>> {
+        let mut providers: Vec<ProviderDTO> = vec![];
+
+        for provider in self.get_variants()? {
+            let new = ProviderDTO::builder()
+                .ty(provider.ty())
+                .key(provider.key()?)
+                .build();
+            providers.push(new);
+        }
+        Ok(providers)
+    }
     async fn validate_provider(
         &mut self,
         token: String,
@@ -102,9 +145,13 @@ pub trait ProviderManagerFn {
         self.register(provider)?;
         Ok(key)
     }
-    fn provider_exists(&self, key: &ProviderKey) -> ProviderManagerResult<bool>;
-    fn register(&mut self, provider: Box<dyn Provider + Send + Sync>) -> ProviderManagerResult<()>;
-    async fn deregister(&mut self, key: &ProviderKey) -> ProviderManagerResult<()>;
+    async fn index(
+        &self,
+        key: &ProviderKey,
+    ) -> ProviderManagerResult<Pin<Box<dyn Future<Output = ProviderResult<()>> + Send + 'life0>>>
+    {
+        Ok(self.get_variant(key)?.index())
+    }
 }
 
 #[derive(Default, Clone, Debug)]
@@ -114,33 +161,20 @@ pub struct ProviderManager {
 
 #[async_trait]
 #[inherent]
-impl ProviderManagerFn for ProviderManager {
-    pub fn get_provider(&self, key: &ProviderKey) -> ProviderManagerResult<ProviderDTO> {
-        let provider = match self.variants.get(key) {
-            Some(provider) => Ok(provider),
+impl RequiredForProviderManager for ProviderManager {
+    pub fn get_variant(
+        &self,
+        key: &ProviderKey,
+    ) -> ProviderManagerResult<&Box<dyn Provider + Send + Sync>> {
+        match self.variants.get(key) {
+            Some(variant) => Ok(variant),
             None => Err(ProviderManagerError::NoProviderError),
-        }?;
-
-        let provider_dto = ProviderDTO::builder()
-            .authenticated(provider.authenticated()?)
-            .ty(provider.ty())
-            .url(provider.url()?)
-            .key(provider.key()?)
-            .build();
-
-        Ok(provider_dto)
-    }
-    pub async fn get_providers(&self) -> ProviderManagerResult<Vec<ProviderDTO>> {
-        let mut providers: Vec<ProviderDTO> = vec![];
-
-        for (_, provider) in &self.variants {
-            let new = ProviderDTO::builder()
-                .ty(provider.ty())
-                .key(provider.key()?)
-                .build();
-            providers.push(new);
         }
-        Ok(providers)
+    }
+    pub fn get_variants(
+        &self,
+    ) -> ProviderManagerResult<Values<'_, ProviderKey, Box<dyn Provider + Send + Sync>>> {
+        Ok(self.variants.values())
     }
     pub fn provider_exists(&self, key: &ProviderKey) -> ProviderManagerResult<bool> {
         Ok(self.variants.contains_key(key))
@@ -158,10 +192,21 @@ impl ProviderManagerFn for ProviderManager {
             None => Err(ProviderManagerError::DeregisterError),
         }
     }
+    pub async fn start_indexing(&self) -> ProviderManagerResult<()> {
+        for key in self.variants.keys() {
+            self.index(key);
+        }
+        Ok(())
+    }
 }
+
+#[async_trait]
+#[inherent]
+impl ProviderManagerFn for ProviderManager {}
 
 #[cfg(test)]
 mod provider_manager_test {
+    use crate::ProviderManagerFn;
     use crate::jellyfin_provider::JellyfinProvider;
     use crate::provider::{Provider, ProviderNew};
     use crate::provider_manager::ProviderManager;
