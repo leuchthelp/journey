@@ -60,12 +60,12 @@ impl Convertible<ModelEx> for MediaItemDTO {
     type DTO = MediaItemDTO;
 
     pub fn from_model(item: ModelEx) -> Result<Self> {
-        let original = OriginalDTO::to_vec(item.original)?;
-        let content = ContentDTO::to_vec(item.content)?;
-        let providers = ProviderDTO::to_vec(item.providers)?;
-        let images = ImageDTO::to_vec(item.images)?;
-        let children = MediaItemDTO::to_vec(item.children)?;
-        let parents = MediaItemDTO::to_vec(item.parents)?;
+        let original = OriginalDTO::to_dto_vec(item.original)?;
+        let content = ContentDTO::to_dto_vec(item.content)?;
+        let providers = ProviderDTO::to_dto_vec(item.providers)?;
+        let images = ImageDTO::to_dto_vec(item.images)?;
+        let children = MediaItemDTO::to_dto_vec(item.children)?;
+        let parents = MediaItemDTO::to_dto_vec(item.parents)?;
 
         Ok(MediaItemDTO {
             uuid: item.uuid,

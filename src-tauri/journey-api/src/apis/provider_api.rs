@@ -1,10 +1,9 @@
 use anyhow::Result;
-use journey_db::entity::{ProviderDTO, ProviderVariant};
+use journey_db::entity::{ProviderDTO, ProviderKey, ProviderVariant};
 use journey_provider::{ProviderError, ProviderManagerError, ProviderManagerFn};
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
-use uuid::Uuid;
 
 use crate::AppState;
 
@@ -21,14 +20,14 @@ type ProviderApiResult<T> = Result<T, ProviderApiError>;
 #[taurpc::procedures(path = "provider")]
 pub trait ProviderApi {
     async fn get_providers() -> ProviderApiResult<Vec<ProviderDTO>>;
-    async fn get_provider(key: (Uuid, Uuid)) -> ProviderApiResult<ProviderDTO>;
+    async fn get_provider(key: ProviderKey) -> ProviderApiResult<ProviderDTO>;
     async fn password_auth(
         url: String,
         ty: ProviderVariant,
         uname: String,
         psw: String,
-    ) -> ProviderApiResult<(Uuid, Uuid)>;
-    async fn deregister(key: (Uuid, Uuid)) -> ProviderApiResult<()>;
+    ) -> ProviderApiResult<ProviderKey>;
+    async fn deregister(key: ProviderKey) -> ProviderApiResult<()>;
 }
 
 #[derive(Clone, Debug)]
@@ -43,7 +42,7 @@ impl ProviderApi for ProviderApiImpl {
         let providers = lock.provider_manager.get_providers().await?;
         Ok(providers)
     }
-    async fn get_provider(self, key: (Uuid, Uuid)) -> ProviderApiResult<ProviderDTO> {
+    async fn get_provider(self, key: ProviderKey) -> ProviderApiResult<ProviderDTO> {
         let lock = self.state.read().await;
         let provider = lock.provider_manager.get_provider(&key)?;
         Ok(provider)
@@ -54,7 +53,7 @@ impl ProviderApi for ProviderApiImpl {
         ty: ProviderVariant,
         uname: String,
         psw: String,
-    ) -> ProviderApiResult<(Uuid, Uuid)> {
+    ) -> ProviderApiResult<ProviderKey> {
         let mut lock = self.state.write().await;
         let key = lock
             .provider_manager
@@ -62,7 +61,7 @@ impl ProviderApi for ProviderApiImpl {
             .await?;
         Ok(key)
     }
-    async fn deregister(self, key: (Uuid, Uuid)) -> ProviderApiResult<()> {
+    async fn deregister(self, key: ProviderKey) -> ProviderApiResult<()> {
         let mut lock = self.state.write().await;
         Ok(lock.provider_manager.deregister(&key).await?)
     }

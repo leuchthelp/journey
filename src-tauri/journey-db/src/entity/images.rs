@@ -47,7 +47,7 @@ impl Convertible<ModelEx> for ImageDTO {
             None => None,
         };
 
-        let media_items = MediaItemDTO::to_vec(item.media_items)?;
+        let media_items = MediaItemDTO::to_dto_vec(item.media_items)?;
 
         Ok(ImageDTO {
             url: Url::parse(&item.url)?,

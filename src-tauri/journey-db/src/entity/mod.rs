@@ -21,4 +21,5 @@ pub use media_items::Entity as MediaItems;
 pub use original::Entity as Original;
 pub use providers::Entity as Providers;
 
+pub use providers::ProviderKey;
 pub use providers::ProviderVariant;

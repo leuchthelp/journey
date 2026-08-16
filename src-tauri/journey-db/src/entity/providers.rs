@@ -37,6 +37,14 @@ pub struct Model {
 impl ActiveModelBehavior for ActiveModel {}
 
 #[taurpc::ipc_type]
+#[derive(Debug, PartialEq, Eq, Hash)]
+#[serde(rename_all = "camelCase")]
+pub struct ProviderKey {
+    pub user_id: Uuid,
+    pub server_id: Uuid,
+}
+
+#[taurpc::ipc_type]
 #[derive(Debug, Builder)]
 #[serde(rename_all = "camelCase")]
 pub struct ProviderDTO {
@@ -55,8 +63,8 @@ impl Convertible<ModelEx> for ProviderDTO {
     type DTO = ProviderDTO;
 
     pub fn from_model(item: ModelEx) -> Result<Self> {
-        let parents = MediaItemDTO::to_vec(item.media_items)?;
-        let images = ImageDTO::to_vec(item.images)?;
+        let parents = MediaItemDTO::to_dto_vec(item.media_items)?;
+        let images = ImageDTO::to_dto_vec(item.images)?;
 
         Ok(ProviderDTO {
             authenticated: false,

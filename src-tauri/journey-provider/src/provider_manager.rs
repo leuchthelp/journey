@@ -7,6 +7,7 @@ use async_trait::async_trait;
 use futures::TryStreamExt;
 use inherent::inherent;
 use journey_db::entity::ProviderDTO;
+use journey_db::entity::ProviderKey;
 use journey_db::entity::ProviderVariant;
 use journey_db::entity::Providers;
 use journey_db::get_conn;
@@ -18,7 +19,6 @@ use rapidhash::RapidHashMap;
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
-use uuid::Uuid;
 
 #[derive(Debug, Error, Serialize, Type)]
 pub enum ProviderManagerError {
@@ -64,7 +64,7 @@ pub trait ProviderManagerFn {
         }
         Ok(())
     }
-    fn get_provider(&self, key: &(Uuid, Uuid)) -> ProviderManagerResult<ProviderDTO>;
+    fn get_provider(&self, key: &ProviderKey) -> ProviderManagerResult<ProviderDTO>;
     async fn get_providers(&self) -> ProviderManagerResult<Vec<ProviderDTO>>;
     async fn password_auth(
         &mut self,
@@ -72,7 +72,7 @@ pub trait ProviderManagerFn {
         ty: ProviderVariant,
         uname: String,
         psw: String,
-    ) -> ProviderManagerResult<(Uuid, Uuid)> {
+    ) -> ProviderManagerResult<ProviderKey> {
         let model = ActiveModel {
             url: Set(url),
             ..ActiveModel::default_values()
@@ -92,18 +92,18 @@ pub trait ProviderManagerFn {
         Ok(key)
     }
     fn register(&mut self, provider: Box<dyn Provider + Send + Sync>) -> ProviderManagerResult<()>;
-    async fn deregister(&mut self, key: &(Uuid, Uuid)) -> ProviderManagerResult<()>;
+    async fn deregister(&mut self, key: &ProviderKey) -> ProviderManagerResult<()>;
 }
 
 #[derive(Default, Clone, Debug)]
 pub struct ProviderManager {
-    pub(crate) variants: RapidHashMap<(Uuid, Uuid), Box<dyn Provider + Send + Sync>>,
+    pub(crate) variants: RapidHashMap<ProviderKey, Box<dyn Provider + Send + Sync>>,
 }
 
 #[async_trait]
 #[inherent]
 impl ProviderManagerFn for ProviderManager {
-    pub fn get_provider(&self, key: &(Uuid, Uuid)) -> ProviderManagerResult<ProviderDTO> {
+    pub fn get_provider(&self, key: &ProviderKey) -> ProviderManagerResult<ProviderDTO> {
         let provider = match self.variants.get(key) {
             Some(provider) => Ok(provider),
             None => Err(ProviderManagerError::NoProviderError),
@@ -141,7 +141,7 @@ impl ProviderManagerFn for ProviderManager {
         self.variants.insert(provider.key()?, provider);
         Ok(())
     }
-    pub async fn deregister(&mut self, key: &(Uuid, Uuid)) -> ProviderManagerResult<()> {
+    pub async fn deregister(&mut self, key: &ProviderKey) -> ProviderManagerResult<()> {
         match self.variants.remove(key) {
             Some(mut provider) => Ok(provider.invalidate().await?),
             None => Err(ProviderManagerError::DeregisterError),

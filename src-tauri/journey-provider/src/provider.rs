@@ -3,7 +3,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use dyn_clone::{DynClone, clone_trait_object};
 use journey_db::entity::providers::ActiveModel;
-use journey_db::entity::{ProviderVariant, Providers};
+use journey_db::entity::{ProviderKey, ProviderVariant, Providers};
 use journey_db::get_conn;
 use journey_db::sea_orm::{ActiveModelTrait, Set};
 use journey_keyring::Entry;
@@ -102,8 +102,11 @@ pub trait Provider: DynClone + Debug {
             _ => Ok(()),
         }
     }
-    fn key(&self) -> ProviderResult<(Uuid, Uuid)> {
-        Ok((self.user_id()?, self.server_id()?))
+    fn key(&self) -> ProviderResult<ProviderKey> {
+        Ok(ProviderKey {
+            user_id: self.user_id()?,
+            server_id: self.server_id()?,
+        })
     }
     fn authenticated(&self) -> ProviderResult<bool> {
         let tokens = self.retrieve_tokens();

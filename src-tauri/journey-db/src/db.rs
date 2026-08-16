@@ -31,7 +31,7 @@ pub trait Convertible<T> {
     type DTO;
 
     fn from_model(item: T) -> Result<Self::DTO>;
-    fn to_vec(items: impl IntoIterator<Item = T>) -> Result<Option<Vec<Self::DTO>>> {
+    fn to_dto_vec(items: impl IntoIterator<Item = T>) -> Result<Option<Vec<Self::DTO>>> {
         let mut peekable = items.into_iter().peekable();
         if peekable.peek().is_none() {
             return Ok(None);

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { type ProviderDTO } from "#lib/bindings.ts";
+  import { type ProviderDTO, type ProviderKey } from "#lib/bindings.ts";
   import { strip } from "#lib/components/helpers.ts";
   import { API } from "#lib/proxy.ts";
 
@@ -37,7 +37,7 @@
   };
 
   const getProvider = async (
-    key?: [string, string],
+    key?: ProviderKey,
   ): Promise<ProviderDTO | undefined> => {
     if (key == undefined) {
       console.warn("No known provider yet, offering to create new one.");
@@ -50,7 +50,7 @@
   };
 
   type Props = {
-    key?: [string, string];
+    key?: ProviderKey;
   };
 
   let { key }: Props = $props();
