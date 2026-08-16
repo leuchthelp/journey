@@ -1,5 +1,6 @@
 use crate::{
     ProviderError,
+    helpers::get_items,
     provider::{NewProvider, Provider, ProviderResult, RequiredForProvider},
 };
 use async_trait::async_trait;
@@ -7,7 +8,7 @@ use inherent::inherent;
 use jellyfin_sdk_rs::{
     apis::{authentication_api::authenticate_user_by_name, configuration::Configuration},
     configure,
-    models::{AuthenticateUserByName, UserDto},
+    models::{AuthenticateUserByName, BaseItemKind, UserDto},
     required::{ClientInfo, DeviceInfo},
 };
 use journey_db::{
@@ -166,6 +167,9 @@ impl RequiredForProvider for JellyfinProvider {
         Ok(())
     }
     pub async fn index(&self) -> ProviderResult<()> {
+        self.get_by_type(vec![BaseItemKind::MusicAlbum]).await?;
+        self.get_by_type(vec![BaseItemKind::MusicArtist]).await?;
+        self.get_by_type(vec![BaseItemKind::Audio]).await?;
         Ok(())
     }
 }
@@ -206,6 +210,28 @@ impl JellyfinProvider {
         }?;
 
         self.params.user_id = Set(user_id);
+        Ok(())
+    }
+    fn get_config(&self) -> ProviderResult<&Configuration> {
+        match &self.config {
+            Some(config) => Ok(config),
+            None => Err(JellyfinProviderError::ApiEntryRetrievalError.into()),
+        }
+    }
+    async fn get_by_type(&self, kind: Vec<BaseItemKind>) -> ProviderResult<()> {
+        let user_id = self.user_id()?.to_string();
+        let items_task = get_items()
+            .configuration(self.get_config()?)
+            .user_id(&user_id)
+            .recursive(true)
+            .include_item_types(kind)
+            .call();
+
+        let res = match items_task.await {
+            Ok(items) => items,
+            Err(_) => return Err(JellyfinProviderError::ApiEntryRetrievalError.into()),
+        };
+
         Ok(())
     }
 }
