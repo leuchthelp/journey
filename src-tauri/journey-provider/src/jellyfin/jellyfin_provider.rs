@@ -1,4 +1,7 @@
-use crate::provider::{Provider, ProviderNew, ProviderResult};
+use crate::{
+    ProviderError,
+    provider::{Provider, ProviderNew, ProviderResult},
+};
 use async_trait::async_trait;
 use inherent::inherent;
 use jellyfin_sdk_rs::{
@@ -28,6 +31,12 @@ pub enum JellyfinProviderError {
     MissingUserIdError,
     #[error("Url hasn't been set yet, provide one first.")]
     MissingUrlError,
+    #[error("Failed to parse given String to Uuid.")]
+    FailedUuidParseError,
+    #[error("Failed to authenticate with username & password.")]
+    FailedPasswordAuthError,
+    #[error("Failed to build client config for SDK client.")]
+    FailedBuildConfigError,
 }
 
 #[derive(Debug, Clone)]
@@ -72,7 +81,10 @@ impl ProviderNew for JellyfinProvider {
 #[inherent]
 impl Provider for JellyfinProvider {
     pub fn user_id(&self) -> ProviderResult<Uuid> {
-        let model = self.params.clone().try_into_model()?;
+        let model = match self.params.clone().try_into_model() {
+            Ok(model) => model,
+            Err(_) => return Err(ProviderError::FailedConvModelError),
+        };
 
         match model.user_id {
             user_id if user_id != Uuid::nil() => Ok(user_id),
@@ -81,7 +93,10 @@ impl Provider for JellyfinProvider {
     }
 
     pub fn server_id(&self) -> ProviderResult<Uuid> {
-        let model = self.params.clone().try_into_model()?;
+        let model = match self.params.clone().try_into_model() {
+            Ok(model) => model,
+            Err(_) => return Err(ProviderError::FailedConvModelError),
+        };
 
         match model.server_id {
             server_id if server_id != Uuid::nil() => Ok(server_id),
@@ -92,7 +107,10 @@ impl Provider for JellyfinProvider {
     pub fn url(&self) -> ProviderResult<Url> {
         let model = self.params.clone().try_into_model();
         match model {
-            Ok(model) => Ok(Url::parse(&model.url)?),
+            Ok(model) => Ok(match Url::parse(&model.url) {
+                Ok(model) => model,
+                Err(_) => return Err(ProviderError::FailedParseUrlError),
+            }),
             Err(_) => Err(JellyfinProviderError::MissingUrlError.into()),
         }
     }
@@ -102,17 +120,24 @@ impl Provider for JellyfinProvider {
     }
 
     pub async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<String> {
-        let mut client_config = configure()
+        let mut client_config = match configure()
             .base_url(&self.url()?)
             .client_info(&self.client_info)
             .device_info(&self.device_info)
-            .call()?;
+            .call()
+        {
+            Ok(config) => config,
+            Err(_) => return Err(JellyfinProviderError::FailedBuildConfigError.into()),
+        };
 
         let auth_by_name = AuthenticateUserByName {
             username: Some(Some(uname)),
             pw: Some(Some(psw)),
         };
-        let auth_res = authenticate_user_by_name(&client_config, auth_by_name).await?;
+        let auth_res = match authenticate_user_by_name(&client_config, auth_by_name).await {
+            Ok(res) => res,
+            Err(_) => return Err(JellyfinProviderError::FailedPasswordAuthError.into()),
+        };
 
         let access_token = match auth_res.access_token.flatten() {
             Some(token) => Ok(token),
@@ -122,21 +147,24 @@ impl Provider for JellyfinProvider {
         self.set_server_id(auth_res.server_id)?;
         self.set_user_id(auth_res.user)?;
 
-        client_config = configure()
+        client_config = match configure()
             .base_url(&self.url()?)
             .client_info(&self.client_info)
             .device_info(&self.device_info)
             .access_token(&access_token)
-            .call()?;
+            .call()
+        {
+            Ok(config) => config,
+            Err(_) => return Err(JellyfinProviderError::FailedBuildConfigError.into()),
+        };
 
         self.config = Some(client_config);
         Ok(access_token)
     }
 
     pub async fn invalidate(&mut self) -> ProviderResult<()> {
-        let remove_db_task = self.remove_from_db();
+        self.remove_from_db().await?;
         self.remove_token()?;
-        remove_db_task.await?;
 
         self.params = ActiveModel::default();
         self.config = None;
@@ -151,7 +179,10 @@ impl JellyfinProvider {
             None => Err(JellyfinProviderError::ApiEntryRetrievalError),
         }?;
 
-        self.params.server_id = Set(Uuid::parse_str(&server_id)?);
+        self.params.server_id = Set(match Uuid::parse_str(&server_id) {
+            Ok(uuid) => uuid,
+            Err(_) => return Err(JellyfinProviderError::FailedUuidParseError.into()),
+        });
         Ok(())
     }
 
@@ -237,13 +268,14 @@ mod variant_jellyfin {
         assert!(provider.user_id().is_err());
         assert!(provider.url().is_ok());
 
-        provider
+        let token = provider
             .password_auth(
                 env_map.var("TEST_JELLYFIN_USER").unwrap(),
                 env_map.var("TEST_JELLYFIN_PW").unwrap(),
             )
             .await
             .unwrap();
+        provider.save_token(&token).unwrap();
 
         assert!(provider.authenticated().unwrap() == true);
         assert!(provider.server_id().is_ok());

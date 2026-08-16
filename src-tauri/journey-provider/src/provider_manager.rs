@@ -18,7 +18,6 @@ use rapidhash::RapidHashMap;
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
-use tracing::warn;
 use uuid::Uuid;
 
 #[derive(Debug, Error, Serialize, Type)]
@@ -59,22 +58,9 @@ pub trait ProviderManagerFn {
             Err(_) => return Err(ProviderManagerError::FailedDbStreamError),
         };
 
-        while let known_res = known_providers.try_next().await {
-            let known = match known_res {
-                Ok(known) => known,
-                Err(_) => return Err(ProviderManagerError::NoProviderError),
-            };
-
-            match known {
-                Some(known) => {
-                    let new_provider =
-                        self.get_type(known.ty.clone(), known.into_active_model())?;
-                    self.register(new_provider)?;
-                }
-                _ => warn!(
-                    "Somehow received a potential provider from the database stream that was empty"
-                ),
-            }
+        while let Ok(Some(known)) = known_providers.try_next().await {
+            let new_provider = self.get_type(known.ty.clone(), known.into_active_model())?;
+            self.register(new_provider)?;
         }
         Ok(())
     }
@@ -210,13 +196,16 @@ mod provider_manager_test {
 
         let mut provider = JellyfinProvider::new(params).unwrap();
 
-        provider
+        let access_token = provider
             .password_auth(
                 env_map.var("TEST_JELLYFIN_USER").unwrap(),
                 env_map.var("TEST_JELLYFIN_PW").unwrap(),
             )
             .await
             .unwrap();
+        assert!(provider.authenticated().unwrap() == false);
+        provider.save_token(&access_token).unwrap();
+        assert!(provider.authenticated().unwrap() == true);
 
         let mut provider_manager = ProviderManager::default();
 

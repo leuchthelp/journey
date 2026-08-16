@@ -22,18 +22,22 @@ pub enum ProviderError {
     TooManyCredentialsError,
     #[error("Found no access token, nothing to remove.")]
     NoCredentialsError,
-    #[error("Found no such provider variant")]
+    #[error("Found no such provider variant.")]
     NoSuchVariantError,
     #[error("Failed to create keyring entry.")]
     FailedCreateEntryError,
     #[error("Failed to remove keyring entry. Credentials might leak.")]
     FailedRemoveEntryError,
-    #[error("Failed to save token to OS keyring")]
+    #[error("Failed to save token to OS keyring.")]
     SaveTokenError,
     #[error("Failed to insert provider to database.")]
     FailedDbInsertError,
-    #[error("Failed to delete provider from database. Might not exist")]
+    #[error("Failed to delete provider from database. Might not exist.")]
     FailedDbRemoveError,
+    #[error("Failed to convert sea-orm ActiveModel into Model.")]
+    FailedConvModelError,
+    #[error("Failed to parse the given String to an Url.")]
+    FailedParseUrlError,
     #[error(transparent)]
     JellyfinProviderError(#[from] JellyfinProviderError),
     #[error(transparent)]

@@ -26,6 +26,17 @@ export type ImageDTO = {
   mediaItems: MediaItemDTO[] | null;
 };
 
+export type JellyfinProviderError =
+  | "ApiEntryRetrievalError"
+  | "MissingServerIdError"
+  | "MissingUserIdError"
+  | "MissingUrlError"
+  | "FailedUuidParseError"
+  | "FailedPasswordAuthError"
+  | "FailedBuildConfigError";
+
+export type JourneyDbError = "ConnectionError";
+
 export type MediaItemApiError = string;
 
 export type MediaItemDTO = {
@@ -66,9 +77,29 @@ export type ProviderDTO = {
   images: ImageDTO[] | null;
 };
 
-export type ProviderError = string;
+export type ProviderError =
+  | "TooManyCredentialsError"
+  | "NoCredentialsError"
+  | "NoSuchVariantError"
+  | "FailedCreateEntryError"
+  | "FailedRemoveEntryError"
+  | "SaveTokenError"
+  | "FailedDbInsertError"
+  | "FailedDbRemoveError"
+  | "FailedConvModelError"
+  | "FailedParseUrlError"
+  | ({ JellyfinProviderError: JellyfinProviderError } & {
+      JourneyDbError?: never;
+    })
+  | ({ JourneyDbError: JourneyDbError } & { JellyfinProviderError?: never });
 
-export type ProviderManagerError = string;
+export type ProviderManagerError =
+  | "NoProviderError"
+  | "RegisterError"
+  | "DeregisterError"
+  | "FailedDbStreamError"
+  | ({ ProviderError: ProviderError } & { JourneyDbError?: never })
+  | ({ JourneyDbError: JourneyDbError } & { ProviderError?: never });
 
 export type ProviderVariant = "JellyfinProvider";
 
