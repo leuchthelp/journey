@@ -47,18 +47,25 @@ pub enum ProviderError {
 
 pub type ProviderResult<T> = Result<T, ProviderError>;
 
-pub trait ProviderNew {
+pub trait NewProvider {
     type Provider;
 
     fn new(params: ActiveModel) -> ProviderResult<Box<Self::Provider>>;
 }
 
 #[async_trait]
-pub trait Provider: DynClone + Debug {
+pub trait RequiredForProvider {
     fn user_id(&self) -> ProviderResult<Uuid>;
     fn server_id(&self) -> ProviderResult<Uuid>;
     fn url(&self) -> ProviderResult<Url>;
     fn ty(&self) -> ProviderVariant;
+    async fn index(&self) -> ProviderResult<()>;
+    async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<String>;
+    async fn invalidate(&mut self) -> ProviderResult<()>;
+}
+
+#[async_trait]
+pub trait Provider: RequiredForProvider + DynClone + Debug {
     fn save_token(&self, access_token: &String) -> ProviderResult<()> {
         let token_entry = match Entry::new(
             PRODUCT_NAME,
@@ -120,9 +127,6 @@ pub trait Provider: DynClone + Debug {
             },
         }
     }
-    async fn index(&self) -> ProviderResult<()>;
-    async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<String>;
-    async fn invalidate(&mut self) -> ProviderResult<()>;
     async fn add_to_db(&self) -> ProviderResult<()> {
         let provider = ActiveModel {
             user_id: Set(self.user_id()?),

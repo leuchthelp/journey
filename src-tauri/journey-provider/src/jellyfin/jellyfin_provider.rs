@@ -1,6 +1,6 @@
 use crate::{
     ProviderError,
-    provider::{Provider, ProviderNew, ProviderResult},
+    provider::{NewProvider, Provider, ProviderResult, RequiredForProvider},
 };
 use async_trait::async_trait;
 use inherent::inherent;
@@ -47,7 +47,7 @@ pub struct JellyfinProvider {
     pub(crate) device_info: DeviceInfo,
 }
 
-impl ProviderNew for JellyfinProvider {
+impl NewProvider for JellyfinProvider {
     type Provider = JellyfinProvider;
 
     fn new(params: ActiveModel) -> ProviderResult<Box<Self>> {
@@ -79,7 +79,7 @@ impl ProviderNew for JellyfinProvider {
 
 #[async_trait]
 #[inherent]
-impl Provider for JellyfinProvider {
+impl RequiredForProvider for JellyfinProvider {
     pub fn user_id(&self) -> ProviderResult<Uuid> {
         let model = match self.params.clone().try_into_model() {
             Ok(model) => model,
@@ -91,7 +91,6 @@ impl Provider for JellyfinProvider {
             _ => Err(JellyfinProviderError::MissingServerIdError.into()),
         }
     }
-
     pub fn server_id(&self) -> ProviderResult<Uuid> {
         let model = match self.params.clone().try_into_model() {
             Ok(model) => model,
@@ -103,7 +102,6 @@ impl Provider for JellyfinProvider {
             _ => Err(JellyfinProviderError::MissingServerIdError.into()),
         }
     }
-
     pub fn url(&self) -> ProviderResult<Url> {
         let model = self.params.clone().try_into_model();
         match model {
@@ -114,11 +112,9 @@ impl Provider for JellyfinProvider {
             Err(_) => Err(JellyfinProviderError::MissingUrlError.into()),
         }
     }
-
     pub fn ty(&self) -> ProviderVariant {
         ProviderVariant::JellyfinProvider
     }
-
     pub async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<String> {
         let mut client_config = match configure()
             .base_url(&self.url()?)
@@ -161,13 +157,15 @@ impl Provider for JellyfinProvider {
         self.config = Some(client_config);
         Ok(access_token)
     }
-
     pub async fn invalidate(&mut self) -> ProviderResult<()> {
         self.remove_from_db().await?;
         self.remove_token()?;
 
         self.params = ActiveModel::default();
         self.config = None;
+        Ok(())
+    }
+    pub async fn index(&self) -> ProviderResult<()> {
         Ok(())
     }
 }
@@ -212,13 +210,17 @@ impl JellyfinProvider {
     }
 }
 
+#[async_trait]
+#[inherent]
+impl Provider for JellyfinProvider {}
+
 #[cfg(test)]
 mod variant_jellyfin {
     use std::collections::HashMap;
 
     use crate::{
         jellyfin_provider::JellyfinProvider,
-        provider::{Provider, ProviderNew},
+        provider::{NewProvider, Provider},
     };
     use journey_db::{
         entity::{ProviderVariant, providers::ActiveModel},

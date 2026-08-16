@@ -1,27 +1,22 @@
-use std::collections::hash_map::Values;
-use std::pin::Pin;
-
-use crate::ProviderError;
-use crate::ProviderResult;
-use crate::jellyfin_provider::JellyfinProvider;
-use crate::provider::Provider;
-use crate::provider::ProviderNew;
+use crate::{
+    ProviderError, ProviderResult,
+    jellyfin_provider::JellyfinProvider,
+    provider::{NewProvider, Provider},
+};
 use anyhow::Result;
 use async_trait::async_trait;
 use futures::TryStreamExt;
 use inherent::inherent;
-use journey_db::entity::ProviderDTO;
-use journey_db::entity::ProviderKey;
-use journey_db::entity::ProviderVariant;
-use journey_db::entity::Providers;
-use journey_db::get_conn;
-use journey_db::sea_orm::ActiveModelTrait;
-use journey_db::sea_orm::EntityTrait;
-use journey_db::sea_orm::IntoActiveModel;
-use journey_db::{entity::providers::ActiveModel, sea_orm::ActiveValue::Set};
+use journey_db::{
+    entity::{ProviderDTO, ProviderKey, ProviderVariant, Providers, providers::ActiveModel},
+    get_conn,
+    sea_orm::{ActiveModelTrait, ActiveValue::Set, EntityTrait, IntoActiveModel},
+};
 use rapidhash::RapidHashMap;
 use serde::Serialize;
 use specta::Type;
+use std::collections::hash_map::{Keys, Values};
+use std::pin::Pin;
 use thiserror::Error;
 
 #[derive(Debug, Error, Serialize, Type)]
@@ -47,22 +42,7 @@ pub enum ProviderManagerError {
 pub type ProviderManagerResult<T> = Result<T, ProviderManagerError>;
 
 #[async_trait]
-pub trait RequiredForProviderManager {
-    fn get_variant(
-        &self,
-        key: &ProviderKey,
-    ) -> ProviderManagerResult<&Box<dyn Provider + Send + Sync>>;
-    fn get_variants(
-        &self,
-    ) -> ProviderManagerResult<Values<'_, ProviderKey, Box<dyn Provider + Send + Sync>>>;
-    fn provider_exists(&self, key: &ProviderKey) -> ProviderManagerResult<bool>;
-    fn register(&mut self, provider: Box<dyn Provider + Send + Sync>) -> ProviderManagerResult<()>;
-    async fn deregister(&mut self, key: &ProviderKey) -> ProviderManagerResult<()>;
-    async fn start_indexing(&self) -> ProviderManagerResult<()>;
-}
-
-#[async_trait]
-pub trait ProviderManagerFn: RequiredForProviderManager {
+pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
     fn get_type(
         &self,
         ty: ProviderVariant,
@@ -85,6 +65,8 @@ pub trait ProviderManagerFn: RequiredForProviderManager {
             let new_provider = self.get_type(known.ty.clone(), known.into_active_model())?;
             self.register(new_provider)?;
         }
+
+        self.start_indexing().await?;
         Ok(())
     }
     fn get_provider(&self, key: &ProviderKey) -> ProviderManagerResult<ProviderDTO> {
@@ -102,7 +84,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager {
     async fn get_providers(&self) -> ProviderManagerResult<Vec<ProviderDTO>> {
         let mut providers: Vec<ProviderDTO> = vec![];
 
-        for provider in self.get_variants()? {
+        for provider in self.get_variants_values()? {
             let new = ProviderDTO::builder()
                 .ty(provider.ty())
                 .key(provider.key()?)
@@ -145,6 +127,12 @@ pub trait ProviderManagerFn: RequiredForProviderManager {
         self.register(provider)?;
         Ok(key)
     }
+    async fn start_indexing(&self) -> ProviderManagerResult<()> {
+        for key in self.get_variants_keys()? {
+            let _indexing_task = self.index(key);
+        }
+        Ok(())
+    }
     async fn index(
         &self,
         key: &ProviderKey,
@@ -152,6 +140,23 @@ pub trait ProviderManagerFn: RequiredForProviderManager {
     {
         Ok(self.get_variant(key)?.index())
     }
+}
+
+#[async_trait]
+pub trait RequiredForProviderManager {
+    fn get_variant(
+        &self,
+        key: &ProviderKey,
+    ) -> ProviderManagerResult<&Box<dyn Provider + Send + Sync>>;
+    fn get_variants_values(
+        &self,
+    ) -> ProviderManagerResult<Values<'_, ProviderKey, Box<dyn Provider + Send + Sync>>>;
+    fn get_variants_keys(
+        &self,
+    ) -> ProviderManagerResult<Keys<'_, ProviderKey, Box<dyn Provider + Send + Sync>>>;
+    fn provider_exists(&self, key: &ProviderKey) -> ProviderManagerResult<bool>;
+    fn register(&mut self, provider: Box<dyn Provider + Send + Sync>) -> ProviderManagerResult<()>;
+    async fn deregister(&mut self, key: &ProviderKey) -> ProviderManagerResult<()>;
 }
 
 #[derive(Default, Clone, Debug)]
@@ -171,10 +176,15 @@ impl RequiredForProviderManager for ProviderManager {
             None => Err(ProviderManagerError::NoProviderError),
         }
     }
-    pub fn get_variants(
+    pub fn get_variants_values(
         &self,
     ) -> ProviderManagerResult<Values<'_, ProviderKey, Box<dyn Provider + Send + Sync>>> {
         Ok(self.variants.values())
+    }
+    pub fn get_variants_keys(
+        &self,
+    ) -> ProviderManagerResult<Keys<'_, ProviderKey, Box<dyn Provider + Send + Sync>>> {
+        Ok(self.variants.keys())
     }
     pub fn provider_exists(&self, key: &ProviderKey) -> ProviderManagerResult<bool> {
         Ok(self.variants.contains_key(key))
@@ -192,12 +202,6 @@ impl RequiredForProviderManager for ProviderManager {
             None => Err(ProviderManagerError::DeregisterError),
         }
     }
-    pub async fn start_indexing(&self) -> ProviderManagerResult<()> {
-        for key in self.variants.keys() {
-            self.index(key);
-        }
-        Ok(())
-    }
 }
 
 #[async_trait]
@@ -208,7 +212,7 @@ impl ProviderManagerFn for ProviderManager {}
 mod provider_manager_test {
     use crate::ProviderManagerFn;
     use crate::jellyfin_provider::JellyfinProvider;
-    use crate::provider::{Provider, ProviderNew};
+    use crate::provider::{NewProvider, Provider};
     use crate::provider_manager::ProviderManager;
     use journey_db::entity::providers::ActiveModel;
     use journey_db::sea_orm::ActiveModelTrait;
