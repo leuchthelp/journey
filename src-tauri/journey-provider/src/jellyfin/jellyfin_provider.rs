@@ -167,9 +167,9 @@ impl RequiredForProvider for JellyfinProvider {
         Ok(())
     }
     pub async fn index(&self) -> ProviderResult<()> {
-        self.get_by_type(vec![BaseItemKind::MusicAlbum]).await?;
-        self.get_by_type(vec![BaseItemKind::MusicArtist]).await?;
-        self.get_by_type(vec![BaseItemKind::Audio]).await?;
+        self.index_by_type(vec![BaseItemKind::MusicAlbum]).await?;
+        self.index_by_type(vec![BaseItemKind::MusicArtist]).await?;
+        self.index_by_type(vec![BaseItemKind::Audio]).await?;
         Ok(())
     }
 }
@@ -218,7 +218,7 @@ impl JellyfinProvider {
             None => Err(JellyfinProviderError::ApiEntryRetrievalError.into()),
         }
     }
-    async fn get_by_type(&self, kind: Vec<BaseItemKind>) -> ProviderResult<()> {
+    async fn index_by_type(&self, kind: Vec<BaseItemKind>) -> ProviderResult<()> {
         let user_id = self.user_id()?.to_string();
         let items_task = get_items()
             .configuration(self.get_config()?)
