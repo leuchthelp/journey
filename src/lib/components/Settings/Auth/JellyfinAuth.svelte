@@ -34,6 +34,8 @@
       });
 
     key = response;
+    uname = "";
+    psw = "";
   };
 
   const getProvider = async (
