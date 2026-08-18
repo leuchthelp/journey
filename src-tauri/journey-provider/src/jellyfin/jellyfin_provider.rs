@@ -4,11 +4,15 @@ use crate::{
     provider::{NewProvider, Provider, ProviderResult, RequiredForProvider},
 };
 use async_trait::async_trait;
+use futures::stream::{self, Once};
 use inherent::inherent;
 use jellyfin_sdk_rs::{
-    apis::{authentication_api::authenticate_user_by_name, configuration::Configuration},
+    apis::{
+        authentication_api::authenticate_user_by_name, configuration::Configuration,
+        library_api::GetItemsError,
+    },
     configure,
-    models::{AuthenticateUserByName, BaseItemKind, UserDto},
+    models::{AuthenticateUserByName, BaseItemDtoQueryResult, BaseItemKind, UserDto},
     required::{ClientInfo, DeviceInfo},
 };
 use journey_db::{
@@ -219,20 +223,38 @@ impl JellyfinProvider {
         }
     }
     async fn index_by_type(&self, kind: Vec<BaseItemKind>) -> ProviderResult<()> {
-        let user_id = self.user_id()?.to_string();
-        let items_task = get_items()
+        let items = self.get_items(kind).await;
+
+        Ok(())
+    }
+
+    async fn get_items(
+        &self,
+        kind: Vec<BaseItemKind>,
+    ) -> ProviderResult<
+        impl futures::Future<
+            Output = Result<BaseItemDtoQueryResult, jellyfin_sdk_rs::apis::Error<GetItemsError>>,
+        >,
+    > {
+        let user_id = self.user_id()?.to_string().clone();
+        // match get_items()
+        //     .configuration(self.get_config()?)
+        //     .user_id(&user_id)
+        //     .recursive(true)
+        //     .include_item_types(kind)
+        //     .call()
+        //     .await
+        // {
+        //     Ok(items) => Ok(items),
+        //     Err(_) => Err(JellyfinProviderError::ApiEntryRetrievalError.into()),
+        // }
+
+        Ok(get_items()
             .configuration(self.get_config()?)
             .user_id(&user_id)
             .recursive(true)
             .include_item_types(kind)
-            .call();
-
-        let res = match items_task.await {
-            Ok(items) => items,
-            Err(_) => return Err(JellyfinProviderError::ApiEntryRetrievalError.into()),
-        };
-
-        Ok(())
+            .call())
     }
 }
 

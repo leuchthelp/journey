@@ -1,7 +1,7 @@
 use jellyfin_sdk_rs::{
     self as sdk,
     apis::{Error, configuration::Configuration, library_api::GetItemsError},
-    models,
+    models::{self, BaseItemDtoQueryResult},
 };
 use uuid::Uuid;
 
@@ -96,7 +96,7 @@ pub async fn get_items(
     subtitle_languages: Option<Vec<String>>,
     enable_total_record_count: Option<bool>,
     enable_images: Option<bool>,
-) -> Result<models::BaseItemDtoQueryResult, Error<GetItemsError>> {
+) -> Result<BaseItemDtoQueryResult, Error<GetItemsError>> {
     return sdk::apis::library_api::get_items(
         &configuration,
         user_id,
