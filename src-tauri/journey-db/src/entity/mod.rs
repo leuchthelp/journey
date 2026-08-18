@@ -1,6 +1,6 @@
 mod content;
 mod images;
-mod media_items;
+pub mod media_items;
 mod original;
 pub mod providers;
 

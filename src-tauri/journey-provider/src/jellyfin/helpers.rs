@@ -1,12 +1,14 @@
 use jellyfin_sdk_rs::{
     self as sdk,
-    apis::{Error, configuration::Configuration, library_api::GetItemsError},
+    apis::configuration::Configuration,
     models::{self, BaseItemDtoQueryResult},
 };
 use uuid::Uuid;
 
+use crate::jellyfin_provider::JellyfinProviderError;
+
 #[bon::builder]
-pub async fn get_items(
+pub async fn get_items_request(
     configuration: &Configuration,
     user_id: Option<&str>,
     max_official_rating: Option<&str>,
@@ -96,8 +98,8 @@ pub async fn get_items(
     subtitle_languages: Option<Vec<String>>,
     enable_total_record_count: Option<bool>,
     enable_images: Option<bool>,
-) -> Result<BaseItemDtoQueryResult, Error<GetItemsError>> {
-    return sdk::apis::library_api::get_items(
+) -> Result<BaseItemDtoQueryResult, JellyfinProviderError> {
+    match sdk::apis::library_api::get_items(
         &configuration,
         user_id,
         max_official_rating,
@@ -188,5 +190,9 @@ pub async fn get_items(
         enable_total_record_count,
         enable_images,
     )
-    .await;
+    .await
+    {
+        Ok(response) => Ok(response),
+        Err(_) => Err(JellyfinProviderError::ApiEntryRetrievalError),
+    }
 }

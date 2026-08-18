@@ -1,22 +1,19 @@
 use crate::{
     ProviderError,
-    helpers::get_items,
+    helpers::get_items_request,
     provider::{NewProvider, Provider, ProviderResult, RequiredForProvider},
 };
 use async_trait::async_trait;
-use futures::stream::{self, Once};
+use futures::future::try_join_all;
 use inherent::inherent;
 use jellyfin_sdk_rs::{
-    apis::{
-        authentication_api::authenticate_user_by_name, configuration::Configuration,
-        library_api::GetItemsError,
-    },
+    apis::{authentication_api::authenticate_user_by_name, configuration::Configuration},
     configure,
-    models::{AuthenticateUserByName, BaseItemDtoQueryResult, BaseItemKind, UserDto},
+    models::{AuthenticateUserByName, BaseItemDto, BaseItemKind, UserDto},
     required::{ClientInfo, DeviceInfo},
 };
 use journey_db::{
-    entity::{ProviderVariant, providers::ActiveModel},
+    entity::{ProviderVariant, media_items},
     sea_orm::{ActiveValue::Set, TryIntoModel},
 };
 use journey_utils::constants::{PRODUCT_NAME, PRODUCT_VERSION};
@@ -171,9 +168,13 @@ impl RequiredForProvider for JellyfinProvider {
         Ok(())
     }
     pub async fn index(&self) -> ProviderResult<()> {
-        self.index_by_type(vec![BaseItemKind::MusicAlbum]).await?;
-        self.index_by_type(vec![BaseItemKind::MusicArtist]).await?;
-        self.index_by_type(vec![BaseItemKind::Audio]).await?;
+        let user_id = &self.user_id()?.to_string();
+        self.index_by_type(user_id, vec![BaseItemKind::MusicAlbum])
+            .await?;
+        self.index_by_type(user_id, vec![BaseItemKind::MusicArtist])
+            .await?;
+        self.index_by_type(user_id, vec![BaseItemKind::Audio])
+            .await?;
         Ok(())
     }
 }
@@ -222,39 +223,48 @@ impl JellyfinProvider {
             None => Err(JellyfinProviderError::ApiEntryRetrievalError.into()),
         }
     }
-    async fn index_by_type(&self, kind: Vec<BaseItemKind>) -> ProviderResult<()> {
-        let items = self.get_items(kind).await;
+    async fn index_by_type(&self, user_id: &str, kind: Vec<BaseItemKind>) -> ProviderResult<()> {
+        let items = self.get_items(user_id, kind).await?;
+
+        let mut tasks = vec![];
+        for item in items {
+            tasks.push(self.build_media_item(item));
+        }
+        let media_items = try_join_all(tasks).await?;
 
         Ok(())
     }
-
     async fn get_items(
         &self,
+        user_id: &str,
         kind: Vec<BaseItemKind>,
-    ) -> ProviderResult<
-        impl futures::Future<
-            Output = Result<BaseItemDtoQueryResult, jellyfin_sdk_rs::apis::Error<GetItemsError>>,
-        >,
-    > {
-        let user_id = self.user_id()?.to_string().clone();
-        // match get_items()
-        //     .configuration(self.get_config()?)
-        //     .user_id(&user_id)
-        //     .recursive(true)
-        //     .include_item_types(kind)
-        //     .call()
-        //     .await
-        // {
-        //     Ok(items) => Ok(items),
-        //     Err(_) => Err(JellyfinProviderError::ApiEntryRetrievalError.into()),
-        // }
-
-        Ok(get_items()
+    ) -> ProviderResult<Vec<BaseItemDto>> {
+        let response = get_items_request()
             .configuration(self.get_config()?)
-            .user_id(&user_id)
+            .user_id(user_id)
             .recursive(true)
             .include_item_types(kind)
-            .call())
+            .call()
+            .await?;
+
+        match response.items {
+            Some(items) => Ok(items),
+            _ => Err(JellyfinProviderError::ApiEntryRetrievalError.into()),
+        }
+    }
+    async fn build_media_item(
+        &self,
+        item: BaseItemDto,
+    ) -> ProviderResult<media_items::ActiveModelEx> {
+        let uuid = match item.id {
+            Some(uuid) => uuid,
+            _ => return Err(JellyfinProviderError::ApiEntryRetrievalError.into()),
+        };
+
+        Ok(media_items::ActiveModelEx {
+            uuid: Set(uuid),
+            loaded: Set(false),
+        })
     }
 }
 

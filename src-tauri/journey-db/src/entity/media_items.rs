@@ -44,9 +44,9 @@ pub struct MediaItemDTO {
     pub uuid: Uuid,
     #[serde(rename = "type")]
     pub ty: String,
-    pub outline_gradient: String,
+    pub outline_gradient: Option<String>,
     pub loaded: bool,
-    pub local: String,
+    pub local: Option<String>,
     pub original: Option<Vec<OriginalDTO>>,
     pub content: Option<Vec<ContentDTO>>,
     pub providers: Option<Vec<ProviderDTO>>,
@@ -70,9 +70,9 @@ impl Convertible<ModelEx> for MediaItemDTO {
         Ok(MediaItemDTO {
             uuid: item.uuid,
             ty: item.ty,
-            outline_gradient: item.outline_gradient,
+            outline_gradient: Some(item.outline_gradient),
             loaded: item.loaded,
-            local: item.local,
+            local: Some(item.local),
             original: original,
             content: content,
             providers: providers,

@@ -31,7 +31,7 @@
     "npm:typescript@^6.0.3": "6.0.3",
     "npm:uuid@^14.0.1": "14.0.1",
     "npm:vite@^8.2.1": "8.2.1_@types+node@26.2.0",
-    "npm:vitest@^5.0.0-rc.1": "5.0.0-rc.1_@types+node@26.2.0_vite@8.2.1__@types+node@26.2.0"
+    "npm:vitest@^5.0.0-rc.2": "5.0.0-rc.2_@types+node@26.2.0_vite@8.2.1__@types+node@26.2.0"
   },
   "jsr": {
     "@deno/installer-shell-setup@0.3.4": {
@@ -367,7 +367,7 @@
       "integrity": "sha512-GAt7f7VS++dhZDIqp4zAXdqzwcVdpDnCYTHs3nAfg+XMOcuIVjrHGPfn6f/G90g9Ux90ZPFYrTcgud6Fu/9H0A==",
       "dependencies": [
         "@sveltejs/vite-plugin-svelte",
-        "magic-string@1.1.0",
+        "magic-string@1.2.0",
         "sharp",
         "svelte",
         "svelte-parse-markup",
@@ -387,7 +387,7 @@
         "cookie",
         "devalue",
         "esm-env",
-        "magic-string@1.1.0",
+        "magic-string@1.2.0",
         "mrmime",
         "sirv",
         "svelte",
@@ -406,7 +406,7 @@
       "integrity": "sha512-QbRoJyD92e9R0ufeQIWRHrCC0ObcqSv/aBDdrQMoU+sypav3cDx5wytdQ6GLdXjEMO6xjrXGzfkUygng8JMv0A==",
       "dependencies": [
         "deepmerge",
-        "magic-string@1.1.0",
+        "magic-string@1.2.0",
         "obug",
         "svelte",
         "vite",
@@ -748,21 +748,21 @@
         "weakmap-polyfill"
       ]
     },
-    "@vitest/mocker@5.0.0-rc.1_vite@8.2.1__@types+node@26.2.0": {
-      "integrity": "sha512-6IciAJIz6IXmwFJHCVZn1HTlHQjblmWaUNGGI7VhUWyZrSKNsMpvNEoTLrpmdHHD2KZSDnhrZfdI9hWzpRJAWw==",
+    "@vitest/mocker@5.0.0-rc.2_vite@8.2.1__@types+node@26.2.0": {
+      "integrity": "sha512-nbUdBsadb3otfazI0v99+PQuSWiBzz5obMM5Pb1mpLzdPSEG6gVHYiVLuj0PC2dcoqPjd6dgsB5o0t70RXbs2A==",
       "dependencies": [
         "@jridgewell/trace-mapping",
         "@vitest/spy",
         "estree-walker@3.0.3",
-        "magic-string@1.1.0",
+        "magic-string@1.2.0",
         "vite"
       ],
       "optionalPeers": [
         "vite"
       ]
     },
-    "@vitest/spy@5.0.0-rc.1": {
-      "integrity": "sha512-JaJbQRVt/dGwjlqkPUF8pR3gMR/lofP/b1qeqJopZZBuSioXtVXlWSkFGA0y0xsyMmdcEsQ52PQucDnwC8wAew=="
+    "@vitest/spy@5.0.0-rc.2": {
+      "integrity": "sha512-6/p30efajxGxC3KzLae67vRazEKB8Z8s4l0DwbVJLobXyCHDAQPoVMXeS7nKP8aWHOi8Ec9XBUxFvFPF/NRnYA=="
     },
     "acorn@8.18.0": {
       "integrity": "sha512-lGq+9yr1/GuAWaVYIHRjvvySG5/4VfKIvC8EWxStPdcDh/Ka7FG3twP6v4d5BkravUilhIAsG4Qj83t02LWUPQ==",
@@ -833,8 +833,8 @@
         "tapable"
       ]
     },
-    "es-module-lexer@2.3.1": {
-      "integrity": "sha512-shc1dbU90Yl/xq1QrC7QRtfcwURZuVRfPhZbDoldJ1cn1gzDvBaBWlv0eFolj5+0znnPJz5TXLxsN77X/12KTA=="
+    "es-module-lexer@2.3.2": {
+      "integrity": "sha512-poHGpORABojJJucnV9KbOavETW8lBVnphkW77ER5/BQ5Fz7oXSoCNek7IH3vR5nRjdsEz926ibFYX8KtLQmdyw=="
     },
     "esm-env@1.2.2": {
       "integrity": "sha512-Epxrv+Nr/CaL4ZcFGPJIYLWFom+YeV1DqMLHJoEd9SYRxNbaFruBwfEX/kkHUJf55j2+TUbmDcmuilbP1TmXHA=="
@@ -1077,8 +1077,8 @@
         "@jridgewell/sourcemap-codec"
       ]
     },
-    "magic-string@1.1.0": {
-      "integrity": "sha512-kS3VHe0nEPST2saQV4Rbkchcd3UBRkVTQHo1D3h/ZTwFDhai/mfKkmtPAtD129EOI7K3HlHIsFOt0WrI2/oU9g==",
+    "magic-string@1.2.0": {
+      "integrity": "sha512-ptco+HFxTLgjafSLim2LojBSwfg5feBjd+SqyiwdGkzC38UPdZy3zgrHMI2CoTf5fJL38tbHMYWVzIH8BxGqJw==",
       "dependencies": [
         "@jridgewell/sourcemap-codec"
       ]
@@ -1363,8 +1363,8 @@
         "vite"
       ]
     },
-    "vitest@5.0.0-rc.1_@types+node@26.2.0_vite@8.2.1__@types+node@26.2.0": {
-      "integrity": "sha512-KpqLcbnZWflODaNxQMRLZRH+AXQxPSueDd+e0+D8y/1tc7PGFZ6GkvzBXvpAJ5QQ1HJeXKkhtTkO6qOKqjubzA==",
+    "vitest@5.0.0-rc.2_@types+node@26.2.0_vite@8.2.1__@types+node@26.2.0": {
+      "integrity": "sha512-tSdrRylWxqWHYhyHWUdFd3ASHGXxqGmRcPfjRvir+bcFzJ5se9DLzhvzMPS7F4yLWOPsaaILSMPBbWzMzgC1VA==",
       "dependencies": [
         "@types/chai",
         "@types/node",
@@ -1372,7 +1372,7 @@
         "chai",
         "es-module-lexer",
         "expect-type",
-        "magic-string@1.1.0",
+        "magic-string@1.2.0",
         "obug",
         "picomatch",
         "std-env",
@@ -1434,7 +1434,7 @@
         "npm:typescript@^6.0.3",
         "npm:uuid@^14.0.1",
         "npm:vite@^8.2.1",
-        "npm:vitest@^5.0.0-rc.1"
+        "npm:vitest@^5.0.0-rc.2"
       ]
     }
   }
