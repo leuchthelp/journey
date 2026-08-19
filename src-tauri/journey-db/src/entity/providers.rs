@@ -8,13 +8,25 @@ use inherent::inherent;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 use specta::Type;
+use strum_macros::{Display, EnumString};
 use url::Url;
 use uuid::Uuid;
 
-#[derive(Debug, Serialize, Deserialize, Type, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
-#[sea_orm(rs_type = "i32", db_type = "Integer")]
+#[derive(
+    Display,
+    Debug,
+    Serialize,
+    Deserialize,
+    Type,
+    Clone,
+    PartialEq,
+    Eq,
+    EnumIter,
+    EnumString,
+    DeriveValueType,
+)]
+#[sea_orm(value_type = "String")]
 pub enum ProviderVariant {
-    #[sea_orm(num_value = 0)]
     JellyfinProvider,
 }
 

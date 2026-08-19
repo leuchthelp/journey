@@ -3,7 +3,35 @@ use crate::entity::{ContentDTO, ImageDTO, OriginalDTO, ProviderDTO};
 use anyhow::Result;
 use inherent::inherent;
 use sea_orm::entity::prelude::*;
+use serde::{Deserialize, Serialize};
+use specta::Type;
+use strum_macros::{Display, EnumString};
 use uuid::Uuid;
+
+#[derive(
+    Display,
+    Debug,
+    Default,
+    Serialize,
+    Deserialize,
+    Type,
+    Clone,
+    PartialEq,
+    Eq,
+    EnumIter,
+    EnumString,
+    DeriveValueType,
+)]
+#[sea_orm(value_type = "String")]
+pub enum MediaItemType {
+    #[default]
+    Unknown,
+    Audio,
+    Playlist,
+    Artist,
+    Album,
+    Genre,
+}
 
 #[sea_orm::model]
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
@@ -12,7 +40,7 @@ pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     #[sea_orm(unique)]
     pub uuid: Uuid,
-    pub ty: String,
+    pub ty: MediaItemType,
     pub outline_gradient: String,
     pub loaded: bool,
     pub local: String,
@@ -43,7 +71,7 @@ impl ActiveModelBehavior for ActiveModel {}
 pub struct MediaItemDTO {
     pub uuid: Uuid,
     #[serde(rename = "type")]
-    pub ty: String,
+    pub ty: MediaItemType,
     pub outline_gradient: Option<String>,
     pub loaded: bool,
     pub local: Option<String>,

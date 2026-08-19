@@ -13,13 +13,22 @@ use jellyfin_sdk_rs::{
     required::{ClientInfo, DeviceInfo},
 };
 use journey_db::{
-    entity::{ProviderVariant, media_items},
-    sea_orm::{ActiveValue::Set, TryIntoModel},
+    JourneyDbError,
+    entity::{
+        MediaItems, ProviderVariant, images,
+        media_items::{self, ActiveModelEx, MediaItemType, Model},
+        providers,
+    },
+    get_conn,
+    sea_orm::{
+        ActiveValue::Set, ColumnTrait, EntityTrait, IntoActiveModel, QuerySelect, TryIntoModel,
+    },
 };
 use journey_utils::constants::{PRODUCT_NAME, PRODUCT_VERSION};
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
+use tracing::warn;
 use url::Url;
 use uuid::Uuid;
 
@@ -43,7 +52,7 @@ pub enum JellyfinProviderError {
 
 #[derive(Debug, Clone)]
 pub struct JellyfinProvider {
-    pub(crate) params: ActiveModel,
+    pub(crate) params: providers::ActiveModel,
     pub(crate) config: Option<Configuration>,
     pub(crate) client_info: ClientInfo,
     pub(crate) device_info: DeviceInfo,
@@ -52,7 +61,7 @@ pub struct JellyfinProvider {
 impl NewProvider for JellyfinProvider {
     type Provider = JellyfinProvider;
 
-    fn new(params: ActiveModel) -> ProviderResult<Box<Self>> {
+    fn new(params: providers::ActiveModel) -> ProviderResult<Box<Self>> {
         let client_info = ClientInfo {
             name: PRODUCT_NAME,
             version: PRODUCT_VERSION,
@@ -163,7 +172,7 @@ impl RequiredForProvider for JellyfinProvider {
         self.remove_from_db().await?;
         self.remove_token()?;
 
-        self.params = ActiveModel::default();
+        self.params = providers::ActiveModel::default();
         self.config = None;
         Ok(())
     }
@@ -223,16 +232,33 @@ impl JellyfinProvider {
             None => Err(JellyfinProviderError::ApiEntryRetrievalError.into()),
         }
     }
+    fn match_item_type(&self, kind: BaseItemKind) -> ProviderResult<MediaItemType> {
+        Ok(match kind {
+            BaseItemKind::Audio => MediaItemType::Audio,
+            BaseItemKind::MusicGenre => MediaItemType::Genre,
+            BaseItemKind::MusicAlbum => MediaItemType::Album,
+            BaseItemKind::MusicArtist => MediaItemType::Artist,
+            BaseItemKind::Playlist => MediaItemType::Playlist,
+            _ => MediaItemType::Unknown,
+        })
+    }
+    fn check_entry<T>(&self, entry: Option<T>) -> ProviderResult<T> {
+        match entry {
+            Some(entry) => Ok(entry),
+            _ => Err(JellyfinProviderError::ApiEntryRetrievalError.into()),
+        }
+    }
     async fn index_by_type(&self, user_id: &str, kind: Vec<BaseItemKind>) -> ProviderResult<()> {
         let items = self.get_items(user_id, kind).await?;
 
-        let mut tasks = vec![];
-        for item in items {
-            tasks.push(self.build_media_item(item));
+        let tasks = items.iter().map(|item| self.build_media_item(item));
+        match MediaItems::insert_many(try_join_all(tasks).await?)
+            .exec(&get_conn().await?)
+            .await
+        {
+            Ok(_) => Ok(()),
+            Err(_) => Err(ProviderError::FailedDbInsertError),
         }
-        let media_items = try_join_all(tasks).await?;
-
-        Ok(())
     }
     async fn get_items(
         &self,
@@ -252,19 +278,82 @@ impl JellyfinProvider {
             _ => Err(JellyfinProviderError::ApiEntryRetrievalError.into()),
         }
     }
+    async fn get_images(&self) -> ProviderResult<Vec<images::ActiveModelEx>> {
+        let images: Vec<images::ActiveModelEx> = vec![];
+
+        Ok(images)
+    }
     async fn build_media_item(
         &self,
-        item: BaseItemDto,
+        item: &BaseItemDto,
     ) -> ProviderResult<media_items::ActiveModelEx> {
-        let uuid = match item.id {
-            Some(uuid) => uuid,
-            _ => return Err(JellyfinProviderError::ApiEntryRetrievalError.into()),
+        let uuid = self.check_entry(item.id)?;
+        let ty = self.match_item_type(self.check_entry(item.r#type)?)?;
+        let images = self.get_images().await?;
+        let parents = self.get_item_parents(&uuid, item).await?;
+
+        let mut media_item = media_items::ActiveModelEx::new().set_uuid(uuid).set_ty(ty);
+        for image in images {
+            media_item = media_item.add_image(image);
+        }
+
+        for parent in parents {
+            media_item = media_item.add_parent(parent);
+        }
+
+        Ok(media_item)
+    }
+    async fn get_item_parents(
+        &self,
+        parent_id: &Uuid,
+        item: &BaseItemDto,
+    ) -> ProviderResult<Vec<media_items::ActiveModel>> {
+        let mut parent_ids: Vec<Uuid> = vec![];
+
+        match item.album_id.flatten() {
+            Some(id) => parent_ids.push(id),
+            _ => warn!("No albums for: {:#?} with id: {:#?}", parent_id, item.name),
+        }
+
+        match item.album_artists.clone().flatten() {
+            Some(artists) => {
+                for artist in artists {
+                    match artist.id {
+                        Some(id) => parent_ids.push(id),
+                        _ => (),
+                    }
+                }
+            }
+            _ => warn!(
+                "No album artists for: {:#?} with id: {:#?}",
+                item.id, item.name
+            ),
+        }
+
+        let conn = &get_conn().await?;
+        let mut tasks = vec![];
+        for id in parent_ids {
+            tasks.push(
+                MediaItems::find_by_uuid(id)
+                    .select_only()
+                    .column(media_items::Column::Uuid)
+                    .one(conn),
+            );
+        }
+
+        let parent_models = match try_join_all(tasks).await {
+            Ok(parents) => parents,
+            Err(_) => return Err(JourneyDbError::ConnectionError.into()),
         };
 
-        Ok(media_items::ActiveModelEx {
-            uuid: Set(uuid),
-            loaded: Set(false),
-        })
+        let mut parents: Vec<media_items::ActiveModel> = vec![];
+        for model in parent_models {
+            match model {
+                Some(model) => parents.push(model.into_active_model()),
+                _ => warn!("Somehow got now model back from Db even though select succeeded"),
+            }
+        }
+        Ok(parents)
     }
 }
 

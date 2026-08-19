@@ -14,9 +14,9 @@
     "npm:@tauri-apps/plugin-os@^2.3.2": "2.3.2",
     "npm:@tauri-apps/plugin-window-state@^2.4.1": "2.4.1",
     "npm:@types/node@26.2.0": "26.2.0",
-    "npm:@videojs/core@^10.0.0-beta.26": "10.0.0-beta.26_@svta+cml-cta@1.0.6__@svta+cml-structured-field-values@1.1.3___@svta+cml-utils@1.5.0__@svta+cml-utils@1.5.0_@svta+cml-structured-field-values@1.1.3__@svta+cml-utils@1.5.0_@svta+cml-utils@1.5.0_@videojs+element@10.0.0-beta.26",
-    "npm:@videojs/html@^10.0.0-beta.26": "10.0.0-beta.26_@svta+cml-cta@1.0.6__@svta+cml-structured-field-values@1.1.3___@svta+cml-utils@1.5.0__@svta+cml-utils@1.5.0_@svta+cml-structured-field-values@1.1.3__@svta+cml-utils@1.5.0_@svta+cml-utils@1.5.0",
-    "npm:@videojs/store@^10.0.0-beta.26": "10.0.0-beta.26_@videojs+element@10.0.0-beta.26",
+    "npm:@videojs/core@^10.0.0-beta.27": "10.0.0-beta.27_@svta+cml-cta@1.0.6__@svta+cml-structured-field-values@1.1.3___@svta+cml-utils@1.5.0__@svta+cml-utils@1.5.0_@svta+cml-structured-field-values@1.1.3__@svta+cml-utils@1.5.0_@svta+cml-utils@1.5.0_@videojs+element@10.0.0-beta.27",
+    "npm:@videojs/html@^10.0.0-beta.27": "10.0.0-beta.27_@svta+cml-cta@1.0.6__@svta+cml-structured-field-values@1.1.3___@svta+cml-utils@1.5.0__@svta+cml-utils@1.5.0_@svta+cml-structured-field-values@1.1.3__@svta+cml-utils@1.5.0_@svta+cml-utils@1.5.0",
+    "npm:@videojs/store@^10.0.0-beta.27": "10.0.0-beta.27_@videojs+element@10.0.0-beta.27",
     "npm:clsx@^2.1.1": "2.1.1",
     "npm:lru-cache@^11.5.2": "11.5.2",
     "npm:prettier-plugin-svelte@^4.1.1": "4.1.1_prettier@3.9.6_svelte@5.56.9",
@@ -685,22 +685,22 @@
     "@types/trusted-types@2.0.7": {
       "integrity": "sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw=="
     },
-    "@videojs/core@10.0.0-beta.26_@svta+cml-cta@1.0.6__@svta+cml-structured-field-values@1.1.3___@svta+cml-utils@1.5.0__@svta+cml-utils@1.5.0_@svta+cml-structured-field-values@1.1.3__@svta+cml-utils@1.5.0_@svta+cml-utils@1.5.0_@videojs+element@10.0.0-beta.26": {
-      "integrity": "sha512-qS6/CGERcktdy0AS7y/mXhd2TIHhjJuN2TH+xGaBq5umtn6W3wYjziw0gy3mS2MUfJMZvUPcNjxOgxZXD44KFA==",
+    "@videojs/core@10.0.0-beta.27_@svta+cml-cta@1.0.6__@svta+cml-structured-field-values@1.1.3___@svta+cml-utils@1.5.0__@svta+cml-utils@1.5.0_@svta+cml-structured-field-values@1.1.3__@svta+cml-utils@1.5.0_@svta+cml-utils@1.5.0_@videojs+element@10.0.0-beta.27": {
+      "integrity": "sha512-9YZ1EoUXrBpjekTBHUNUxtPHUTGdDbwnZ8v3eGkF/QVMOenwTuJLzrxJFhAvPc+fN3k946/8ni4ovfcnQ9xEkw==",
       "dependencies": [
         "@videojs/media",
         "@videojs/store",
         "@videojs/utils"
       ]
     },
-    "@videojs/element@10.0.0-beta.26": {
-      "integrity": "sha512-iq1RbQEw0JaC7UczildK5IVpP55/ZCaN2MvrDBuKF3kZfgNn+rCCzmGcj4uzipGn7zqA3kPHRWzX1zrEWP1CMg==",
+    "@videojs/element@10.0.0-beta.27": {
+      "integrity": "sha512-WKjR1hnfOpLO/6bgcxeTOaf5wyXJk/8wrwCQtgVjnJArNkZgrI6yK12NGPC8eraO+H+8CKileDSBcJSBXLSI1Q==",
       "dependencies": [
         "@lit/context"
       ]
     },
-    "@videojs/html@10.0.0-beta.26_@svta+cml-cta@1.0.6__@svta+cml-structured-field-values@1.1.3___@svta+cml-utils@1.5.0__@svta+cml-utils@1.5.0_@svta+cml-structured-field-values@1.1.3__@svta+cml-utils@1.5.0_@svta+cml-utils@1.5.0": {
-      "integrity": "sha512-BM7U4UwmB2Xqnpo9Bwwgq7HJnFK6EmJlN+cxOfsm/LcDo3TMXxXcuZqXXzzMJ3H5tAcnzysJZKX7ppgIbxBa/w==",
+    "@videojs/html@10.0.0-beta.27_@svta+cml-cta@1.0.6__@svta+cml-structured-field-values@1.1.3___@svta+cml-utils@1.5.0__@svta+cml-utils@1.5.0_@svta+cml-structured-field-values@1.1.3__@svta+cml-utils@1.5.0_@svta+cml-utils@1.5.0": {
+      "integrity": "sha512-ynSYlL1mNaOffqu0aWQAKpxbg3FDQ6QFhLaFw0bbX4VPNkFQlVR6hYKAViV3H2YV9goWzKRtTSxHrtMUWLzY/w==",
       "dependencies": [
         "@videojs/core",
         "@videojs/element",
@@ -710,10 +710,9 @@
         "@videojs/utils"
       ]
     },
-    "@videojs/media@10.0.0-beta.26_@svta+cml-cta@1.0.6__@svta+cml-structured-field-values@1.1.3___@svta+cml-utils@1.5.0__@svta+cml-utils@1.5.0_@svta+cml-structured-field-values@1.1.3__@svta+cml-utils@1.5.0_@svta+cml-utils@1.5.0": {
-      "integrity": "sha512-H6mdYfsDJ0Kei599TdDG/gJ2vgx46dUHnuH8jhW4cDAdjzvL9qFKp/0XaKAgsfMfKAFot/r2MqYDsUhCIBUq4g==",
+    "@videojs/media@10.0.0-beta.27_@svta+cml-cta@1.0.6__@svta+cml-structured-field-values@1.1.3___@svta+cml-utils@1.5.0__@svta+cml-utils@1.5.0_@svta+cml-structured-field-values@1.1.3__@svta+cml-utils@1.5.0_@svta+cml-utils@1.5.0": {
+      "integrity": "sha512-E168xE/K+XZGfR1cGrEZhXAJ5m9Uo8D8JcWiYJMjkJqXUH+H7tMHYPJzSNFV08X59ZWWw1r2jIFCQrAbHXiQXw==",
       "dependencies": [
-        "@videojs/spf",
         "@videojs/utils",
         "@vimeo/player",
         "dashjs",
@@ -721,15 +720,16 @@
         "mux-embed"
       ]
     },
-    "@videojs/spf@10.0.0-beta.26": {
-      "integrity": "sha512-/yrmy3fulSJd2owJ+RSiYWVGROu0uRcElGsqmTTXi050cWEI7Wk7vC+ve1zlCFyAB+9on9XDUvwy/G6QO8k9ww==",
+    "@videojs/spf@10.0.0-beta.27_@svta+cml-cta@1.0.6__@svta+cml-structured-field-values@1.1.3___@svta+cml-utils@1.5.0__@svta+cml-utils@1.5.0_@svta+cml-structured-field-values@1.1.3__@svta+cml-utils@1.5.0_@svta+cml-utils@1.5.0": {
+      "integrity": "sha512-TNtNVwRr/MmJA67dyT8psqUF5NI8yz0icK7s06qf9mdTX79IcZ5zmoCZ8/NIGNvllIOFEBO4wXmpkVzJ6G7+GQ==",
       "dependencies": [
+        "@videojs/media",
         "@videojs/utils",
         "signal-polyfill"
       ]
     },
-    "@videojs/store@10.0.0-beta.26_@videojs+element@10.0.0-beta.26": {
-      "integrity": "sha512-TaeP+dMCiVWDoBxOSp/t93v06Wy3J1tDBb2noZIAijStEbSIiSKYo+K7qEnArqTpsEA/bRphN4fEQBXmWYwpWw==",
+    "@videojs/store@10.0.0-beta.27_@videojs+element@10.0.0-beta.27": {
+      "integrity": "sha512-+QR9RjedYw2YdVuRVYzUqK5YUTVODbglYe+BGFtSKcNuGbpMiNK28PVfBKblc7nf/0JSox5MXv67lb/jiSRNrg==",
       "dependencies": [
         "@videojs/element",
         "@videojs/utils"
@@ -738,8 +738,8 @@
         "@videojs/element"
       ]
     },
-    "@videojs/utils@10.0.0-beta.26": {
-      "integrity": "sha512-XnbgF7O4ejOdKCKhakAHTGWUHTajzoxQlTM7kIGjfcCeoa8gmEb7V8cNue35FwCvBunw6JwM+4hqJQIPzOmUNQ=="
+    "@videojs/utils@10.0.0-beta.27": {
+      "integrity": "sha512-XZ/pMynEqdz30/yJgvHefk0ERXUzcONQ0D4OWgvr1kNcA7sipfEPJc6hNtYpP7fpA9DMGNhfRdEayUYoCMgLaw=="
     },
     "@vimeo/player@2.30.4": {
       "integrity": "sha512-M8m1UAhJSb+KCWuXDLWHViwj+3YY/0ogwFquRfMHs9e9LYjXT9iB7n+sOCKwUusbiXuU2HKmXx+FEGHtYZfUSg==",
@@ -798,8 +798,8 @@
     "cookie@2.0.1": {
       "integrity": "sha512-yuToqVvRrj6pfDXREyQAAv8SkAEk/8GS3jQRTiUMm66TVtBYmqQeoEjL2Lmq8Rpo6271vH76InTChTitEAm65w=="
     },
-    "dashjs@5.2.0_@svta+cml-cta@1.0.6__@svta+cml-structured-field-values@1.1.3___@svta+cml-utils@1.5.0__@svta+cml-utils@1.5.0_@svta+cml-structured-field-values@1.1.3__@svta+cml-utils@1.5.0_@svta+cml-utils@1.5.0": {
-      "integrity": "sha512-2W2KHFN53Sk7+rtdnIfSUK/3Oov+hraMTeVZwDOTSCNKM1cQtFiJdblNzRMnl59a/QDseG7JW+PC9mh/B+CMcg==",
+    "dashjs@5.2.1_@svta+cml-cta@1.0.6__@svta+cml-structured-field-values@1.1.3___@svta+cml-utils@1.5.0__@svta+cml-utils@1.5.0_@svta+cml-structured-field-values@1.1.3__@svta+cml-utils@1.5.0_@svta+cml-utils@1.5.0": {
+      "integrity": "sha512-axcJmLeJCTJMLUfQRErUJB1KOiU5iHF+DMLBc3FKeox1HPYtGUQlC6Xm5Mm6vhBUR3CHHLIPOqw0JDIqMtP+Dw==",
       "dependencies": [
         "@svta/cml-608",
         "@svta/cml-cmcd",
@@ -877,8 +877,8 @@
     "graceful-fs@4.2.11": {
       "integrity": "sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ=="
     },
-    "hls.js@1.6.16": {
-      "integrity": "sha512-VSIRpLfRwlAAdGL4wiTucx2ScRipo0ed1FBatWkyt832jC4CReKstga6yIhYVwGu9LOBjuX9wzmRMeQdBJtzEA=="
+    "hls.js@1.7.0": {
+      "integrity": "sha512-NnQpT6Z//+2IB2qovSUbKbrlXY1MOpi0JynZ9L2NNOuTJiNCyMSQj9k2laEj1v7CxU/Hb8oTWR98eT3mVpPQVQ=="
     },
     "html-entities@2.6.0": {
       "integrity": "sha512-kig+rMn/QOVRvr7c86gQ8lWXq+Hkv6CbAH1hLu+RG338StTpE8Z0b44SDVaqVu7HGKf27frdmUYEs9hTUX/cLQ=="
@@ -1417,9 +1417,9 @@
         "npm:@tauri-apps/plugin-os@^2.3.2",
         "npm:@tauri-apps/plugin-window-state@^2.4.1",
         "npm:@types/node@26.2.0",
-        "npm:@videojs/core@^10.0.0-beta.26",
-        "npm:@videojs/html@^10.0.0-beta.26",
-        "npm:@videojs/store@^10.0.0-beta.26",
+        "npm:@videojs/core@^10.0.0-beta.27",
+        "npm:@videojs/html@^10.0.0-beta.27",
+        "npm:@videojs/store@^10.0.0-beta.27",
         "npm:clsx@^2.1.1",
         "npm:lru-cache@^11.5.2",
         "npm:prettier-plugin-svelte@^4.1.1",
