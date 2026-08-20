@@ -254,8 +254,9 @@ impl JellyfinProvider {
         let tasks = items.iter().map(|item| self.build_media_item(item));
         let media_items = try_join_all(tasks).await?;
 
+        let mut model = self.get_model().clone();
         for item in media_items {
-            self.set_model(self.get_model().clone().add_media_item(item));
+            model = model.add_media_item(item);
         }
 
         let model = match self.get_model().clone().update(&get_conn().await?).await {
