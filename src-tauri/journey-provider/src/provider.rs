@@ -2,10 +2,10 @@ use crate::jellyfin::jellyfin_provider::JellyfinProviderError;
 use anyhow::Result;
 use async_trait::async_trait;
 use dyn_clone::{DynClone, clone_trait_object};
-use journey_db::entity::providers::{self, ActiveModel};
+use journey_db::entity::providers::{self};
 use journey_db::entity::{ProviderKey, ProviderVariant, Providers};
 use journey_db::get_conn;
-use journey_db::sea_orm::{EntityTrait, Set};
+use journey_db::sea_orm::EntityTrait;
 use journey_db::sea_query::OnConflict;
 use journey_keyring::Entry;
 use journey_utils::constants::PRODUCT_NAME;
@@ -14,6 +14,7 @@ use specta::Type;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use thiserror::Error;
+use tracing::warn;
 use url::Url;
 use uuid::Uuid;
 
@@ -32,13 +33,13 @@ pub enum ProviderError {
     #[error("Failed to save token to OS keyring.")]
     SaveTokenError,
     #[error("Failed to insert provider to database.")]
-    FailedDbInsertError,
+    FailedDbInsertError(String),
     #[error("Failed to delete provider from database. Might not exist.")]
     FailedDbRemoveError,
     #[error("Failed to convert sea-orm ActiveModel into Model.")]
-    FailedConvModelError,
+    FailedConvModelError(String),
     #[error("Failed to parse the given String to an Url.")]
-    FailedParseUrlError,
+    FailedParseUrlError(String),
     #[error(transparent)]
     JellyfinProviderError(#[from] JellyfinProviderError),
     #[error(transparent)]
@@ -50,15 +51,13 @@ pub type ProviderResult<T> = Result<T, ProviderError>;
 pub trait NewProvider {
     type Provider;
 
-    fn new(params: ActiveModel) -> ProviderResult<Box<Self::Provider>>;
+    fn new(params: providers::ActiveModelEx) -> ProviderResult<Box<Self::Provider>>;
 }
 
 #[async_trait]
 pub trait RequiredForProvider {
-    fn user_id(&self) -> ProviderResult<Uuid>;
-    fn server_id(&self) -> ProviderResult<Uuid>;
-    fn url(&self) -> ProviderResult<Url>;
     fn ty(&self) -> ProviderVariant;
+    fn get_params(&self) -> &providers::ActiveModelEx;
     async fn index(&self) -> ProviderResult<()>;
     async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<String>;
     async fn invalidate(&mut self) -> ProviderResult<()>;
@@ -66,6 +65,27 @@ pub trait RequiredForProvider {
 
 #[async_trait]
 pub trait Provider: RequiredForProvider + DynClone + Debug {
+    fn user_id(&self) -> ProviderResult<Uuid> {
+        match self.get_params().user_id.try_as_ref() {
+            Some(user_id) if *user_id != Uuid::nil() => Ok(*user_id),
+            _ => Err(JellyfinProviderError::MissingServerIdError.into()),
+        }
+    }
+    fn server_id(&self) -> ProviderResult<Uuid> {
+        match self.get_params().server_id.try_as_ref() {
+            Some(server_id) if *server_id != Uuid::nil() => Ok(*server_id),
+            _ => Err(JellyfinProviderError::MissingServerIdError.into()),
+        }
+    }
+    fn url(&self) -> ProviderResult<Url> {
+        match self.get_params().url.try_as_ref() {
+            Some(url) => Ok(match Url::parse(url) {
+                Ok(url) => url,
+                Err(err) => return Err(ProviderError::FailedParseUrlError(err.to_string())),
+            }),
+            _ => Err(JellyfinProviderError::MissingUrlError.into()),
+        }
+    }
     fn save_token(&self, access_token: &String) -> ProviderResult<()> {
         let token_entry = match Entry::new(
             PRODUCT_NAME,
@@ -117,23 +137,23 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
         })
     }
     fn authenticated(&self) -> ProviderResult<bool> {
-        let tokens = self.retrieve_tokens();
+        let tokens = self.retrieve_tokens()?;
 
-        match tokens {
-            Err(_) => Ok(false),
-            Ok(tokens) => match tokens.len() {
-                len if len == 0 => Ok(false),
-                _ => Ok(true),
-            },
+        warn!(
+            "TODO Need to validate all available tokens to ensure we are actually authenticated. 
+            Currently not implemented, just finding any tokens is considered to be authenticated."
+        );
+        match tokens.len() {
+            len if len == 0 => Ok(false),
+            _ => Ok(true),
         }
     }
     async fn add_to_db(&self) -> ProviderResult<()> {
-        let provider = ActiveModel {
-            user_id: Set(self.user_id()?),
-            server_id: Set(self.server_id()?),
-            ty: Set(self.ty()),
-            url: Set(self.url()?.to_string()),
-        };
+        let provider = providers::ActiveModelEx::new()
+            .set_user_id(self.user_id()?)
+            .set_server_id(self.server_id()?)
+            .set_ty(self.ty())
+            .set_url(self.url()?);
 
         match providers::Entity::insert(provider)
             .on_conflict(
@@ -146,7 +166,7 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
             .await
         {
             Ok(_) => Ok(()),
-            Err(_) => Err(ProviderError::FailedDbInsertError),
+            Err(err) => Err(ProviderError::FailedDbInsertError(err.to_string())),
         }
     }
     async fn remove_from_db(&self) -> ProviderResult<()> {

@@ -8,9 +8,9 @@ use async_trait::async_trait;
 use futures::TryStreamExt;
 use inherent::inherent;
 use journey_db::{
-    entity::{ProviderDTO, ProviderKey, ProviderVariant, Providers, providers::ActiveModel},
+    entity::{ProviderDTO, ProviderKey, ProviderVariant, Providers, providers},
     get_conn,
-    sea_orm::{ActiveModelTrait, ActiveValue::Set, EntityTrait, IntoActiveModel},
+    sea_orm::{EntityTrait, IntoActiveModel},
 };
 use rapidhash::RapidHashMap;
 use serde::Serialize;
@@ -33,6 +33,8 @@ pub enum ProviderManagerError {
     FailedDbStreamError,
     #[error("Failed to index the given provider.")]
     FailedIndexingError,
+    #[error("Provider has not been authenticated yet")]
+    NotAuthenticatedError(String),
     #[error(transparent)]
     ProviderError(#[from] ProviderError),
     #[error(transparent)]
@@ -46,7 +48,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
     fn get_type(
         &self,
         ty: ProviderVariant,
-        model: ActiveModel,
+        model: providers::ActiveModelEx,
     ) -> Result<Box<dyn Provider + Send + Sync>, ProviderManagerError> {
         let provider: Result<Box<dyn Provider + Send + Sync>, ProviderManagerError> = match ty {
             ProviderVariant::JellyfinProvider => Ok(JellyfinProvider::new(model)?),
@@ -62,11 +64,12 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         };
 
         while let Ok(Some(known)) = known_providers.try_next().await {
-            let new_provider = self.get_type(known.ty.clone(), known.into_active_model())?;
+            let new_provider =
+                self.get_type(known.ty.clone(), known.into_active_model().into_ex())?;
             self.register(new_provider)?;
         }
 
-        self.start_indexing().await?;
+        self.start_indexing()?;
         Ok(())
     }
     fn get_provider(&self, key: &ProviderKey) -> ProviderManagerResult<ProviderDTO> {
@@ -94,7 +97,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         Ok(providers)
     }
     async fn validate_provider(
-        &mut self,
+        &self,
         token: String,
         provider: &Box<dyn Provider + Send + Sync>,
     ) -> ProviderManagerResult<()> {
@@ -114,10 +117,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         uname: String,
         psw: String,
     ) -> ProviderManagerResult<ProviderKey> {
-        let model = ActiveModel {
-            url: Set(url),
-            ..ActiveModel::default_values()
-        };
+        let model = providers::ActiveModelEx::new().set_url(url);
 
         let mut provider = self.get_type(ty, model)?;
         let token = provider.password_auth(uname, psw).await?;
@@ -127,18 +127,21 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         self.register(provider)?;
         Ok(key)
     }
-    async fn start_indexing(&self) -> ProviderManagerResult<()> {
+    fn start_indexing(&self) -> ProviderManagerResult<()> {
         for key in self.get_variants_keys()? {
             let _indexing_task = self.index(key);
         }
         Ok(())
     }
-    async fn index(
+    fn index(
         &self,
         key: &ProviderKey,
-    ) -> ProviderManagerResult<Pin<Box<dyn Future<Output = ProviderResult<()>> + Send + 'life0>>>
-    {
-        Ok(self.get_variant(key)?.index())
+    ) -> ProviderManagerResult<Pin<Box<dyn Future<Output = ProviderResult<()>> + Send + '_>>> {
+        let provider = self.get_variant(key)?;
+        match provider.authenticated() {
+            Ok(_) => Ok(provider.index()),
+            Err(err) => Err(ProviderManagerError::NotAuthenticatedError(err.to_string())),
+        }
     }
 }
 
@@ -214,9 +217,7 @@ mod provider_manager_test {
     use crate::jellyfin_provider::JellyfinProvider;
     use crate::provider::{NewProvider, Provider};
     use crate::provider_manager::ProviderManager;
-    use journey_db::entity::providers::ActiveModel;
-    use journey_db::sea_orm::ActiveModelTrait;
-    use journey_db::sea_orm::ActiveValue::Set;
+    use journey_db::entity::providers::{self};
     use journey_utils::constants::PRODUCT_NAME;
     use journey_utils::get_env_local;
     use serial_test::serial;
@@ -226,11 +227,8 @@ mod provider_manager_test {
 
     #[test]
     fn hash_no_login_failure() {
-        let params = ActiveModel {
-            url: Set(Url::parse("http://smth.example.com").unwrap().into()),
-            ..Default::default()
-        };
-
+        let params =
+            providers::ActiveModelEx::new().set_url(Url::parse("http://smth.example.com").unwrap());
         let provider = JellyfinProvider::new(params).unwrap();
 
         let hash = provider.key();
@@ -249,11 +247,7 @@ mod provider_manager_test {
         warn!("{}", PRODUCT_NAME);
         let url = env_map.var("TEST_JELLYFIN_URL").unwrap();
 
-        let params = ActiveModel {
-            url: Set(Url::parse(&url).unwrap().into()),
-            ..ActiveModel::default_values()
-        };
-
+        let params = providers::ActiveModelEx::new().set_url(Url::parse(&url).unwrap());
         let mut provider = JellyfinProvider::new(params).unwrap();
 
         let access_token = provider

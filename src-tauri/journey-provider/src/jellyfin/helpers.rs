@@ -193,6 +193,8 @@ pub async fn get_items_request(
     .await
     {
         Ok(response) => Ok(response),
-        Err(_) => Err(JellyfinProviderError::ApiEntryRetrievalError),
+        Err(err) => Err(JellyfinProviderError::ApiEntryRetrievalError(Some(
+            err.to_string(),
+        ))),
     }
 }
