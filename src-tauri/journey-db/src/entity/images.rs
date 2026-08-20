@@ -5,8 +5,45 @@ use crate::{
 use anyhow::Result;
 use inherent::inherent;
 use sea_orm::entity::prelude::*;
+use serde::{Deserialize, Serialize};
+use specta::Type;
+use strum_macros::{Display, EnumString};
 use url::Url;
 use uuid::Uuid;
+
+#[derive(
+    Display,
+    Debug,
+    Default,
+    Serialize,
+    Deserialize,
+    Type,
+    Clone,
+    PartialEq,
+    Eq,
+    EnumIter,
+    EnumString,
+    DeriveValueType,
+)]
+#[sea_orm(value_type = "String")]
+#[non_exhaustive]
+pub enum ImageType {
+    #[default]
+    Unknown,
+    Primary,
+    Art,
+    Backdrop,
+    Banner,
+    Logo,
+    Thumb,
+    Disc,
+    Box,
+    Screenshot,
+    Menu,
+    Chapter,
+    BoxRear,
+    Profile,
+}
 
 #[sea_orm::model]
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
@@ -18,7 +55,7 @@ pub struct Model {
     pub server_id: Option<Uuid>,
     #[sea_orm(belongs_to, from = "server_id", to = "server_id")]
     pub provider: BelongsTo<Option<super::providers::Entity>>,
-    pub ty: String,
+    pub ty: ImageType,
     #[sea_orm(has_many, via = "jt_media_item_to_image")]
     pub media_items: HasMany<super::media_items::Entity>,
 }
@@ -32,8 +69,7 @@ pub struct ImageDTO {
     pub url: Url,
     pub server_id: Option<Uuid>,
     pub provider: Option<ProviderDTO>,
-    #[serde(rename = "type")]
-    pub ty: String,
+    pub ty: ImageType,
     pub media_items: Option<Vec<MediaItemDTO>>,
 }
 
@@ -63,7 +99,7 @@ impl ImageDTO {
     pub fn new() -> Self {
         return ImageDTO {
             url: Url::parse("https://example.net").unwrap(),
-            ty: "Primary".into(),
+            ty: ImageType::Primary,
             server_id: None,
             provider: None,
             media_items: None,

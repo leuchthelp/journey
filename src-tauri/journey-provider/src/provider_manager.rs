@@ -18,6 +18,7 @@ use specta::Type;
 use std::collections::hash_map::{Keys, Values};
 use std::pin::Pin;
 use thiserror::Error;
+use tracing::info;
 
 #[derive(Debug, Error, Serialize, Type)]
 pub enum ProviderManagerError {
@@ -128,18 +129,24 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         Ok(key)
     }
     fn start_indexing(&self) -> ProviderManagerResult<()> {
-        for key in self.get_variants_keys()? {
-            let _indexing_task = self.index(key);
+        for provider in self.get_variants_values()? {
+            let _indexing_task = self.index(provider);
         }
         Ok(())
     }
-    fn index(
-        &self,
-        key: &ProviderKey,
+    fn index<'a>(
+        &'a self,
+        provider: &'a Box<dyn Provider + Send + Sync>,
     ) -> ProviderManagerResult<Pin<Box<dyn Future<Output = ProviderResult<()>> + Send + '_>>> {
-        let provider = self.get_variant(key)?;
         match provider.authenticated() {
-            Ok(_) => Ok(provider.index()),
+            Ok(_) => {
+                info!(
+                    "Beginning indexing on provider: {} for: {}",
+                    provider.ty(),
+                    provider.url()?
+                );
+                Ok(provider.index())
+            }
             Err(err) => Err(ProviderManagerError::NotAuthenticatedError(err.to_string())),
         }
     }
@@ -151,6 +158,10 @@ pub trait RequiredForProviderManager {
         &self,
         key: &ProviderKey,
     ) -> ProviderManagerResult<&Box<dyn Provider + Send + Sync>>;
+    fn get_mut_variant(
+        &mut self,
+        key: &ProviderKey,
+    ) -> ProviderManagerResult<&mut Box<dyn Provider + Send + Sync>>;
     fn get_variants_values(
         &self,
     ) -> ProviderManagerResult<Values<'_, ProviderKey, Box<dyn Provider + Send + Sync>>>;
@@ -175,6 +186,15 @@ impl RequiredForProviderManager for ProviderManager {
         key: &ProviderKey,
     ) -> ProviderManagerResult<&Box<dyn Provider + Send + Sync>> {
         match self.variants.get(key) {
+            Some(variant) => Ok(variant),
+            None => Err(ProviderManagerError::NoProviderError),
+        }
+    }
+    pub fn get_mut_variant(
+        &mut self,
+        key: &ProviderKey,
+    ) -> ProviderManagerResult<&mut Box<dyn Provider + Send + Sync>> {
+        match self.variants.get_mut(key) {
             Some(variant) => Ok(variant),
             None => Err(ProviderManagerError::NoProviderError),
         }

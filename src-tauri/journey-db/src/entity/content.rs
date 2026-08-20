@@ -2,19 +2,46 @@ use crate::{db::Convertible, entity::MediaItemDTO};
 use anyhow::Result;
 use inherent::inherent;
 use sea_orm::entity::prelude::*;
+use serde::{Deserialize, Serialize};
+use specta::Type;
+use strum_macros::{Display, EnumString};
 use uuid::Uuid;
+
+#[derive(
+    Display,
+    Debug,
+    Default,
+    Serialize,
+    Deserialize,
+    Type,
+    Clone,
+    PartialEq,
+    Eq,
+    EnumIter,
+    EnumString,
+    DeriveValueType,
+)]
+#[sea_orm(value_type = "String")]
+pub enum ContentType {
+    #[default]
+    Unknown,
+    Album,
+    Artists,
+    Container,
+    ReleaseDate,
+}
 
 #[sea_orm::model]
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
 #[sea_orm(table_name = "content")]
 pub struct Model {
     #[sea_orm(primary_key)]
-    pub id: i32,
+    id: i32,
     pub parent_id: Option<Uuid>,
     #[sea_orm(belongs_to, from = "parent_id", to = "uuid")]
     pub parent: BelongsTo<Option<super::media_items::Entity>>,
     #[sea_orm(unique)]
-    pub ty: String,
+    pub ty: ContentType,
     pub description: String,
 }
 
@@ -24,11 +51,10 @@ impl ActiveModelBehavior for ActiveModel {}
 #[derive(Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct ContentDTO {
-    pub id: i32,
     pub parent_id: Option<Uuid>,
     pub parent: Option<MediaItemDTO>,
     #[serde(rename = "type")]
-    pub ty: String,
+    pub ty: ContentType,
     pub description: String,
 }
 
@@ -43,10 +69,9 @@ impl Convertible<ModelEx> for ContentDTO {
         };
 
         Ok(ContentDTO {
-            id: item.id,
             parent_id: item.parent_id,
             parent: parent,
-            ty: item.ty,
+            ty: ContentType::Unknown,
             description: item.description,
         })
     }

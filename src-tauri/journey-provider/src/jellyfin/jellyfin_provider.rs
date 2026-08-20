@@ -12,18 +12,20 @@ use jellyfin_sdk_rs::{
         image_api::get_item_image_infos,
     },
     configure,
-    models::{AuthenticateUserByName, BaseItemDto, BaseItemKind, UserDto},
+    models::{AuthenticateUserByName, BaseItemDto, BaseItemKind, ImageType, UserDto},
     required::{ClientInfo, DeviceInfo},
 };
 use journey_db::{
     JourneyDbError,
     entity::{
-        MediaItems, ProviderVariant, images,
+        MediaItems, ProviderVariant,
+        content::{self, ActiveModel, ContentType},
+        images::{self},
         media_items::{self, MediaItemType},
-        providers,
+        original, providers,
     },
     get_conn,
-    sea_orm::{ActiveValue::Set, EntityTrait, IntoActiveModel, QuerySelect},
+    sea_orm::{ActiveValue::Set, IntoActiveModel, QuerySelect},
 };
 use journey_utils::constants::{PRODUCT_NAME, PRODUCT_VERSION};
 use serde::Serialize;
@@ -97,6 +99,9 @@ impl RequiredForProvider for JellyfinProvider {
     }
     pub fn get_params(&self) -> &providers::ActiveModelEx {
         &self.params
+    }
+    pub fn set_params(&mut self, new: providers::ActiveModelEx) {
+        self.params = new
     }
     pub async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<String> {
         let mut client_config = match configure()
@@ -214,6 +219,25 @@ impl JellyfinProvider {
             _ => MediaItemType::Unknown,
         })
     }
+    #[allow(unreachable_patterns)]
+    fn match_image_type(&self, kind: ImageType) -> ProviderResult<images::ImageType> {
+        Ok(match kind {
+            ImageType::Art => images::ImageType::Art,
+            ImageType::Backdrop => images::ImageType::Backdrop,
+            ImageType::Banner => images::ImageType::Banner,
+            ImageType::Box => images::ImageType::Box,
+            ImageType::BoxRear => images::ImageType::BoxRear,
+            ImageType::Chapter => images::ImageType::Chapter,
+            ImageType::Disc => images::ImageType::Disc,
+            ImageType::Logo => images::ImageType::Logo,
+            ImageType::Menu => images::ImageType::Menu,
+            ImageType::Primary => images::ImageType::Primary,
+            ImageType::Profile => images::ImageType::Profile,
+            ImageType::Screenshot => images::ImageType::Screenshot,
+            ImageType::Thumb => images::ImageType::Thumb,
+            _ => images::ImageType::Unknown,
+        })
+    }
     fn check_entry<T>(&self, entry: Option<T>) -> ProviderResult<T> {
         match entry {
             Some(entry) => Ok(entry),
@@ -224,10 +248,13 @@ impl JellyfinProvider {
         let items = self.get_items(user_id, kind).await?;
 
         let tasks = items.iter().map(|item| self.build_media_item(item));
-        match MediaItems::insert_many(try_join_all(tasks).await?)
-            .exec(&get_conn().await?)
-            .await
-        {
+        let media_items = try_join_all(tasks).await?;
+
+        for item in media_items {
+            self.set_params(self.get_params().clone().add_media_item(item));
+        }
+
+        match self.get_params().clone().update(&get_conn().await?).await {
             Ok(_) => Ok(()),
             Err(err) => Err(ProviderError::FailedDbInsertError(err.to_string())),
         }
@@ -250,8 +277,8 @@ impl JellyfinProvider {
             _ => Err(JellyfinProviderError::ApiEntryRetrievalError(None).into()),
         }
     }
-    async fn get_images(&self, id: Uuid) -> ProviderResult<Vec<images::ActiveModel>> {
-        let images: Vec<images::ActiveModel> = vec![];
+    async fn get_images(&self, id: Uuid) -> ProviderResult<Vec<images::ActiveModelEx>> {
+        let mut images: Vec<images::ActiveModelEx> = vec![];
 
         let images_req = match get_item_image_infos(self.get_config()?, &id.to_string()).await {
             Ok(images) => images,
@@ -271,32 +298,50 @@ impl JellyfinProvider {
                 _ => return Err(JellyfinProviderError::ApiEntryRetrievalError(None).into()),
             };
 
-            let image_model = images::ActiveModelEx::new()
-                .set_provider(self.get_params().clone())
-                .set_url(url);
+            let ty = match image.image_type {
+                Some(ty) => self.match_image_type(ty),
+                _ => return Err(JellyfinProviderError::ApiEntryRetrievalError(None).into()),
+            }?;
+
+            let image_model = images::ActiveModel::builder()
+                .set_url(url)
+                .set_ty(ty)
+                .set_server_id(self.server_id()?);
+
+            images.push(image_model);
         }
 
         Ok(images)
     }
-    async fn build_media_item(
+    async fn get_content(
         &self,
+        id: &Uuid,
         item: &BaseItemDto,
-    ) -> ProviderResult<media_items::ActiveModelEx> {
-        let uuid = self.check_entry(item.id)?;
-        let ty = self.match_item_type(self.check_entry(item.r#type)?)?;
-        let images = self.get_images(uuid).await?;
-        let parents = self.get_item_parents(item).await?;
+    ) -> ProviderResult<Vec<content::ActiveModelEx>> {
+        let album = ActiveModel::builder()
+            .set_description(self.check_entry(item.album.clone().flatten())?)
+            .set_parent_id(*id)
+            .set_ty(ContentType::Album);
 
-        let mut media_item = media_items::ActiveModelEx::new().set_uuid(uuid).set_ty(ty);
-        for image in images {
-            media_item = media_item.add_image(image);
-        }
+        let artists = ActiveModel::builder()
+            .set_description(self.check_entry(item.album_artist.clone().flatten())?)
+            .set_parent_id(*id)
+            .set_ty(ContentType::Artists);
 
-        for parent in parents {
-            media_item = media_item.add_parent(parent);
-        }
+        let container = ActiveModel::builder()
+            .set_description(self.check_entry(item.container.clone().flatten())?)
+            .set_parent_id(*id)
+            .set_ty(ContentType::Container);
 
-        Ok(media_item)
+        let release_date = ActiveModel::builder()
+            .set_description(
+                self.check_entry(item.premiere_date.clone().flatten())?
+                    .to_string(),
+            )
+            .set_parent_id(*id)
+            .set_ty(ContentType::ReleaseDate);
+
+        Ok(vec![album, artists, container, release_date])
     }
     async fn get_item_parents(
         &self,
@@ -354,6 +399,44 @@ impl JellyfinProvider {
             }
         }
         Ok(parents)
+    }
+    async fn build_media_item(
+        &self,
+        item: &BaseItemDto,
+    ) -> ProviderResult<media_items::ActiveModelEx> {
+        let item_id = self.check_entry(item.id)?;
+        let ty = self.match_item_type(self.check_entry(item.r#type)?)?;
+        let images = self.get_images(item_id).await?;
+        let content = self.get_content(&item_id, item).await?;
+        let parents = self.get_item_parents(item).await?;
+
+        let user_data = self.check_entry(item.user_data.clone().flatten())?;
+        let music_brainz_id = self.check_entry(user_data.item_id)?;
+
+        let original = original::ActiveModelEx::new()
+            .set_url(self.url()?)
+            .set_uuid(item_id)
+            .set_parent_id(music_brainz_id)
+            .set_server_id(self.server_id()?);
+
+        let mut media_item = media_items::ActiveModelEx::new()
+            .set_ty(ty)
+            .set_uuid(music_brainz_id)
+            .add_original(original);
+
+        for image in images {
+            media_item = media_item.add_image(image);
+        }
+
+        for parent in parents {
+            media_item = media_item.add_parent(parent);
+        }
+
+        for entry in content {
+            media_item = media_item.add_content(entry);
+        }
+
+        Ok(media_item)
     }
 }
 

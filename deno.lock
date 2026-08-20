@@ -2,7 +2,7 @@
   "version": "5",
   "specifiers": {
     "jsr:@deno/installer-shell-setup@*": "0.3.4",
-    "npm:@lucide/svelte@^1.32.0": "1.32.0_svelte@5.56.9",
+    "npm:@lucide/svelte@^1.33.0": "1.33.0_svelte@5.56.9",
     "npm:@sveltejs/adapter-static@^4.0.0-next.4": "4.0.0-next.4_@sveltejs+kit@3.0.0-next.23__@sveltejs+vite-plugin-svelte@7.3.0___svelte@5.56.9___vite@8.2.1____@types+node@26.2.0__svelte@5.56.9__typescript@6.0.3__vite@8.2.1___@types+node@26.2.0_@sveltejs+vite-plugin-svelte@7.3.0__svelte@5.56.9__vite@8.2.1___@types+node@26.2.0_svelte@5.56.9_typescript@6.0.3_vite@8.2.1__@types+node@26.2.0",
     "npm:@sveltejs/enhanced-img@^1.0.0-next.5": "1.0.0-next.5_@sveltejs+vite-plugin-svelte@7.3.0__svelte@5.56.9__vite@8.2.1___@types+node@26.2.0_svelte@5.56.9_vite@8.2.1__@types+node@26.2.0",
     "npm:@sveltejs/kit@^3.0.0-next.23": "3.0.0-next.23_@sveltejs+vite-plugin-svelte@7.3.0__svelte@5.56.9__vite@8.2.1___@types+node@26.2.0_svelte@5.56.9_typescript@6.0.3_vite@8.2.1__@types+node@26.2.0",
@@ -255,8 +255,8 @@
         "@lit-labs/ssr-dom-shim"
       ]
     },
-    "@lucide/svelte@1.32.0_svelte@5.56.9": {
-      "integrity": "sha512-fiiaK7PSIndDmYxxf1otAl1rlybF+x1pUxFFJr0Ov7OCgp/CKOXum90t/1YaRbadGAi25Mue+UgifZmufUi+Cw==",
+    "@lucide/svelte@1.33.0_svelte@5.56.9": {
+      "integrity": "sha512-b+osTYG2V4dge5Lr7tnaTaahhy/4vH7Xb8zcqVjmctjwgkpXS0NNOJPkGzHHZoxtw/OO+2YAU28omeMfYCaawg==",
       "dependencies": [
         "svelte"
       ]
@@ -1405,7 +1405,7 @@
   "workspace": {
     "packageJson": {
       "dependencies": [
-        "npm:@lucide/svelte@^1.32.0",
+        "npm:@lucide/svelte@^1.33.0",
         "npm:@sveltejs/adapter-static@^4.0.0-next.4",
         "npm:@sveltejs/enhanced-img@^1.0.0-next.5",
         "npm:@sveltejs/kit@^3.0.0-next.23",

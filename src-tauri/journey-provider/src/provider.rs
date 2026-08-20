@@ -58,6 +58,7 @@ pub trait NewProvider {
 pub trait RequiredForProvider {
     fn ty(&self) -> ProviderVariant;
     fn get_params(&self) -> &providers::ActiveModelEx;
+    fn set_params(&mut self, new: providers::ActiveModelEx);
     async fn index(&self) -> ProviderResult<()>;
     async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<String>;
     async fn invalidate(&mut self) -> ProviderResult<()>;

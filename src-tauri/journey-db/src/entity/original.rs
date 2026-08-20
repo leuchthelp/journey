@@ -10,7 +10,7 @@ use url::Url;
 #[sea_orm(table_name = "original")]
 pub struct Model {
     #[sea_orm(primary_key)]
-    pub id: i32,
+    pub uuid: Uuid,
     pub parent_id: Option<Uuid>,
     #[sea_orm(belongs_to, from = "parent_id", to = "uuid")]
     pub parent: BelongsTo<Option<super::media_items::Entity>>,
@@ -25,7 +25,6 @@ impl ActiveModelBehavior for ActiveModel {}
 #[derive(Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct OriginalDTO {
-    pub id: i32,
     pub parent_id: Option<Uuid>,
     pub parent: Option<MediaItemDTO>,
     pub server_id: Uuid,
@@ -43,7 +42,6 @@ impl Convertible<ModelEx> for OriginalDTO {
         };
 
         Ok(OriginalDTO {
-            id: item.id,
             parent_id: item.parent_id,
             parent: parent,
             server_id: item.server_id,
@@ -56,7 +54,6 @@ impl OriginalDTO {
     pub fn new() -> Self {
         return OriginalDTO {
             url: Url::parse("https://example.net").unwrap(),
-            id: -1,
             parent_id: None,
             parent: None,
             server_id: Uuid::nil(),
