@@ -55,7 +55,7 @@ pub enum JellyfinProviderError {
 
 #[derive(Debug, Clone)]
 pub struct JellyfinProvider {
-    pub(crate) params: providers::ActiveModelEx,
+    pub(crate) model: providers::ActiveModelEx,
     pub(crate) config: Option<Configuration>,
     pub(crate) client_info: ClientInfo,
     pub(crate) device_info: DeviceInfo,
@@ -64,7 +64,7 @@ pub struct JellyfinProvider {
 impl NewProvider for JellyfinProvider {
     type Provider = JellyfinProvider;
 
-    fn new(params: providers::ActiveModelEx) -> ProviderResult<Box<Self>> {
+    fn new(model: providers::ActiveModelEx) -> ProviderResult<Box<Self>> {
         let client_info = ClientInfo {
             name: PRODUCT_NAME,
             version: PRODUCT_VERSION,
@@ -83,7 +83,7 @@ impl NewProvider for JellyfinProvider {
         };
 
         Ok(Box::new(JellyfinProvider {
-            params: params,
+            model: model,
             config: None,
             client_info,
             device_info,
@@ -97,11 +97,11 @@ impl RequiredForProvider for JellyfinProvider {
     pub fn ty(&self) -> ProviderVariant {
         ProviderVariant::JellyfinProvider
     }
-    pub fn get_params(&self) -> &providers::ActiveModelEx {
-        &self.params
+    pub fn get_model(&self) -> &providers::ActiveModelEx {
+        &self.model
     }
-    pub fn set_params(&mut self, new: providers::ActiveModelEx) {
-        self.params = new
+    pub fn set_model(&mut self, new: providers::ActiveModelEx) {
+        self.model = new
     }
     pub async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<String> {
         let mut client_config = match configure()
@@ -149,7 +149,7 @@ impl RequiredForProvider for JellyfinProvider {
         self.remove_from_db().await?;
         self.remove_token()?;
 
-        self.params = providers::ActiveModelEx::default();
+        self.model = providers::ActiveModelEx::default();
         self.config = None;
         Ok(())
     }
@@ -172,7 +172,7 @@ impl JellyfinProvider {
             None => Err(JellyfinProviderError::ApiEntryRetrievalError(None)),
         }?;
 
-        self.params.server_id = Set(match Uuid::parse_str(&server_id) {
+        self.model.server_id = Set(match Uuid::parse_str(&server_id) {
             Ok(uuid) => uuid,
             Err(_) => return Err(JellyfinProviderError::FailedUuidParseError.into()),
         });
@@ -200,7 +200,7 @@ impl JellyfinProvider {
             None => Err(JellyfinProviderError::MissingUserIdError),
         }?;
 
-        self.params.user_id = Set(user_id);
+        self.model.user_id = Set(user_id);
         Ok(())
     }
     fn get_config(&self) -> ProviderResult<&Configuration> {
@@ -250,11 +250,12 @@ impl JellyfinProvider {
         let tasks = items.iter().map(|item| self.build_media_item(item));
         let media_items = try_join_all(tasks).await?;
 
+        let mut new_model = self.get_model().clone();
         for item in media_items {
-            self.set_params(self.get_params().clone().add_media_item(item));
+            new_model = new_model.add_media_item(item);
         }
 
-        match self.get_params().clone().update(&get_conn().await?).await {
+        match new_model.update(&get_conn().await?).await {
             Ok(_) => Ok(()),
             Err(err) => Err(ProviderError::FailedDbInsertError(err.to_string())),
         }
@@ -462,10 +463,10 @@ mod variant_jellyfin {
 
     #[test]
     fn matching_name() {
-        let params = ActiveModelEx::new().set_url(Url::parse("http://smth.example.com").unwrap());
+        let model = ActiveModelEx::new().set_url(Url::parse("http://smth.example.com").unwrap());
 
         assert!(matches!(
-            JellyfinProvider::new(params).unwrap().ty(),
+            JellyfinProvider::new(model).unwrap().ty(),
             ProviderVariant::JellyfinProvider
         ));
     }
@@ -482,8 +483,8 @@ mod variant_jellyfin {
         warn!("{}", env_map.var("TEST_JELLYFIN_URL").unwrap());
         let url = env_map.var("TEST_JELLYFIN_URL").unwrap();
 
-        let params = ActiveModelEx::new().set_url(Url::parse(&url).unwrap());
-        let mut provider = JellyfinProvider::new(params).unwrap();
+        let model = ActiveModelEx::new().set_url(Url::parse(&url).unwrap());
+        let mut provider = JellyfinProvider::new(model).unwrap();
 
         assert!(provider.authenticated().is_err());
         assert!(provider.server_id().is_err());

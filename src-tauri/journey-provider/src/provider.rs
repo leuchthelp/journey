@@ -51,14 +51,14 @@ pub type ProviderResult<T> = Result<T, ProviderError>;
 pub trait NewProvider {
     type Provider;
 
-    fn new(params: providers::ActiveModelEx) -> ProviderResult<Box<Self::Provider>>;
+    fn new(model: providers::ActiveModelEx) -> ProviderResult<Box<Self::Provider>>;
 }
 
 #[async_trait]
 pub trait RequiredForProvider {
     fn ty(&self) -> ProviderVariant;
-    fn get_params(&self) -> &providers::ActiveModelEx;
-    fn set_params(&mut self, new: providers::ActiveModelEx);
+    fn get_model(&self) -> &providers::ActiveModelEx;
+    fn set_model(&mut self, new: providers::ActiveModelEx);
     async fn index(&self) -> ProviderResult<()>;
     async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<String>;
     async fn invalidate(&mut self) -> ProviderResult<()>;
@@ -67,19 +67,19 @@ pub trait RequiredForProvider {
 #[async_trait]
 pub trait Provider: RequiredForProvider + DynClone + Debug {
     fn user_id(&self) -> ProviderResult<Uuid> {
-        match self.get_params().user_id.try_as_ref() {
+        match self.get_model().user_id.try_as_ref() {
             Some(user_id) if *user_id != Uuid::nil() => Ok(*user_id),
             _ => Err(JellyfinProviderError::MissingServerIdError.into()),
         }
     }
     fn server_id(&self) -> ProviderResult<Uuid> {
-        match self.get_params().server_id.try_as_ref() {
+        match self.get_model().server_id.try_as_ref() {
             Some(server_id) if *server_id != Uuid::nil() => Ok(*server_id),
             _ => Err(JellyfinProviderError::MissingServerIdError.into()),
         }
     }
     fn url(&self) -> ProviderResult<Url> {
-        match self.get_params().url.try_as_ref() {
+        match self.get_model().url.try_as_ref() {
             Some(url) => Ok(match Url::parse(url) {
                 Ok(url) => url,
                 Err(err) => return Err(ProviderError::FailedParseUrlError(err.to_string())),
