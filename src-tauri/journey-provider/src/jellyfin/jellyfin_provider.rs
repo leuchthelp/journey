@@ -258,10 +258,13 @@ impl JellyfinProvider {
             self.set_model(self.get_model().clone().add_media_item(item));
         }
 
-        match self.get_model().clone().update(&get_conn().await?).await {
-            Ok(_) => Ok(()),
-            Err(err) => Err(ProviderError::FailedDbInsertError(err.to_string())),
-        }
+        let model = match self.get_model().clone().update(&get_conn().await?).await {
+            Ok(model) => model.into_active_model(),
+            Err(err) => return Err(ProviderError::FailedDbInsertError(err.to_string())),
+        };
+
+        self.set_model(model);
+        Ok(())
     }
     async fn get_items(
         &self,
