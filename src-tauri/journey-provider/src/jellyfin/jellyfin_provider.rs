@@ -153,7 +153,7 @@ impl RequiredForProvider for JellyfinProvider {
         self.config = None;
         Ok(())
     }
-    pub async fn index(&self) -> ProviderResult<()> {
+    pub async fn index(&mut self) -> ProviderResult<()> {
         let user_id = &self.user_id()?.to_string();
         self.index_by_type(user_id, vec![BaseItemKind::MusicAlbum])
             .await?;
@@ -244,18 +244,21 @@ impl JellyfinProvider {
             _ => Err(JellyfinProviderError::ApiEntryRetrievalError(None).into()),
         }
     }
-    async fn index_by_type(&self, user_id: &str, kind: Vec<BaseItemKind>) -> ProviderResult<()> {
+    async fn index_by_type(
+        &mut self,
+        user_id: &str,
+        kind: Vec<BaseItemKind>,
+    ) -> ProviderResult<()> {
         let items = self.get_items(user_id, kind).await?;
 
         let tasks = items.iter().map(|item| self.build_media_item(item));
         let media_items = try_join_all(tasks).await?;
 
-        let mut new_model = self.get_model().clone();
         for item in media_items {
-            new_model = new_model.add_media_item(item);
+            self.set_model(self.get_model().clone().add_media_item(item));
         }
 
-        match new_model.update(&get_conn().await?).await {
+        match self.get_model().clone().update(&get_conn().await?).await {
             Ok(_) => Ok(()),
             Err(err) => Err(ProviderError::FailedDbInsertError(err.to_string())),
         }

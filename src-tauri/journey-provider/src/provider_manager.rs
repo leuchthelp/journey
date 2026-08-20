@@ -1,5 +1,5 @@
 use crate::{
-    ProviderError, ProviderResult,
+    ProviderError,
     jellyfin_provider::JellyfinProvider,
     provider::{NewProvider, Provider},
 };
@@ -15,8 +15,7 @@ use journey_db::{
 use rapidhash::RapidHashMap;
 use serde::Serialize;
 use specta::Type;
-use std::collections::hash_map::{Keys, Values};
-use std::pin::Pin;
+use std::collections::hash_map::{Keys, Values, ValuesMut};
 use thiserror::Error;
 use tracing::info;
 
@@ -128,27 +127,23 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         self.register(provider)?;
         Ok(key)
     }
-    fn start_indexing(&self) -> ProviderManagerResult<()> {
-        for provider in self.get_variants_values()? {
-            let _indexing_task = self.index(provider);
+    fn start_indexing(&mut self) -> ProviderManagerResult<()> {
+        for provider in self.get_mut_variants_values()? {
+            let _indexing_task = match provider.authenticated() {
+                Ok(_) => {
+                    info!(
+                        "Beginning indexing on provider: {} for: {}",
+                        provider.ty(),
+                        provider.url()?
+                    );
+                    provider.index()
+                }
+                Err(err) => {
+                    return Err(ProviderManagerError::NotAuthenticatedError(err.to_string()));
+                }
+            };
         }
         Ok(())
-    }
-    fn index<'a>(
-        &'a self,
-        provider: &'a Box<dyn Provider + Send + Sync>,
-    ) -> ProviderManagerResult<Pin<Box<dyn Future<Output = ProviderResult<()>> + Send + '_>>> {
-        match provider.authenticated() {
-            Ok(_) => {
-                info!(
-                    "Beginning indexing on provider: {} for: {}",
-                    provider.ty(),
-                    provider.url()?
-                );
-                Ok(provider.index())
-            }
-            Err(err) => Err(ProviderManagerError::NotAuthenticatedError(err.to_string())),
-        }
     }
 }
 
@@ -165,6 +160,9 @@ pub trait RequiredForProviderManager {
     fn get_variants_values(
         &self,
     ) -> ProviderManagerResult<Values<'_, ProviderKey, Box<dyn Provider + Send + Sync>>>;
+    fn get_mut_variants_values(
+        &mut self,
+    ) -> ProviderManagerResult<ValuesMut<'_, ProviderKey, Box<dyn Provider + Send + Sync>>>;
     fn get_variants_keys(
         &self,
     ) -> ProviderManagerResult<Keys<'_, ProviderKey, Box<dyn Provider + Send + Sync>>>;
@@ -203,6 +201,11 @@ impl RequiredForProviderManager for ProviderManager {
         &self,
     ) -> ProviderManagerResult<Values<'_, ProviderKey, Box<dyn Provider + Send + Sync>>> {
         Ok(self.variants.values())
+    }
+    pub fn get_mut_variants_values(
+        &mut self,
+    ) -> ProviderManagerResult<ValuesMut<'_, ProviderKey, Box<dyn Provider + Send + Sync>>> {
+        Ok(self.variants.values_mut())
     }
     pub fn get_variants_keys(
         &self,
