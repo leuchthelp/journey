@@ -42,7 +42,7 @@ pub struct Model {
     pub parent: BelongsTo<Option<super::media_items::Entity>>,
     #[sea_orm(unique)]
     pub ty: ContentType,
-    pub description: String,
+    pub description: Option<String>,
 }
 
 impl ActiveModelBehavior for ActiveModel {}
@@ -55,7 +55,7 @@ pub struct ContentDTO {
     pub parent: Option<MediaItemDTO>,
     #[serde(rename = "type")]
     pub ty: ContentType,
-    pub description: String,
+    pub description: Option<String>,
 }
 
 #[inherent]

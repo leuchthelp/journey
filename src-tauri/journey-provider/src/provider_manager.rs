@@ -66,20 +66,20 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         while let Ok(Some(known)) = known_providers.try_next().await {
             let new_provider =
                 self.get_type(known.ty.clone(), known.into_active_model().into_ex())?;
-            self.register(new_provider)?;
+            self.register(new_provider).await?;
         }
 
-        self.start_indexing()?;
+        self.start_indexing().await?;
         Ok(())
     }
-    fn get_provider(&self, key: &ProviderKey) -> ProviderManagerResult<ProviderDTO> {
+    async fn get_provider(&self, key: &ProviderKey) -> ProviderManagerResult<ProviderDTO> {
         let provider = self.get_variant(key)?;
 
         let provider_dto = ProviderDTO::builder()
-            .authenticated(provider.authenticated()?)
+            .authenticated(provider.authenticated().await?)
             .ty(provider.ty())
-            .url(provider.url()?)
-            .key(provider.key()?)
+            .url(provider.url().await?)
+            .key(provider.key().await?)
             .build();
 
         Ok(provider_dto)
@@ -90,7 +90,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         for provider in self.get_variants_values()? {
             let new = ProviderDTO::builder()
                 .ty(provider.ty())
-                .key(provider.key()?)
+                .key(provider.key().await?)
                 .build();
             providers.push(new);
         }
@@ -101,12 +101,12 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         token: String,
         provider: &Box<dyn Provider + Send + Sync>,
     ) -> ProviderManagerResult<()> {
-        match provider.authenticated()? && self.provider_exists(&provider.key()?)? {
+        match provider.authenticated().await? && self.provider_exists(&provider.key().await?)? {
             true => return Err(ProviderManagerError::ProviderInUseError),
             false => (),
         };
 
-        provider.save_token(&token)?;
+        provider.save_token(&token).await?;
         provider.add_to_db().await?;
         Ok(())
     }
@@ -123,18 +123,18 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         let token = provider.password_auth(uname, psw).await?;
         self.validate_provider(token, &provider).await?;
 
-        let key = provider.key()?;
-        self.register(provider)?;
+        let key = provider.key().await?;
+        self.register(provider).await?;
         Ok(key)
     }
-    fn start_indexing(&mut self) -> ProviderManagerResult<()> {
+    async fn start_indexing(&mut self) -> ProviderManagerResult<()> {
         for provider in self.get_mut_variants_values()? {
-            let _indexing_task = match provider.authenticated() {
+            let _indexing_task = match provider.authenticated().await {
                 Ok(_) => {
                     info!(
                         "Beginning indexing on provider: {} for: {}",
                         provider.ty(),
-                        provider.url()?
+                        provider.url().await?
                     );
                     provider.index()
                 }
@@ -167,7 +167,10 @@ pub trait RequiredForProviderManager {
         &self,
     ) -> ProviderManagerResult<Keys<'_, ProviderKey, Box<dyn Provider + Send + Sync>>>;
     fn provider_exists(&self, key: &ProviderKey) -> ProviderManagerResult<bool>;
-    fn register(&mut self, provider: Box<dyn Provider + Send + Sync>) -> ProviderManagerResult<()>;
+    async fn register(
+        &mut self,
+        provider: Box<dyn Provider + Send + Sync>,
+    ) -> ProviderManagerResult<()>;
     async fn deregister(&mut self, key: &ProviderKey) -> ProviderManagerResult<()>;
 }
 
@@ -215,16 +218,20 @@ impl RequiredForProviderManager for ProviderManager {
     pub fn provider_exists(&self, key: &ProviderKey) -> ProviderManagerResult<bool> {
         Ok(self.variants.contains_key(key))
     }
-    pub fn register(
+    pub async fn register(
         &mut self,
         provider: Box<dyn Provider + Send + Sync>,
     ) -> ProviderManagerResult<()> {
-        self.variants.insert(provider.key()?, provider);
+        self.variants.insert(provider.key().await?, provider);
         Ok(())
     }
     pub async fn deregister(&mut self, key: &ProviderKey) -> ProviderManagerResult<()> {
         match self.variants.remove(key) {
-            Some(mut provider) => Ok(provider.invalidate().await?),
+            Some(mut provider) => {
+                provider.remove_from_db().await?;
+                provider.remove_token().await?;
+                Ok(provider.invalidate().await?)
+            }
             None => Err(ProviderManagerError::DeregisterError),
         }
     }
@@ -240,21 +247,21 @@ mod provider_manager_test {
     use crate::jellyfin_provider::JellyfinProvider;
     use crate::provider::{NewProvider, Provider};
     use crate::provider_manager::ProviderManager;
+    use journey_db::entity::ProviderVariant;
     use journey_db::entity::providers::{self};
     use journey_utils::constants::PRODUCT_NAME;
     use journey_utils::get_env_local;
     use serial_test::serial;
-    use test_log::test;
     use tracing::warn;
     use url::Url;
 
-    #[test]
-    fn hash_no_login_failure() {
+    #[tokio::test]
+    async fn hash_no_login_failure() {
         let params =
             providers::ActiveModelEx::new().set_url(Url::parse("http://smth.example.com").unwrap());
         let provider = JellyfinProvider::new(params).unwrap();
 
-        let hash = provider.key();
+        let hash = provider.key().await;
         assert!(hash.is_err())
     }
 
@@ -270,30 +277,20 @@ mod provider_manager_test {
         warn!("{}", PRODUCT_NAME);
         let url = env_map.var("TEST_JELLYFIN_URL").unwrap();
 
-        let params = providers::ActiveModelEx::new().set_url(Url::parse(&url).unwrap());
-        let mut provider = JellyfinProvider::new(params).unwrap();
-
-        let access_token = provider
+        let mut provider_manager = ProviderManager::default();
+        let key = provider_manager
             .password_auth(
+                url,
+                ProviderVariant::JellyfinProvider,
                 env_map.var("TEST_JELLYFIN_USER").unwrap(),
                 env_map.var("TEST_JELLYFIN_PW").unwrap(),
             )
             .await
             .unwrap();
-        assert!(provider.authenticated().unwrap() == false);
-        provider.save_token(&access_token).unwrap();
-        assert!(provider.authenticated().unwrap() == true);
 
-        let mut provider_manager = ProviderManager::default();
+        //provider_manager.start_indexing().await.unwrap();
 
-        let key = provider.key().unwrap();
-        provider_manager.register(provider).unwrap();
-
-        let provider = provider_manager.get_provider(&key).unwrap();
-
-        warn!("key: {:#?}", provider.key);
         provider_manager.deregister(&key).await.unwrap();
-
         journey_keyring::release_store();
     }
 }

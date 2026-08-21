@@ -30,7 +30,9 @@ use journey_db::{
 use journey_utils::constants::{PRODUCT_NAME, PRODUCT_VERSION};
 use serde::Serialize;
 use specta::Type;
+use std::{fmt::Debug, sync::Arc};
 use thiserror::Error;
+use tokio::sync::RwLock;
 use tracing::warn;
 use url::Url;
 use uuid::Uuid;
@@ -55,7 +57,7 @@ pub enum JellyfinProviderError {
 
 #[derive(Debug, Clone)]
 pub struct JellyfinProvider {
-    pub(crate) model: providers::ActiveModelEx,
+    pub(crate) model: Arc<RwLock<providers::ActiveModelEx>>,
     pub(crate) config: Option<Configuration>,
     pub(crate) client_info: ClientInfo,
     pub(crate) device_info: DeviceInfo,
@@ -83,7 +85,7 @@ impl NewProvider for JellyfinProvider {
         };
 
         Ok(Box::new(JellyfinProvider {
-            model: model,
+            model: Arc::new(RwLock::new(model)),
             config: None,
             client_info,
             device_info,
@@ -97,15 +99,16 @@ impl RequiredForProvider for JellyfinProvider {
     pub fn ty(&self) -> ProviderVariant {
         ProviderVariant::JellyfinProvider
     }
-    pub fn get_model(&self) -> &providers::ActiveModelEx {
-        &self.model
+    pub async fn get_model(&self) -> providers::ActiveModelEx {
+        self.model.read().await.clone()
     }
-    pub fn set_model(&mut self, new: providers::ActiveModelEx) {
-        self.model = new
+    pub async fn set_model(&mut self, new: providers::ActiveModelEx) {
+        let mut lock = self.model.write().await;
+        *lock = new
     }
     pub async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<String> {
         let mut client_config = match configure()
-            .base_url(&self.url()?)
+            .base_url(&self.url().await?)
             .client_info(&self.client_info)
             .device_info(&self.device_info)
             .call()
@@ -128,11 +131,11 @@ impl RequiredForProvider for JellyfinProvider {
             None => Err(JellyfinProviderError::ApiEntryRetrievalError(None)),
         }?;
 
-        self.set_server_id(auth_res.server_id)?;
-        self.set_user_id(auth_res.user)?;
+        self.set_server_id(auth_res.server_id).await?;
+        self.set_user_id(auth_res.user).await?;
 
         client_config = match configure()
-            .base_url(&self.url()?)
+            .base_url(&self.url().await?)
             .client_info(&self.client_info)
             .device_info(&self.device_info)
             .access_token(&access_token)
@@ -146,33 +149,31 @@ impl RequiredForProvider for JellyfinProvider {
         Ok(access_token)
     }
     pub async fn invalidate(&mut self) -> ProviderResult<()> {
-        self.remove_from_db().await?;
-        self.remove_token()?;
-
-        self.model = providers::ActiveModelEx::default();
+        let mut lock = self.model.write().await;
+        *lock = providers::ActiveModelEx::default();
         self.config = None;
         Ok(())
     }
     pub async fn index(&mut self) -> ProviderResult<()> {
-        let user_id = &self.user_id()?.to_string();
+        let user_id = &self.user_id().await?.to_string();
         self.index_by_type(user_id, vec![BaseItemKind::MusicAlbum])
             .await?;
-        self.index_by_type(user_id, vec![BaseItemKind::MusicArtist])
-            .await?;
-        self.index_by_type(user_id, vec![BaseItemKind::Audio])
-            .await?;
+        // self.index_by_type(user_id, vec![BaseItemKind::MusicArtist])
+        //     .await?;
+        // self.index_by_type(user_id, vec![BaseItemKind::Audio])
+        //     .await?;
         Ok(())
     }
 }
 
 impl JellyfinProvider {
-    fn set_server_id(&mut self, server_id: Option<Option<String>>) -> ProviderResult<()> {
+    async fn set_server_id(&mut self, server_id: Option<Option<String>>) -> ProviderResult<()> {
         let server_id = match server_id.flatten() {
             Some(token) => Ok(token),
             None => Err(JellyfinProviderError::ApiEntryRetrievalError(None)),
         }?;
 
-        self.model.server_id = Set(match Uuid::parse_str(&server_id) {
+        self.model.write().await.server_id = Set(match Uuid::parse_str(&server_id) {
             Ok(uuid) => uuid,
             Err(_) => return Err(JellyfinProviderError::FailedUuidParseError.into()),
         });
@@ -189,7 +190,7 @@ impl JellyfinProvider {
        We could pass it through in one line but we risk an error for a missing user_id
        if anything in the Jellyfin API gets funky.
     */
-    fn set_user_id(&mut self, user_dto: Option<Option<Box<UserDto>>>) -> ProviderResult<()> {
+    async fn set_user_id(&mut self, user_dto: Option<Option<Box<UserDto>>>) -> ProviderResult<()> {
         let user_dto = match user_dto.flatten() {
             Some(dto) => Ok(dto),
             None => Err(JellyfinProviderError::ApiEntryRetrievalError(None)),
@@ -200,7 +201,7 @@ impl JellyfinProvider {
             None => Err(JellyfinProviderError::MissingUserIdError),
         }?;
 
-        self.model.user_id = Set(user_id);
+        self.model.write().await.user_id = Set(user_id);
         Ok(())
     }
     fn get_config(&self) -> ProviderResult<&Configuration> {
@@ -238,10 +239,14 @@ impl JellyfinProvider {
             _ => images::ImageType::Unknown,
         })
     }
-    fn check_entry<T>(&self, entry: Option<T>) -> ProviderResult<T> {
+    fn check_entry<T: Debug>(&self, entry: Option<T>) -> ProviderResult<T> {
         match entry {
             Some(entry) => Ok(entry),
-            _ => Err(JellyfinProviderError::ApiEntryRetrievalError(None).into()),
+            _ => Err(JellyfinProviderError::ApiEntryRetrievalError(Some(format!(
+                "for entry: {:#?}",
+                entry
+            )))
+            .into()),
         }
     }
     async fn index_by_type(
@@ -254,17 +259,23 @@ impl JellyfinProvider {
         let tasks = items.iter().map(|item| self.build_media_item(item));
         let media_items = try_join_all(tasks).await?;
 
-        let mut model = self.get_model().clone();
+        let mut model = self.get_model().await;
         for item in media_items {
             model = model.add_media_item(item);
         }
 
-        let model = match self.get_model().clone().update(&get_conn().await?).await {
+        let model = match model.save(&get_conn().await?).await {
             Ok(model) => model.into_active_model(),
-            Err(err) => return Err(ProviderError::FailedDbInsertError(err.to_string())),
+            Err(err) => {
+                return Err(ProviderError::FailedDbInsertError(format!(
+                    "{} with specific: {:#?}",
+                    err,
+                    err.sql_err()
+                )));
+            }
         };
 
-        self.set_model(model);
+        self.set_model(model).await;
         Ok(())
     }
     async fn get_items(
@@ -272,6 +283,8 @@ impl JellyfinProvider {
         user_id: &str,
         kind: Vec<BaseItemKind>,
     ) -> ProviderResult<Vec<BaseItemDto>> {
+        warn!("Getting BaseItemDto's for user: {}", user_id);
+
         let response = get_items_request()
             .configuration(self.get_config()?)
             .user_id(user_id)
@@ -280,12 +293,11 @@ impl JellyfinProvider {
             .call()
             .await?;
 
-        match response.items {
-            Some(items) => Ok(items),
-            _ => Err(JellyfinProviderError::ApiEntryRetrievalError(None).into()),
-        }
+        Ok(self.check_entry(response.items)?)
     }
     async fn get_images(&self, id: Uuid) -> ProviderResult<Vec<images::ActiveModelEx>> {
+        warn!("Getting images for: {}", id);
+
         let mut images: Vec<images::ActiveModelEx> = vec![];
 
         let images_req = match get_item_image_infos(self.get_config()?, &id.to_string()).await {
@@ -297,57 +309,84 @@ impl JellyfinProvider {
             }
         };
 
-        for image in images_req {
-            let url = match image.path.flatten() {
-                Some(url) => match Url::parse(&url) {
-                    Ok(url) => url,
-                    Err(err) => return Err(ProviderError::FailedParseUrlError(err.to_string())),
-                },
-                _ => return Err(JellyfinProviderError::ApiEntryRetrievalError(None).into()),
-            };
+        let base_url = self.url().await?;
+        for image_info in images_req {
+            warn!("{:#?}", image_info);
 
-            let ty = match image.image_type {
+            let ty = match image_info.image_type {
                 Some(ty) => self.match_image_type(ty),
                 _ => return Err(JellyfinProviderError::ApiEntryRetrievalError(None).into()),
             }?;
 
+            let tag = self.check_entry(image_info.image_tag.flatten())?;
+
+            let url = match Url::parse(&format!("{}/{}/{}", base_url, tag, ty)) {
+                Ok(url) => url,
+                Err(err) => {
+                    return Err(ProviderError::FailedParseUrlError(format!(
+                        "failed with: {} for base: {}/{}",
+                        err, base_url, ty
+                    )));
+                }
+            };
+
             let image_model = images::ActiveModel::builder()
                 .set_url(url)
                 .set_ty(ty)
-                .set_server_id(self.server_id()?);
+                .set_server_id(self.server_id().await?);
 
             images.push(image_model);
         }
 
         Ok(images)
     }
+    fn wrap_content(
+        &self,
+        description: Option<String>,
+        id: &Uuid,
+        ty: ContentType,
+    ) -> ProviderResult<content::ActiveModelEx> {
+        let description = match description {
+            Some(description) => Some(description),
+            _ => {
+                warn!("Skipping: {} for {} because it does not exist", ty, id);
+                None
+            }
+        };
+
+        let smth = ActiveModel::builder()
+            .set_description(description)
+            .set_parent_id(*id)
+            .set_ty(ty);
+
+        Ok(smth)
+    }
     async fn get_content(
         &self,
         id: &Uuid,
         item: &BaseItemDto,
     ) -> ProviderResult<Vec<content::ActiveModelEx>> {
-        let album = ActiveModel::builder()
-            .set_description(self.check_entry(item.album.clone().flatten())?)
-            .set_parent_id(*id)
-            .set_ty(ContentType::Album);
+        warn!("Getting content for: {} - full item: {:#?}", id, item);
 
-        let artists = ActiveModel::builder()
-            .set_description(self.check_entry(item.album_artist.clone().flatten())?)
-            .set_parent_id(*id)
-            .set_ty(ContentType::Artists);
+        let album = self.wrap_content(item.album.clone().flatten(), id, ContentType::Album)?;
 
-        let container = ActiveModel::builder()
-            .set_description(self.check_entry(item.container.clone().flatten())?)
-            .set_parent_id(*id)
-            .set_ty(ContentType::Container);
+        let artists = self.wrap_content(
+            item.album_artist.clone().flatten(),
+            id,
+            ContentType::Artists,
+        )?;
 
-        let release_date = ActiveModel::builder()
-            .set_description(
+        let container =
+            self.wrap_content(item.container.clone().flatten(), id, ContentType::Container)?;
+
+        let release_date = self.wrap_content(
+            Some(
                 self.check_entry(item.premiere_date.clone().flatten())?
                     .to_string(),
-            )
-            .set_parent_id(*id)
-            .set_ty(ContentType::ReleaseDate);
+            ),
+            id,
+            ContentType::ReleaseDate,
+        )?;
 
         Ok(vec![album, artists, container, release_date])
     }
@@ -355,6 +394,8 @@ impl JellyfinProvider {
         &self,
         item: &BaseItemDto,
     ) -> ProviderResult<Vec<media_items::ActiveModel>> {
+        warn!("Getting parents for: {:#?}", item);
+
         let mut parent_ids: Vec<Uuid> = vec![];
 
         match item.album_id.flatten() {
@@ -422,10 +463,10 @@ impl JellyfinProvider {
         let music_brainz_id = self.check_entry(user_data.item_id)?;
 
         let original = original::ActiveModelEx::new()
-            .set_url(self.url()?)
+            .set_url(self.url().await?)
             .set_uuid(item_id)
             .set_parent_id(music_brainz_id)
-            .set_server_id(self.server_id()?);
+            .set_server_id(self.server_id().await?);
 
         let mut media_item = media_items::ActiveModelEx::new()
             .set_ty(ty)
@@ -493,10 +534,10 @@ mod variant_jellyfin {
         let model = ActiveModelEx::new().set_url(Url::parse(&url).unwrap());
         let mut provider = JellyfinProvider::new(model).unwrap();
 
-        assert!(provider.authenticated().is_err());
-        assert!(provider.server_id().is_err());
-        assert!(provider.user_id().is_err());
-        assert!(provider.url().is_ok());
+        assert!(provider.authenticated().await.is_err());
+        assert!(provider.server_id().await.is_err());
+        assert!(provider.user_id().await.is_err());
+        assert!(provider.url().await.is_ok());
 
         let token = provider
             .password_auth(
@@ -505,22 +546,27 @@ mod variant_jellyfin {
             )
             .await
             .unwrap();
-        provider.save_token(&token).unwrap();
+        provider.save_token(&token).await.unwrap();
+        provider.add_to_db().await.unwrap();
 
-        assert!(provider.authenticated().unwrap() == true);
-        assert!(provider.server_id().is_ok());
-        assert!(provider.user_id().is_ok());
-        assert!(provider.url().is_ok());
+        assert!(provider.authenticated().await.unwrap() == true);
+        assert!(provider.server_id().await.is_ok());
+        assert!(provider.user_id().await.is_ok());
+        assert!(provider.url().await.is_ok());
 
         let test = Entry::search(&HashMap::from([("service", "journey")])).unwrap();
         test.iter().for_each(|f| warn!("{:#?}", f.get_password()));
 
+        provider.index().await.unwrap();
+
+        provider.remove_token().await.unwrap();
+        provider.remove_from_db().await.unwrap();
         provider.invalidate().await.unwrap();
 
-        assert!(provider.authenticated().is_err());
-        assert!(provider.server_id().is_err());
-        assert!(provider.user_id().is_err());
-        assert!(provider.url().is_err());
+        assert!(provider.authenticated().await.is_err());
+        assert!(provider.server_id().await.is_err());
+        assert!(provider.user_id().await.is_err());
+        assert!(provider.url().await.is_err());
 
         journey_keyring::release_store();
     }
