@@ -288,8 +288,6 @@ mod provider_manager_test {
             .await
             .unwrap();
 
-        //provider_manager.start_indexing().await.unwrap();
-
         provider_manager.deregister(&key).await.unwrap();
         journey_keyring::release_store();
     }
