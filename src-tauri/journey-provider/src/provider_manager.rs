@@ -117,7 +117,9 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         uname: String,
         psw: String,
     ) -> ProviderManagerResult<ProviderKey> {
-        let model = providers::ActiveModelEx::new().set_url(url);
+        let model = providers::ActiveModelEx::new()
+            .set_url(url)
+            .set_ty(ty.clone());
 
         let mut provider = self.get_type(ty, model)?;
         let token = provider.password_auth(uname, psw).await?;

@@ -153,13 +153,8 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
         }
     }
     async fn add_to_db(&self) -> ProviderResult<()> {
-        let provider = providers::ActiveModelEx::new()
-            .set_user_id(self.user_id()?)
-            .set_server_id(self.server_id()?)
-            .set_ty(self.ty())
-            .set_url(self.url()?);
-
-        match providers::Entity::insert(provider)
+        let model = self.get_model().clone();
+        match providers::Entity::insert(model)
             .on_conflict(
                 OnConflict::column(providers::Column::UserId)
                     .do_nothing()

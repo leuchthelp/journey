@@ -153,7 +153,8 @@ impl RequiredForProvider for JellyfinProvider {
     }
     pub async fn index(&mut self) -> ProviderResult<()> {
         let user_id = &self.user_id()?.to_string();
-        self.index_by_type(user_id, vec![BaseItemKind::MusicAlbum])
+        let model = self.get_model().clone();
+        self.index_by_type(model, user_id, vec![BaseItemKind::MusicAlbum])
             .await?;
         // self.index_by_type(user_id, vec![BaseItemKind::MusicArtist])
         //     .await?;
@@ -248,6 +249,7 @@ impl JellyfinProvider {
     }
     async fn index_by_type(
         &mut self,
+        mut model: providers::ActiveModelEx,
         user_id: &str,
         kind: Vec<BaseItemKind>,
     ) -> ProviderResult<()> {
@@ -256,9 +258,8 @@ impl JellyfinProvider {
         let tasks = items.iter().map(|item| self.build_media_item(item));
         let media_items = try_join_all(tasks).await?;
 
-        let mut model = self.get_model().clone();
         for item in media_items {
-            model.media_items.push(item);
+            model = model.add_media_item(item);
         }
 
         let model = match model.save(&get_conn().await?).await {
@@ -331,7 +332,8 @@ impl JellyfinProvider {
             let image_model = images::ActiveModel::builder()
                 .set_url(url)
                 .set_ty(ty)
-                .set_server_id(self.server_id()?);
+                .set_server_id(self.server_id()?)
+                .set_provider(self.get_model().clone());
 
             images.push(image_model);
         }
@@ -532,7 +534,9 @@ mod variant_jellyfin {
         warn!("{}", env_map.var("TEST_JELLYFIN_URL").unwrap());
         let url = env_map.var("TEST_JELLYFIN_URL").unwrap();
 
-        let model = ActiveModelEx::new().set_url(Url::parse(&url).unwrap());
+        let model = ActiveModelEx::new()
+            .set_url(Url::parse(&url).unwrap())
+            .set_ty(ProviderVariant::JellyfinProvider);
         let mut provider = JellyfinProvider::new(model).unwrap();
 
         assert!(provider.authenticated().is_err());
