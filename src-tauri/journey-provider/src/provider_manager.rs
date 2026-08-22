@@ -76,10 +76,10 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         let provider = self.get_variant(key)?;
 
         let provider_dto = ProviderDTO::builder()
-            .authenticated(provider.authenticated().await?)
+            .authenticated(provider.authenticated()?)
             .ty(provider.ty())
-            .url(provider.url().await?)
-            .key(provider.key().await?)
+            .url(provider.url()?)
+            .key(provider.key()?)
             .build();
 
         Ok(provider_dto)
@@ -90,7 +90,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         for provider in self.get_variants_values()? {
             let new = ProviderDTO::builder()
                 .ty(provider.ty())
-                .key(provider.key().await?)
+                .key(provider.key()?)
                 .build();
             providers.push(new);
         }
@@ -101,12 +101,12 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         token: String,
         provider: &Box<dyn Provider + Send + Sync>,
     ) -> ProviderManagerResult<()> {
-        match provider.authenticated().await? && self.provider_exists(&provider.key().await?)? {
+        match provider.authenticated()? && self.provider_exists(&provider.key()?)? {
             true => return Err(ProviderManagerError::ProviderInUseError),
             false => (),
         };
 
-        provider.save_token(&token).await?;
+        provider.save_token(&token)?;
         provider.add_to_db().await?;
         Ok(())
     }
@@ -123,18 +123,18 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         let token = provider.password_auth(uname, psw).await?;
         self.validate_provider(token, &provider).await?;
 
-        let key = provider.key().await?;
+        let key = provider.key()?;
         self.register(provider).await?;
         Ok(key)
     }
     async fn start_indexing(&mut self) -> ProviderManagerResult<()> {
         for provider in self.get_mut_variants_values()? {
-            let _indexing_task = match provider.authenticated().await {
+            let _indexing_task = match provider.authenticated() {
                 Ok(_) => {
                     info!(
                         "Beginning indexing on provider: {} for: {}",
                         provider.ty(),
-                        provider.url().await?
+                        provider.url()?
                     );
                     provider.index()
                 }
@@ -222,15 +222,15 @@ impl RequiredForProviderManager for ProviderManager {
         &mut self,
         provider: Box<dyn Provider + Send + Sync>,
     ) -> ProviderManagerResult<()> {
-        self.variants.insert(provider.key().await?, provider);
+        self.variants.insert(provider.key()?, provider);
         Ok(())
     }
     pub async fn deregister(&mut self, key: &ProviderKey) -> ProviderManagerResult<()> {
         match self.variants.remove(key) {
             Some(mut provider) => {
                 provider.remove_from_db().await?;
-                provider.remove_token().await?;
-                Ok(provider.invalidate().await?)
+                provider.remove_token()?;
+                Ok(provider.invalidate()?)
             }
             None => Err(ProviderManagerError::DeregisterError),
         }
@@ -261,7 +261,7 @@ mod provider_manager_test {
             providers::ActiveModelEx::new().set_url(Url::parse("http://smth.example.com").unwrap());
         let provider = JellyfinProvider::new(params).unwrap();
 
-        let hash = provider.key().await;
+        let hash = provider.key();
         assert!(hash.is_err())
     }
 

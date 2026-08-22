@@ -30,9 +30,8 @@ use journey_db::{
 use journey_utils::constants::{PRODUCT_NAME, PRODUCT_VERSION};
 use serde::Serialize;
 use specta::Type;
-use std::{fmt::Debug, sync::Arc};
+use std::fmt::Debug;
 use thiserror::Error;
-use tokio::sync::RwLock;
 use tracing::warn;
 use url::Url;
 use uuid::Uuid;
@@ -57,7 +56,7 @@ pub enum JellyfinProviderError {
 
 #[derive(Debug, Clone)]
 pub struct JellyfinProvider {
-    pub(crate) model: Arc<RwLock<providers::ActiveModelEx>>,
+    pub(crate) model: providers::ActiveModelEx,
     pub(crate) config: Option<Configuration>,
     pub(crate) client_info: ClientInfo,
     pub(crate) device_info: DeviceInfo,
@@ -85,7 +84,7 @@ impl NewProvider for JellyfinProvider {
         };
 
         Ok(Box::new(JellyfinProvider {
-            model: Arc::new(RwLock::new(model)),
+            model: model,
             config: None,
             client_info,
             device_info,
@@ -99,16 +98,20 @@ impl RequiredForProvider for JellyfinProvider {
     pub fn ty(&self) -> ProviderVariant {
         ProviderVariant::JellyfinProvider
     }
-    pub async fn get_model(&self) -> providers::ActiveModelEx {
-        self.model.read().await.clone()
+    pub fn get_model(&self) -> &providers::ActiveModelEx {
+        &self.model
     }
-    pub async fn set_model(&mut self, new: providers::ActiveModelEx) {
-        let mut lock = self.model.write().await;
-        *lock = new
+    pub fn set_model(&mut self, new: providers::ActiveModelEx) {
+        self.model = new
+    }
+    pub fn invalidate(&mut self) -> ProviderResult<()> {
+        self.model = providers::ActiveModelEx::default();
+        self.config = None;
+        Ok(())
     }
     pub async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<String> {
         let mut client_config = match configure()
-            .base_url(&self.url().await?)
+            .base_url(&self.url()?)
             .client_info(&self.client_info)
             .device_info(&self.device_info)
             .call()
@@ -131,11 +134,11 @@ impl RequiredForProvider for JellyfinProvider {
             None => Err(JellyfinProviderError::ApiEntryRetrievalError(None)),
         }?;
 
-        self.set_server_id(auth_res.server_id).await?;
-        self.set_user_id(auth_res.user).await?;
+        self.set_server_id(auth_res.server_id)?;
+        self.set_user_id(auth_res.user)?;
 
         client_config = match configure()
-            .base_url(&self.url().await?)
+            .base_url(&self.url()?)
             .client_info(&self.client_info)
             .device_info(&self.device_info)
             .access_token(&access_token)
@@ -148,14 +151,8 @@ impl RequiredForProvider for JellyfinProvider {
         self.config = Some(client_config);
         Ok(access_token)
     }
-    pub async fn invalidate(&mut self) -> ProviderResult<()> {
-        let mut lock = self.model.write().await;
-        *lock = providers::ActiveModelEx::default();
-        self.config = None;
-        Ok(())
-    }
     pub async fn index(&mut self) -> ProviderResult<()> {
-        let user_id = &self.user_id().await?.to_string();
+        let user_id = &self.user_id()?.to_string();
         self.index_by_type(user_id, vec![BaseItemKind::MusicAlbum])
             .await?;
         // self.index_by_type(user_id, vec![BaseItemKind::MusicArtist])
@@ -167,13 +164,13 @@ impl RequiredForProvider for JellyfinProvider {
 }
 
 impl JellyfinProvider {
-    async fn set_server_id(&mut self, server_id: Option<Option<String>>) -> ProviderResult<()> {
+    fn set_server_id(&mut self, server_id: Option<Option<String>>) -> ProviderResult<()> {
         let server_id = match server_id.flatten() {
             Some(token) => Ok(token),
             None => Err(JellyfinProviderError::ApiEntryRetrievalError(None)),
         }?;
 
-        self.model.write().await.server_id = Set(match Uuid::parse_str(&server_id) {
+        self.model.server_id = Set(match Uuid::parse_str(&server_id) {
             Ok(uuid) => uuid,
             Err(_) => return Err(JellyfinProviderError::FailedUuidParseError.into()),
         });
@@ -190,7 +187,7 @@ impl JellyfinProvider {
        We could pass it through in one line but we risk an error for a missing user_id
        if anything in the Jellyfin API gets funky.
     */
-    async fn set_user_id(&mut self, user_dto: Option<Option<Box<UserDto>>>) -> ProviderResult<()> {
+    fn set_user_id(&mut self, user_dto: Option<Option<Box<UserDto>>>) -> ProviderResult<()> {
         let user_dto = match user_dto.flatten() {
             Some(dto) => Ok(dto),
             None => Err(JellyfinProviderError::ApiEntryRetrievalError(None)),
@@ -201,7 +198,7 @@ impl JellyfinProvider {
             None => Err(JellyfinProviderError::MissingUserIdError),
         }?;
 
-        self.model.write().await.user_id = Set(user_id);
+        self.model.user_id = Set(user_id);
         Ok(())
     }
     fn get_config(&self) -> ProviderResult<&Configuration> {
@@ -259,9 +256,9 @@ impl JellyfinProvider {
         let tasks = items.iter().map(|item| self.build_media_item(item));
         let media_items = try_join_all(tasks).await?;
 
-        let mut model = self.get_model().await;
+        let mut model = self.get_model().clone();
         for item in media_items {
-            model = model.add_media_item(item);
+            model.media_items.push(item);
         }
 
         let model = match model.save(&get_conn().await?).await {
@@ -275,7 +272,7 @@ impl JellyfinProvider {
             }
         };
 
-        self.set_model(model).await;
+        self.set_model(model);
         Ok(())
     }
     async fn get_items(
@@ -310,7 +307,7 @@ impl JellyfinProvider {
             }
         };
 
-        let base_url = self.url().await?;
+        let base_url = self.url()?;
         for image_info in images_req {
             warn!("{:#?}", image_info);
 
@@ -334,7 +331,7 @@ impl JellyfinProvider {
             let image_model = images::ActiveModel::builder()
                 .set_url(url)
                 .set_ty(ty)
-                .set_server_id(self.server_id().await?);
+                .set_server_id(self.server_id()?);
 
             images.push(image_model);
         }
@@ -362,7 +359,7 @@ impl JellyfinProvider {
 
         Ok(smth)
     }
-    async fn get_content(
+    fn get_content(
         &self,
         id: &Uuid,
         item: &BaseItemDto,
@@ -457,17 +454,17 @@ impl JellyfinProvider {
         let item_id = self.check_entry(item.id)?;
         let ty = self.match_item_type(self.check_entry(item.r#type)?)?;
         let images = self.get_images(item_id).await?;
-        let content = self.get_content(&item_id, item).await?;
+        let content = self.get_content(&item_id, item)?;
         let parents = self.get_item_parents(item).await?;
 
         let user_data = self.check_entry(item.user_data.clone().flatten())?;
         let music_brainz_id = self.check_entry(user_data.item_id)?;
 
         let original = original::ActiveModelEx::new()
-            .set_url(self.url().await?)
+            .set_url(self.url()?)
             .set_uuid(item_id)
             .set_parent_id(music_brainz_id)
-            .set_server_id(self.server_id().await?);
+            .set_server_id(self.server_id()?);
 
         let mut media_item = media_items::ActiveModelEx::new()
             .set_ty(ty)
@@ -538,10 +535,10 @@ mod variant_jellyfin {
         let model = ActiveModelEx::new().set_url(Url::parse(&url).unwrap());
         let mut provider = JellyfinProvider::new(model).unwrap();
 
-        assert!(provider.authenticated().await.is_err());
-        assert!(provider.server_id().await.is_err());
-        assert!(provider.user_id().await.is_err());
-        assert!(provider.url().await.is_ok());
+        assert!(provider.authenticated().is_err());
+        assert!(provider.server_id().is_err());
+        assert!(provider.user_id().is_err());
+        assert!(provider.url().is_ok());
 
         let token = provider
             .password_auth(
@@ -550,27 +547,27 @@ mod variant_jellyfin {
             )
             .await
             .unwrap();
-        provider.save_token(&token).await.unwrap();
+        provider.save_token(&token).unwrap();
         provider.add_to_db().await.unwrap();
 
-        assert!(provider.authenticated().await.unwrap() == true);
-        assert!(provider.server_id().await.is_ok());
-        assert!(provider.user_id().await.is_ok());
-        assert!(provider.url().await.is_ok());
+        assert!(provider.authenticated().unwrap() == true);
+        assert!(provider.server_id().is_ok());
+        assert!(provider.user_id().is_ok());
+        assert!(provider.url().is_ok());
 
         let test = Entry::search(&HashMap::from([("service", "journey")])).unwrap();
         test.iter().for_each(|f| warn!("{:#?}", f.get_password()));
 
         provider.index().await.unwrap();
 
-        provider.remove_token().await.unwrap();
+        provider.remove_token().unwrap();
         provider.remove_from_db().await.unwrap();
-        provider.invalidate().await.unwrap();
+        provider.invalidate().unwrap();
 
-        assert!(provider.authenticated().await.is_err());
-        assert!(provider.server_id().await.is_err());
-        assert!(provider.user_id().await.is_err());
-        assert!(provider.url().await.is_err());
+        assert!(provider.authenticated().is_err());
+        assert!(provider.server_id().is_err());
+        assert!(provider.user_id().is_err());
+        assert!(provider.url().is_err());
 
         journey_keyring::release_store();
     }

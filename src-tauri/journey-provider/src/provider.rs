@@ -59,29 +59,29 @@ pub trait NewProvider {
 #[async_trait]
 pub trait RequiredForProvider {
     fn ty(&self) -> ProviderVariant;
-    async fn get_model(&self) -> providers::ActiveModelEx;
-    async fn set_model(&mut self, new: providers::ActiveModelEx);
+    fn get_model(&self) -> &providers::ActiveModelEx;
+    fn set_model(&mut self, new: providers::ActiveModelEx);
+    fn invalidate(&mut self) -> ProviderResult<()>;
     async fn index(&mut self) -> ProviderResult<()>;
     async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<String>;
-    async fn invalidate(&mut self) -> ProviderResult<()>;
 }
 
 #[async_trait]
 pub trait Provider: RequiredForProvider + DynClone + Debug {
-    async fn user_id(&self) -> ProviderResult<Uuid> {
-        match self.get_model().await.user_id.try_as_ref() {
+    fn user_id(&self) -> ProviderResult<Uuid> {
+        match self.get_model().user_id.try_as_ref() {
             Some(user_id) if *user_id != Uuid::nil() => Ok(*user_id),
             _ => Err(JellyfinProviderError::MissingServerIdError.into()),
         }
     }
-    async fn server_id(&self) -> ProviderResult<Uuid> {
-        match self.get_model().await.server_id.try_as_ref() {
+    fn server_id(&self) -> ProviderResult<Uuid> {
+        match self.get_model().server_id.try_as_ref() {
             Some(server_id) if *server_id != Uuid::nil() => Ok(*server_id),
             _ => Err(JellyfinProviderError::MissingServerIdError.into()),
         }
     }
-    async fn url(&self) -> ProviderResult<Url> {
-        match self.get_model().await.url.try_as_ref() {
+    fn url(&self) -> ProviderResult<Url> {
+        match self.get_model().url.try_as_ref() {
             Some(url) => Ok(match Url::parse(url) {
                 Ok(url) => url,
                 Err(err) => return Err(ProviderError::FailedParseUrlError(err.to_string())),
@@ -89,10 +89,10 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
             _ => Err(JellyfinProviderError::MissingUrlError.into()),
         }
     }
-    async fn save_token(&self, access_token: &String) -> ProviderResult<()> {
+    fn save_token(&self, access_token: &String) -> ProviderResult<()> {
         let token_entry = match Entry::new(
             PRODUCT_NAME,
-            &format!("{}-{}", self.server_id().await?, self.user_id().await?),
+            &format!("{}-{}", self.server_id()?, self.user_id()?),
         ) {
             Ok(entry) => entry,
             Err(_) => return Err(ProviderError::FailedCreateEntryError),
@@ -103,12 +103,12 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
             Err(_) => Err(ProviderError::SaveTokenError),
         }
     }
-    async fn retrieve_tokens(&self) -> ProviderResult<Vec<Entry>> {
+    fn retrieve_tokens(&self) -> ProviderResult<Vec<Entry>> {
         let entries_res = Entry::search(&HashMap::from([
             ("service", "journey"),
             (
                 "user",
-                &format!("{}-{}", self.server_id().await?, self.user_id().await?),
+                &format!("{}-{}", self.server_id()?, self.user_id()?),
             ),
         ]));
 
@@ -117,8 +117,8 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
             Err(_) => Err(ProviderError::NoCredentialsError),
         }
     }
-    async fn remove_token(&self) -> ProviderResult<()> {
-        let entries = self.retrieve_tokens().await?;
+    fn remove_token(&self) -> ProviderResult<()> {
+        let entries = self.retrieve_tokens()?;
 
         for entry in &entries {
             match entry.delete_credential() {
@@ -133,14 +133,14 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
             _ => Ok(()),
         }
     }
-    async fn key(&self) -> ProviderResult<ProviderKey> {
+    fn key(&self) -> ProviderResult<ProviderKey> {
         Ok(ProviderKey {
-            user_id: self.user_id().await?,
-            server_id: self.server_id().await?,
+            user_id: self.user_id()?,
+            server_id: self.server_id()?,
         })
     }
-    async fn authenticated(&self) -> ProviderResult<bool> {
-        let tokens = self.retrieve_tokens().await?;
+    fn authenticated(&self) -> ProviderResult<bool> {
+        let tokens = self.retrieve_tokens()?;
 
         warn!(
             "TODO Need to validate all available tokens to ensure we are actually authenticated. 
@@ -154,10 +154,10 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
     }
     async fn add_to_db(&self) -> ProviderResult<()> {
         let provider = providers::ActiveModelEx::new()
-            .set_user_id(self.user_id().await?)
-            .set_server_id(self.server_id().await?)
+            .set_user_id(self.user_id()?)
+            .set_server_id(self.server_id()?)
             .set_ty(self.ty())
-            .set_url(self.url().await?);
+            .set_url(self.url()?);
 
         match providers::Entity::insert(provider)
             .on_conflict(
@@ -174,7 +174,7 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
         }
     }
     async fn remove_from_db(&self) -> ProviderResult<()> {
-        match self.get_model().await.delete(&get_conn().await?).await {
+        match self.get_model().clone().delete(&get_conn().await?).await {
             Ok(_) => Ok(()),
             Err(err) => Err(ProviderError::FailedDbRemoveError(err.to_string())),
         }
