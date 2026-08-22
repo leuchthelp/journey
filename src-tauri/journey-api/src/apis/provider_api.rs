@@ -44,7 +44,7 @@ impl ProviderApi for ProviderApiImpl {
     }
     async fn get_provider(self, key: ProviderKey) -> ProviderApiResult<ProviderDTO> {
         let lock = self.state.read().await;
-        let provider = lock.provider_manager.get_provider(&key)?;
+        let provider = lock.provider_manager.get_provider(&key).await?;
         Ok(provider)
     }
     async fn password_auth(

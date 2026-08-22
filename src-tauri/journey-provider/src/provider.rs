@@ -1,22 +1,24 @@
-use crate::jellyfin::jellyfin_provider::JellyfinProviderError;
+use std::collections::HashMap;
+use std::fmt::Debug;
+
 use anyhow::Result;
 use async_trait::async_trait;
 use dyn_clone::{DynClone, clone_trait_object};
+use serde::Serialize;
+use specta::Type;
+use thiserror::Error;
+use tracing::warn;
+use url::Url;
+use uuid::Uuid;
+
+use crate::jellyfin::jellyfin_provider::JellyfinProviderError;
 use journey_db::entity::providers::{self};
-use journey_db::entity::{ProviderKey, ProviderVariant, Providers};
+use journey_db::entity::{ProviderKey, ProviderVariant};
 use journey_db::get_conn;
 use journey_db::sea_orm::EntityTrait;
 use journey_db::sea_query::OnConflict;
 use journey_keyring::Entry;
 use journey_utils::constants::PRODUCT_NAME;
-use serde::Serialize;
-use specta::Type;
-use std::collections::HashMap;
-use std::fmt::Debug;
-use thiserror::Error;
-use tracing::warn;
-use url::Url;
-use uuid::Uuid;
 
 #[derive(Debug, Error, Serialize, Type)]
 pub enum ProviderError {
@@ -35,7 +37,7 @@ pub enum ProviderError {
     #[error("Failed to insert provider to database.")]
     FailedDbInsertError(String),
     #[error("Failed to delete provider from database. Might not exist.")]
-    FailedDbRemoveError,
+    FailedDbRemoveError(String),
     #[error("Failed to convert sea-orm ActiveModel into Model.")]
     FailedConvModelError(String),
     #[error("Failed to parse the given String to an Url.")]
@@ -59,9 +61,9 @@ pub trait RequiredForProvider {
     fn ty(&self) -> ProviderVariant;
     fn get_model(&self) -> &providers::ActiveModelEx;
     fn set_model(&mut self, new: providers::ActiveModelEx);
+    fn invalidate(&mut self) -> ProviderResult<()>;
     async fn index(&mut self) -> ProviderResult<()>;
     async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<String>;
-    async fn invalidate(&mut self) -> ProviderResult<()>;
 }
 
 #[async_trait]
@@ -144,6 +146,7 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
             "TODO Need to validate all available tokens to ensure we are actually authenticated. 
             Currently not implemented, just finding any tokens is considered to be authenticated."
         );
+        warn!("tokens: {:#?}", tokens);
         match tokens.len() {
             len if len == 0 => Ok(false),
             _ => Ok(true),
@@ -171,13 +174,9 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
         }
     }
     async fn remove_from_db(&self) -> ProviderResult<()> {
-        let res = Providers::delete_by_user_id(self.user_id()?)
-            .exec(&get_conn().await?)
-            .await;
-
-        match res {
+        match self.get_model().clone().delete(&get_conn().await?).await {
             Ok(_) => Ok(()),
-            Err(_) => Err(ProviderError::FailedDbRemoveError),
+            Err(err) => Err(ProviderError::FailedDbRemoveError(err.to_string())),
         }
     }
 }
