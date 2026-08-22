@@ -37,13 +37,14 @@ pub enum MediaItemType {
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
 #[sea_orm(table_name = "media_items")]
 pub struct Model {
-    #[sea_orm(primary_key, auto_increment = false)]
+    #[sea_orm(primary_key)]
+    id: i32,
     #[sea_orm(unique)]
     pub uuid: Uuid,
     pub ty: MediaItemType,
     pub outline_gradient: String,
     pub loaded: bool,
-    pub local: String,
+    pub local: Option<String>,
     #[sea_orm(has_many)]
     pub original: HasMany<super::original::Entity>,
     #[sea_orm(has_many)]
@@ -100,7 +101,7 @@ impl Convertible<ModelEx> for MediaItemDTO {
             ty: item.ty,
             outline_gradient: Some(item.outline_gradient),
             loaded: item.loaded,
-            local: Some(item.local),
+            local: item.local,
             original: original,
             content: content,
             providers: providers,

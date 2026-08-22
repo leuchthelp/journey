@@ -1,22 +1,24 @@
-use crate::jellyfin::jellyfin_provider::JellyfinProviderError;
+use std::collections::HashMap;
+use std::fmt::Debug;
+
 use anyhow::Result;
 use async_trait::async_trait;
 use dyn_clone::{DynClone, clone_trait_object};
+use serde::Serialize;
+use specta::Type;
+use thiserror::Error;
+use tracing::warn;
+use url::Url;
+use uuid::Uuid;
+
+use crate::jellyfin::jellyfin_provider::JellyfinProviderError;
 use journey_db::entity::providers::{self};
-use journey_db::entity::{ProviderKey, ProviderVariant, Providers};
+use journey_db::entity::{ProviderKey, ProviderVariant};
 use journey_db::get_conn;
 use journey_db::sea_orm::EntityTrait;
 use journey_db::sea_query::OnConflict;
 use journey_keyring::Entry;
 use journey_utils::constants::PRODUCT_NAME;
-use serde::Serialize;
-use specta::Type;
-use std::collections::HashMap;
-use std::fmt::Debug;
-use thiserror::Error;
-use tracing::warn;
-use url::Url;
-use uuid::Uuid;
 
 #[derive(Debug, Error, Serialize, Type)]
 pub enum ProviderError {
@@ -172,11 +174,7 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
         }
     }
     async fn remove_from_db(&self) -> ProviderResult<()> {
-        let res = Providers::delete_by_user_id(self.user_id().await?)
-            .exec(&get_conn().await?)
-            .await;
-
-        match res {
+        match self.get_model().await.delete(&get_conn().await?).await {
             Ok(_) => Ok(()),
             Err(err) => Err(ProviderError::FailedDbRemoveError(err.to_string())),
         }

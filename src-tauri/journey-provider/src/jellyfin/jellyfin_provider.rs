@@ -290,6 +290,7 @@ impl JellyfinProvider {
             .user_id(user_id)
             .recursive(true)
             .include_item_types(kind)
+            .limit(1)
             .call()
             .await?;
 
@@ -471,6 +472,9 @@ impl JellyfinProvider {
         let mut media_item = media_items::ActiveModelEx::new()
             .set_ty(ty)
             .set_uuid(music_brainz_id)
+            .set_outline_gradient("#ff000000")
+            .set_loaded(false)
+            .set_local(None)
             .add_original(original);
 
         for image in images {

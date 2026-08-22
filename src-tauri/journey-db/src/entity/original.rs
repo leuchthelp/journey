@@ -10,6 +10,7 @@ use url::Url;
 #[sea_orm(table_name = "original")]
 pub struct Model {
     #[sea_orm(primary_key)]
+    id: i32,
     pub uuid: Uuid,
     pub parent_id: Option<Uuid>,
     #[sea_orm(belongs_to, from = "parent_id", to = "uuid")]
