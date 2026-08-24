@@ -153,8 +153,7 @@ impl RequiredForProvider for JellyfinProvider {
     }
     pub async fn index(&mut self) -> ProviderResult<()> {
         let user_id = &self.user_id()?.to_string();
-        let model = self.get_model().clone();
-        self.index_by_type(model, user_id, vec![BaseItemKind::MusicAlbum])
+        self.index_by_type(user_id, vec![BaseItemKind::MusicAlbum])
             .await?;
         // self.index_by_type(user_id, vec![BaseItemKind::MusicArtist])
         //     .await?;
@@ -249,7 +248,6 @@ impl JellyfinProvider {
     }
     async fn index_by_type(
         &mut self,
-        mut model: providers::ActiveModelEx,
         user_id: &str,
         kind: Vec<BaseItemKind>,
     ) -> ProviderResult<()> {
@@ -259,9 +257,10 @@ impl JellyfinProvider {
         let media_items = try_join_all(tasks).await?;
 
         for item in media_items {
-            model = model.add_media_item(item);
+            self.model.media_items.push(item);
         }
 
+        let model = self.get_model().clone();
         let model = match model.save(&get_conn().await?).await {
             Ok(model) => model.into_active_model(),
             Err(err) => {
