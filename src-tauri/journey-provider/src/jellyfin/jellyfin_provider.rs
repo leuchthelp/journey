@@ -19,7 +19,7 @@ use journey_db::{
     JourneyDbError,
     entity::{
         MediaItems, ProviderVariant,
-        content::{self, ActiveModel, ContentType},
+        content::{self, ContentType},
         images::{self},
         media_items::{self, MediaItemType},
         original, providers,
@@ -153,7 +153,9 @@ impl RequiredForProvider for JellyfinProvider {
     }
     pub async fn index(&mut self) -> ProviderResult<()> {
         let user_id = &self.user_id()?.to_string();
-        self.index_by_type(user_id, vec![BaseItemKind::MusicAlbum])
+        let model = &mut self.get_model().clone();
+
+        self.index_by_type(user_id, model, vec![BaseItemKind::MusicAlbum])
             .await?;
         // self.index_by_type(user_id, vec![BaseItemKind::MusicArtist])
         //     .await?;
@@ -249,6 +251,7 @@ impl JellyfinProvider {
     async fn index_by_type(
         &mut self,
         user_id: &str,
+        model: &mut providers::ActiveModelEx,
         kind: Vec<BaseItemKind>,
     ) -> ProviderResult<()> {
         let items = self.get_items(user_id, kind).await?;
@@ -257,11 +260,10 @@ impl JellyfinProvider {
         let media_items = try_join_all(tasks).await?;
 
         for item in media_items {
-            self.model.media_items.push(item);
+            model.media_items.push(item);
         }
 
-        let model = self.get_model().clone();
-        let model = match model.save(&get_conn().await?).await {
+        let model = match model.clone().save(&get_conn().await?).await {
             Ok(model) => model.into_active_model(),
             Err(err) => {
                 return Err(ProviderError::FailedDbInsertError(format!(
@@ -353,7 +355,7 @@ impl JellyfinProvider {
             }
         };
 
-        let smth = ActiveModel::builder()
+        let smth = content::ActiveModel::builder()
             .set_description(description)
             .set_parent_id(*id)
             .set_ty(ty);
