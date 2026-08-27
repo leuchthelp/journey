@@ -39,12 +39,12 @@ pub struct ProviderApiImpl {
 impl ProviderApi for ProviderApiImpl {
     async fn get_providers(self) -> ProviderApiResult<Vec<ProviderDTO>> {
         let lock = self.state.read().await;
-        let providers = lock.provider_manager.get_providers().await?;
+        let providers = lock.provider_manager.get_providers()?;
         Ok(providers)
     }
     async fn get_provider(self, key: ProviderKey) -> ProviderApiResult<ProviderDTO> {
         let lock = self.state.read().await;
-        let provider = lock.provider_manager.get_provider(&key).await?;
+        let provider = lock.provider_manager.get_provider(&key)?;
         Ok(provider)
     }
     async fn password_auth(

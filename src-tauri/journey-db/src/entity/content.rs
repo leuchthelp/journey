@@ -40,7 +40,6 @@ pub struct Model {
     pub parent_id: Option<Uuid>,
     #[sea_orm(belongs_to, from = "parent_id", to = "uuid")]
     pub parent: BelongsTo<Option<super::media_items::Entity>>,
-    #[sea_orm(unique)]
     pub ty: ContentType,
     pub description: Option<String>,
 }

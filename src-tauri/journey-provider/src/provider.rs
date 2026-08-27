@@ -4,6 +4,7 @@ use std::fmt::Debug;
 use anyhow::Result;
 use async_trait::async_trait;
 use dyn_clone::{DynClone, clone_trait_object};
+use kameo::actor::ActorRef;
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
@@ -12,6 +13,7 @@ use url::Url;
 use uuid::Uuid;
 
 use crate::jellyfin::jellyfin_provider::JellyfinProviderError;
+use crate::provider_manager::Indexer;
 use journey_db::entity::providers::{self};
 use journey_db::entity::{ProviderKey, ProviderVariant};
 use journey_db::get_conn;
@@ -62,7 +64,7 @@ pub trait RequiredForProvider {
     fn get_model(&self) -> &providers::ActiveModelEx;
     fn set_model(&mut self, new: providers::ActiveModelEx);
     fn invalidate(&mut self) -> ProviderResult<()>;
-    async fn index(&mut self) -> ProviderResult<()>;
+    async fn index(&self, indexer: &ActorRef<Indexer>) -> ProviderResult<()>;
     async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<String>;
 }
 

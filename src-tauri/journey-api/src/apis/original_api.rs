@@ -25,6 +25,6 @@ pub struct OriginalApiImpl {
 #[taurpc::resolvers]
 impl OriginalApi for OriginalApiImpl {
     async fn get_original(self) -> OriginalResult<OriginalDTO> {
-        Ok(OriginalDTO::new())
+        Ok(OriginalDTO::default())
     }
 }

@@ -3,7 +3,6 @@ use Uuid;
 use anyhow::Result;
 use inherent::inherent;
 use sea_orm::entity::prelude::*;
-use url::Url;
 
 #[sea_orm::model]
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
@@ -11,25 +10,23 @@ use url::Url;
 pub struct Model {
     #[sea_orm(primary_key)]
     id: i32,
+    #[sea_orm(unique)]
     pub uuid: Uuid,
     pub parent_id: Option<Uuid>,
     #[sea_orm(belongs_to, from = "parent_id", to = "uuid")]
     pub parent: BelongsTo<Option<super::media_items::Entity>>,
     pub server_id: Uuid,
-    #[sea_orm(unique)]
-    pub url: String,
 }
 
 impl ActiveModelBehavior for ActiveModel {}
 
 #[taurpc::ipc_type]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct OriginalDTO {
     pub parent_id: Option<Uuid>,
     pub parent: Option<MediaItemDTO>,
     pub server_id: Uuid,
-    pub url: Url,
 }
 
 #[inherent]
@@ -46,18 +43,6 @@ impl Convertible<ModelEx> for OriginalDTO {
             parent_id: item.parent_id,
             parent: parent,
             server_id: item.server_id,
-            url: Url::parse(&item.url)?,
         })
-    }
-}
-
-impl OriginalDTO {
-    pub fn new() -> Self {
-        return OriginalDTO {
-            url: Url::parse("https://example.net").unwrap(),
-            parent_id: None,
-            parent: None,
-            server_id: Uuid::nil(),
-        };
     }
 }
