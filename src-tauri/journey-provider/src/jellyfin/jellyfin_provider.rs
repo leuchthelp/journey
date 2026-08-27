@@ -10,7 +10,8 @@ use inherent::inherent;
 use jellyfin_sdk_rs::{
     apis::{
         authentication_api::authenticate_user_by_name, configuration::Configuration,
-        image_api::get_item_image_infos,
+        image_api::get_item_image_infos, item_lookup_api::get_external_id_infos,
+        item_update_api::get_metadata_editor_info,
     },
     configure,
     models::{AuthenticateUserByName, BaseItemDto, BaseItemKind, ImageType, UserDto},
@@ -26,7 +27,7 @@ use journey_db::{
         original, providers,
     },
     get_conn,
-    sea_orm::{ActiveValue::Set, IntoActiveModel, QuerySelect},
+    sea_orm::{ActiveValue::Set, IntoActiveModel},
 };
 use journey_utils::constants::{PRODUCT_NAME, PRODUCT_VERSION};
 use kameo::actor::ActorRef;
@@ -158,10 +159,10 @@ impl RequiredForProvider for JellyfinProvider {
 
         self.index_by_type(user_id, &indexer, vec![BaseItemKind::MusicAlbum])
             .await?;
-        self.index_by_type(user_id, &indexer, vec![BaseItemKind::MusicArtist])
-            .await?;
-        self.index_by_type(user_id, &indexer, vec![BaseItemKind::Audio])
-            .await?;
+        // self.index_by_type(user_id, &indexer, vec![BaseItemKind::MusicArtist])
+        //     .await?;
+        // self.index_by_type(user_id, &indexer, vec![BaseItemKind::Audio])
+        //     .await?;
 
         Ok(())
     }
@@ -274,7 +275,11 @@ impl JellyfinProvider {
         id: &Uuid,
         item: &BaseItemDto,
     ) -> ProviderResult<Vec<content::ActiveModelEx>> {
-        warn!("Getting content for: {} - full item: {:#?}", id, item);
+        warn!(
+            "Getting content for: {} - item: {:#?}",
+            id,
+            item.name.clone().flatten()
+        );
 
         let album = self.wrap_content(item.album.clone().flatten(), id, ContentType::Album);
 
@@ -287,14 +292,11 @@ impl JellyfinProvider {
         let container =
             self.wrap_content(item.container.clone().flatten(), id, ContentType::Container);
 
-        let release_date = self.wrap_content(
-            Some(
-                self.check_entry(item.premiere_date.clone().flatten())?
-                    .to_string(),
-            ),
-            id,
-            ContentType::ReleaseDate,
-        );
+        let date = match self.check_entry(item.premiere_date.clone().flatten()) {
+            Ok(date) => Some(date.to_string()),
+            Err(_) => None,
+        };
+        let release_date = self.wrap_content(date, id, ContentType::ReleaseDate);
 
         let mut res: Vec<content::ActiveModelEx> = vec![];
         for potential in vec![album, artists, container, release_date] {
@@ -315,7 +317,6 @@ impl JellyfinProvider {
         let mut model = self.get_model().clone();
 
         let items = self.get_items(user_id, kind).await?;
-
         let tasks = items.iter().map(|item| self.build_media_item(item));
         let media_items = try_join_all(tasks).await?;
         let total = media_items.len();
@@ -346,12 +347,22 @@ impl JellyfinProvider {
     ) -> ProviderResult<media_items::ActiveModelEx> {
         let item_id = self.check_entry(item.id)?;
         let ty = self.match_item_type(self.check_entry(item.r#type)?)?;
-        let images = self.get_images(item_id).await?;
-        let content = self.get_content(&item_id, item)?;
-        let parents = self.get_item_parents(item).await?;
+        // let images = self.get_images(item_id).await?;
+        // let content = self.get_content(&item_id, item)?;
+        // let parents = self.get_item_parents(item).await?;
 
         let user_data = self.check_entry(item.user_data.clone().flatten())?;
-        let music_brainz_id = self.check_entry(user_data.item_id)?;
+        let music_brainz_id = match self.check_entry(user_data.item_id) {
+            Ok(id) => Some(id),
+            Err(_) => {
+                warn!(
+                    "Could not find a musicbrainz id for item: {:#?}, generating tmp one",
+                    item.name.clone().flatten()
+                );
+                None
+            }
+        };
+        let test = self.get_music_brainz_id(&item_id).await?;
 
         let original = original::ActiveModelEx::new()
             .set_uuid(item_id)
@@ -366,17 +377,17 @@ impl JellyfinProvider {
             .set_local(None)
             .add_original(original);
 
-        for image in images {
-            media_item = media_item.add_image(image);
-        }
+        // for image in images {
+        //     media_item = media_item.add_image(image);
+        // }
 
-        for parent in parents {
-            media_item = media_item.add_parent(parent);
-        }
+        // for parent in parents {
+        //     media_item = media_item.add_parent(parent);
+        // }
 
-        for entry in content {
-            media_item = media_item.add_content(entry);
-        }
+        // for entry in content {
+        //     media_item = media_item.add_content(entry);
+        // }
 
         Ok(media_item)
     }
@@ -392,11 +403,16 @@ impl JellyfinProvider {
             .user_id(user_id)
             .recursive(true)
             .include_item_types(kind)
-            //.limit(1)
             .call()
             .await?;
 
         Ok(self.check_entry(response.items)?)
+    }
+    async fn get_music_brainz_id(&self, id: &Uuid) -> ProviderResult<()> {
+        let external_info_res = get_metadata_editor_info(self.get_config()?, &id.to_string()).await;
+        warn!("{:#?}", external_info_res);
+
+        Ok(())
     }
     async fn get_images(&self, id: Uuid) -> ProviderResult<Vec<images::ActiveModelEx>> {
         warn!("Getting images for: {}", id);
@@ -414,8 +430,6 @@ impl JellyfinProvider {
 
         let base_url = self.url()?;
         for image_info in images_req {
-            warn!("{:#?}", image_info);
-
             let ty = match image_info.image_type {
                 Some(ty) => self.match_image_type(ty),
                 _ => return Err(JellyfinProviderError::ApiEntryRetrievalError(None).into()),
@@ -423,7 +437,7 @@ impl JellyfinProvider {
 
             let tag = self.check_entry(image_info.image_tag.flatten())?;
 
-            let url = match Url::parse(&format!("{}/{}/{}", base_url, tag, ty)) {
+            let url = match Url::parse(&format!("{}{}/{}", base_url, tag, ty)) {
                 Ok(url) => url,
                 Err(err) => {
                     return Err(ProviderError::FailedParseUrlError(format!(
@@ -448,7 +462,7 @@ impl JellyfinProvider {
         &self,
         item: &BaseItemDto,
     ) -> ProviderResult<Vec<media_items::ActiveModel>> {
-        warn!("Getting parents for: {:#?}", item);
+        warn!("Getting parents for: {:#?}", item.name.clone().flatten());
 
         let mut parent_ids: Vec<Uuid> = vec![];
 
@@ -456,7 +470,8 @@ impl JellyfinProvider {
             Some(id) => parent_ids.push(id),
             _ => warn!(
                 "No albums for: {:#?} with id: {:#?} -> skipping",
-                item.id, item.name
+                item.id,
+                item.name.clone().flatten()
             ),
         }
 
@@ -481,17 +496,12 @@ impl JellyfinProvider {
         let conn = &get_conn().await?;
         let mut tasks = vec![];
         for id in parent_ids {
-            tasks.push(
-                MediaItems::find_by_uuid(id)
-                    .select_only()
-                    .column(media_items::Column::Uuid)
-                    .one(conn),
-            );
+            tasks.push(MediaItems::find_by_uuid(id).one(conn));
         }
 
         let parent_models = match try_join_all(tasks).await {
             Ok(parents) => parents,
-            Err(_) => return Err(JourneyDbError::ConnectionError.into()),
+            Err(err) => return Err(JourneyDbError::ConnectionError(err.to_string()).into()),
         };
 
         let mut parents: Vec<media_items::ActiveModel> = vec![];
@@ -538,7 +548,7 @@ mod variant_jellyfin {
     }
 
     #[tokio::test]
-    #[ignore]
+    //#[ignore]
     #[serial]
     async fn try_auth_flow() {
         let env_map = get_env_local();

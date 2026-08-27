@@ -40,7 +40,7 @@ pub struct Model {
     #[sea_orm(primary_key)]
     id: i32,
     #[sea_orm(unique)]
-    pub uuid: Uuid,
+    pub uuid: Option<Uuid>,
     pub ty: MediaItemType,
     pub outline_gradient: String,
     pub loaded: bool,
@@ -70,7 +70,7 @@ impl ActiveModelBehavior for ActiveModel {}
 #[derive(Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaItemDTO {
-    pub uuid: Uuid,
+    pub uuid: Option<Uuid>,
     #[serde(rename = "type")]
     pub ty: MediaItemType,
     pub outline_gradient: Option<String>,

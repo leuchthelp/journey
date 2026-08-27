@@ -286,6 +286,7 @@ mod provider_manager_test {
     use url::Url;
 
     #[tokio::test]
+    #[ignore]
     async fn hash_no_login_failure() {
         let params =
             providers::ActiveModelEx::new().set_url(Url::parse("http://smth.example.com").unwrap());

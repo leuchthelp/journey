@@ -7,13 +7,13 @@ use thiserror::Error;
 #[derive(Debug, Error, Serialize, Type)]
 pub enum JourneyDbError {
     #[error("Failed to establish database connection.")]
-    ConnectionError,
+    ConnectionError(String),
 }
 
 pub async fn get_conn() -> Result<DatabaseConnection, JourneyDbError> {
     let conn = match Database::connect("sqlite:db.sqlite?mode=rwc").await {
         Ok(conn) => Ok(conn),
-        Err(_) => Err(JourneyDbError::ConnectionError),
+        Err(err) => Err(JourneyDbError::ConnectionError(err.to_string())),
     }?;
 
     match conn
@@ -22,7 +22,7 @@ pub async fn get_conn() -> Result<DatabaseConnection, JourneyDbError> {
         .await
     {
         Ok(_) => Ok(()),
-        Err(_) => Err(JourneyDbError::ConnectionError),
+        Err(err) => Err(JourneyDbError::ConnectionError(err.to_string())),
     }?;
     Ok(conn)
 }
