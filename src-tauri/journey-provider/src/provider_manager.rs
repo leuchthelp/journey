@@ -1,28 +1,26 @@
+use std::collections::hash_map::{Keys, Values, ValuesMut};
+
+use anyhow::Result;
+use async_trait::async_trait;
+use futures::TryStreamExt;
+use inherent::inherent;
+use rapidhash::RapidHashMap;
+use serde::Serialize;
+use specta::Type;
+use thiserror::Error;
+use tokio::sync::mpsc::{self, Receiver, Sender};
+use tracing::info;
+
 use crate::{
     ProviderError,
     jellyfin_provider::JellyfinProvider,
     provider::{NewProvider, Provider},
 };
-use anyhow::Result;
-use async_trait::async_trait;
-use futures::TryStreamExt;
-use inherent::inherent;
 use journey_db::{
     entity::{ProviderDTO, ProviderKey, ProviderVariant, Providers, providers},
     get_conn,
-    sea_orm::{EntityTrait, IntoActiveModel},
+    sea_orm::{DatabaseConnection, EntityTrait, IntoActiveModel, TransactionTrait},
 };
-use kameo::{
-    Actor,
-    actor::Spawn,
-    message::{Context, Message},
-};
-use rapidhash::RapidHashMap;
-use serde::Serialize;
-use specta::Type;
-use std::collections::hash_map::{Keys, Values, ValuesMut};
-use thiserror::Error;
-use tracing::info;
 
 #[derive(Debug, Error, Serialize, Type)]
 pub enum ProviderManagerError {
@@ -48,22 +46,9 @@ pub enum ProviderManagerError {
 
 pub type ProviderManagerResult<T> = Result<T, ProviderManagerError>;
 
-#[derive(Actor)]
-pub struct Indexer {
-    pub count: usize,
-}
-
-pub struct Inc {
-    pub amount: usize,
-}
-
-impl Message<Inc> for Indexer {
-    type Reply = usize;
-
-    async fn handle(&mut self, msg: Inc, _ctx: &mut Context<Self, Self::Reply>) -> Self::Reply {
-        self.count += msg.amount;
-        self.count
-    }
+pub struct IndexerMsg {
+    pub item: Option<String>,
+    pub success: bool,
 }
 
 #[async_trait]
@@ -92,7 +77,8 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
             self.register(new_provider)?;
         }
 
-        self.start_indexing()?;
+        let conn = get_conn().await?;
+        self.start_indexing(&conn).await?;
         Ok(())
     }
     fn get_provider(&self, key: &ProviderKey) -> ProviderManagerResult<ProviderDTO> {
@@ -152,28 +138,29 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         self.register(provider)?;
         Ok(key)
     }
-    fn start_indexing(&self) -> ProviderManagerResult<()> {
-        for provider in self.get_variants_values()? {
-            let indexer = Indexer::spawn(Indexer { count: 0 });
-            let ty = provider.ty();
+    async fn start_indexing(&self, conn: &DatabaseConnection) -> ProviderManagerResult<()> {
+        let mut tasks = vec![];
 
-            let _indexing_task = match provider.authenticated() {
-                Ok(_) => {
+        for provider in self.get_variants_values()? {
+            let (tx, mut rx): (Sender<IndexerMsg>, Receiver<IndexerMsg>) = mpsc::channel(100);
+
+            match provider.authenticated() {
+                Ok(true) => {
                     info!(
                         "Beginning indexing on provider: {} for: {}",
                         provider.ty(),
                         provider.url()?
                     );
-                    provider.index(&indexer)
-                }
-                Err(err) => {
-                    return Err(ProviderManagerError::NotAuthenticatedError(err.to_string()));
-                }
-            };
 
-            match indexer.register(ty.to_string()) {
-                Ok(_) => (),
-                Err(err) => return Err(ProviderManagerError::NoProviderError),
+                    let task = conn.transaction::<_, _, ProviderManagerError>(|txn| {
+                        Box::pin(async move { Ok(provider.index(tx)) })
+                    });
+
+                    tasks.push(task);
+                    Ok(())
+                }
+                Ok(_) => Err(ProviderManagerError::NotAuthenticatedError("".into())),
+                Err(err) => Err(ProviderManagerError::NotAuthenticatedError(err.to_string())),
             };
         }
         Ok(())

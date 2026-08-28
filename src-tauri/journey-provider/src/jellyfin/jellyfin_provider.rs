@@ -1,21 +1,30 @@
-use crate::{
-    ProviderError,
-    helpers::get_items_request,
-    provider::{NewProvider, Provider, ProviderResult, RequiredForProvider},
-    provider_manager::{Inc, Indexer},
-};
+use std::fmt::Debug;
+
 use async_trait::async_trait;
 use futures::future::try_join_all;
 use inherent::inherent;
 use jellyfin_sdk_rs::{
     apis::{
         authentication_api::authenticate_user_by_name, configuration::Configuration,
-        image_api::get_item_image_infos, item_lookup_api::get_external_id_infos,
-        item_update_api::get_metadata_editor_info,
+        image_api::get_item_image_infos,
     },
     configure,
     models::{AuthenticateUserByName, BaseItemDto, BaseItemKind, ImageType, UserDto},
     required::{ClientInfo, DeviceInfo},
+};
+use serde::Serialize;
+use specta::Type;
+use thiserror::Error;
+use tokio::sync::mpsc::Sender;
+use tracing::warn;
+use url::Url;
+use uuid::Uuid;
+
+use crate::{
+    ProviderError,
+    helpers::get_items_request,
+    provider::{NewProvider, Provider, ProviderResult, RequiredForProvider},
+    provider_manager::IndexerMsg,
 };
 use journey_db::{
     JourneyDbError,
@@ -30,14 +39,6 @@ use journey_db::{
     sea_orm::{ActiveValue::Set, IntoActiveModel},
 };
 use journey_utils::constants::{PRODUCT_NAME, PRODUCT_VERSION};
-use kameo::actor::ActorRef;
-use serde::Serialize;
-use specta::Type;
-use std::fmt::Debug;
-use thiserror::Error;
-use tracing::warn;
-use url::Url;
-use uuid::Uuid;
 
 #[derive(Debug, Error, Serialize, Type)]
 pub enum JellyfinProviderError {
@@ -154,10 +155,10 @@ impl RequiredForProvider for JellyfinProvider {
         self.config = Some(client_config);
         Ok(access_token)
     }
-    pub async fn index(&self, indexer: &ActorRef<Indexer>) -> ProviderResult<()> {
+    pub async fn index(&self, comm_indexer: Sender<IndexerMsg>) -> ProviderResult<()> {
         let user_id = &self.user_id()?.to_string();
 
-        self.index_by_type(user_id, &indexer, vec![BaseItemKind::MusicAlbum])
+        self.index_by_type(user_id, &comm_indexer, vec![BaseItemKind::MusicAlbum])
             .await?;
         // self.index_by_type(user_id, &indexer, vec![BaseItemKind::MusicArtist])
         //     .await?;
@@ -270,99 +271,44 @@ impl JellyfinProvider {
             }
         }
     }
-    fn get_content(
-        &self,
-        id: &Uuid,
-        item: &BaseItemDto,
-    ) -> ProviderResult<Vec<content::ActiveModelEx>> {
-        warn!(
-            "Getting content for: {} - item: {:#?}",
-            id,
-            item.name.clone().flatten()
-        );
-
-        let album = self.wrap_content(item.album.clone().flatten(), id, ContentType::Album);
-
-        let artists = self.wrap_content(
-            item.album_artist.clone().flatten(),
-            id,
-            ContentType::Artists,
-        );
-
-        let container =
-            self.wrap_content(item.container.clone().flatten(), id, ContentType::Container);
-
-        let date = match self.check_entry(item.premiere_date.clone().flatten()) {
-            Ok(date) => Some(date.to_string()),
-            Err(_) => None,
-        };
-        let release_date = self.wrap_content(date, id, ContentType::ReleaseDate);
-
-        let mut res: Vec<content::ActiveModelEx> = vec![];
-        for potential in vec![album, artists, container, release_date] {
-            match potential {
-                Some(model) => res.push(model),
-                _ => (),
-            }
-        }
-
-        Ok(res)
-    }
     async fn index_by_type(
         &self,
         user_id: &str,
-        indexer: &ActorRef<Indexer>,
+        comm_indexer: &Sender<IndexerMsg>,
         kind: Vec<BaseItemKind>,
     ) -> ProviderResult<()> {
         let mut model = self.get_model().clone();
 
         let items = self.get_items(user_id, kind).await?;
-        let tasks = items.iter().map(|item| self.build_media_item(item));
+        let tasks = items
+            .iter()
+            .map(|item| self.build_media_item(comm_indexer, item));
         let media_items = try_join_all(tasks).await?;
-        let total = media_items.len();
 
         for item in media_items {
             model.media_items.push(item);
         }
 
         match model.save(&get_conn().await?).await {
-            Ok(_) => (),
-            Err(err) => {
-                return Err(ProviderError::FailedDbInsertError(format!(
-                    "{} with specific: {:#?}",
-                    err,
-                    err.sql_err()
-                )));
-            }
-        }
-
-        match indexer.tell(Inc { amount: total }).await {
             Ok(_) => Ok(()),
-            Err(err) => Err(ProviderError::FailedDbInsertError(err.to_string())),
+            Err(err) => Err(ProviderError::FailedDbInsertError(format!(
+                "{} with specific: {:#?}",
+                err,
+                err.sql_err()
+            ))),
         }
     }
     async fn build_media_item(
         &self,
+        comm_indexer: &Sender<IndexerMsg>,
         item: &BaseItemDto,
     ) -> ProviderResult<media_items::ActiveModelEx> {
         let item_id = self.check_entry(item.id)?;
         let ty = self.match_item_type(self.check_entry(item.r#type)?)?;
-        // let images = self.get_images(item_id).await?;
-        // let content = self.get_content(&item_id, item)?;
-        // let parents = self.get_item_parents(item).await?;
-
-        let user_data = self.check_entry(item.user_data.clone().flatten())?;
-        let music_brainz_id = match self.check_entry(user_data.item_id) {
-            Ok(id) => Some(id),
-            Err(_) => {
-                warn!(
-                    "Could not find a musicbrainz id for item: {:#?}, generating tmp one",
-                    item.name.clone().flatten()
-                );
-                None
-            }
-        };
-        let test = self.get_music_brainz_id(&item_id).await?;
+        let images = self.get_images(&item_id);
+        let content = self.get_content(&item_id, item);
+        let parents = self.get_item_parents(item);
+        let music_brainz_id = self.get_music_brainz_id(item).await?;
 
         let original = original::ActiveModelEx::new()
             .set_uuid(item_id)
@@ -377,19 +323,26 @@ impl JellyfinProvider {
             .set_local(None)
             .add_original(original);
 
-        // for image in images {
-        //     media_item = media_item.add_image(image);
-        // }
+        for image in images.await? {
+            media_item.images.push(image);
+        }
 
-        // for parent in parents {
-        //     media_item = media_item.add_parent(parent);
-        // }
+        for parent in parents.await? {
+            media_item.parents.push(parent);
+        }
 
-        // for entry in content {
-        //     media_item = media_item.add_content(entry);
-        // }
+        for entry in content.await? {
+            media_item.content.push(entry);
+        }
 
-        Ok(media_item)
+        let msg = IndexerMsg {
+            item: item.name.clone().flatten(),
+            success: true,
+        };
+        match comm_indexer.try_send(msg) {
+            Ok(_) => Ok(media_item),
+            Err(err) => Err(ProviderError::FailedDbInsertError(err.to_string())),
+        }
     }
     async fn get_items(
         &self,
@@ -408,16 +361,24 @@ impl JellyfinProvider {
 
         Ok(self.check_entry(response.items)?)
     }
-    async fn get_music_brainz_id(&self, id: &Uuid) -> ProviderResult<()> {
-        let external_info_res = get_metadata_editor_info(self.get_config()?, &id.to_string()).await;
-        warn!("{:#?}", external_info_res);
+    async fn get_music_brainz_id(&self, item: &BaseItemDto) -> ProviderResult<Option<Uuid>> {
+        // let external_info_res = get_metadata_editor_info(self.get_config()?, &id.to_string()).await;
+        // warn!("{:#?}", external_info_res);
 
-        Ok(())
+        let user_data = self.check_entry(item.user_data.clone().flatten())?;
+        match self.check_entry(user_data.item_id) {
+            Ok(id) => Ok(Some(id)),
+            Err(_) => {
+                warn!(
+                    "Could not find a musicbrainz id for item: {:#?}, generating tmp one",
+                    item.name.clone().flatten()
+                );
+                Ok(None)
+            }
+        }
     }
-    async fn get_images(&self, id: Uuid) -> ProviderResult<Vec<images::ActiveModelEx>> {
+    async fn get_images(&self, id: &Uuid) -> ProviderResult<Vec<images::ActiveModelEx>> {
         warn!("Getting images for: {}", id);
-
-        let mut images: Vec<images::ActiveModelEx> = vec![];
 
         let images_req = match get_item_image_infos(self.get_config()?, &id.to_string()).await {
             Ok(images) => images,
@@ -429,6 +390,7 @@ impl JellyfinProvider {
         };
 
         let base_url = self.url()?;
+        let mut images: Vec<images::ActiveModelEx> = vec![];
         for image_info in images_req {
             let ty = match image_info.image_type {
                 Some(ty) => self.match_image_type(ty),
@@ -447,7 +409,7 @@ impl JellyfinProvider {
                 }
             };
 
-            let image_model = images::ActiveModel::builder()
+            let image_model = images::ActiveModelEx::new()
                 .set_url(url)
                 .set_ty(ty)
                 .set_server_id(self.server_id()?)
@@ -465,7 +427,6 @@ impl JellyfinProvider {
         warn!("Getting parents for: {:#?}", item.name.clone().flatten());
 
         let mut parent_ids: Vec<Uuid> = vec![];
-
         match item.album_id.flatten() {
             Some(id) => parent_ids.push(id),
             _ => warn!(
@@ -513,6 +474,44 @@ impl JellyfinProvider {
         }
         Ok(parents)
     }
+    async fn get_content(
+        &self,
+        id: &Uuid,
+        item: &BaseItemDto,
+    ) -> ProviderResult<Vec<content::ActiveModelEx>> {
+        warn!(
+            "Getting content for: {} - item: {:#?}",
+            id,
+            item.name.clone().flatten()
+        );
+
+        let album = self.wrap_content(item.album.clone().flatten(), id, ContentType::Album);
+
+        let artists = self.wrap_content(
+            item.album_artist.clone().flatten(),
+            id,
+            ContentType::Artists,
+        );
+
+        let container =
+            self.wrap_content(item.container.clone().flatten(), id, ContentType::Container);
+
+        let date = match self.check_entry(item.premiere_date.clone().flatten()) {
+            Ok(date) => Some(date.to_string()),
+            Err(_) => None,
+        };
+        let release_date = self.wrap_content(date, id, ContentType::ReleaseDate);
+
+        let mut res: Vec<content::ActiveModelEx> = vec![];
+        for potential in vec![album, artists, container, release_date] {
+            match potential {
+                Some(model) => res.push(model),
+                _ => (),
+            }
+        }
+
+        Ok(res)
+    }
 }
 
 #[async_trait]
@@ -523,19 +522,20 @@ impl Provider for JellyfinProvider {}
 mod variant_jellyfin {
     use std::collections::HashMap;
 
+    use serial_test::serial;
+    use test_log::test;
+    use tokio::sync::mpsc::{self, Receiver, Sender};
+    use tracing::warn;
+    use url::Url;
+
     use crate::{
         jellyfin_provider::JellyfinProvider,
         provider::{NewProvider, Provider},
-        provider_manager::Indexer,
+        provider_manager::IndexerMsg,
     };
     use journey_db::entity::{ProviderVariant, providers::ActiveModelEx};
     use journey_keyring::Entry;
     use journey_utils::get_env_local;
-    use kameo::actor::Spawn;
-    use serial_test::serial;
-    use test_log::test;
-    use tracing::warn;
-    use url::Url;
 
     #[test]
     fn matching_name() {
@@ -587,8 +587,8 @@ mod variant_jellyfin {
         let test = Entry::search(&HashMap::from([("service", "journey")])).unwrap();
         test.iter().for_each(|f| warn!("{:#?}", f.get_password()));
 
-        let indexer = Indexer::spawn(Indexer { count: 0 });
-        provider.index(&indexer).await.unwrap();
+        let (tx, mut _rx): (Sender<IndexerMsg>, Receiver<IndexerMsg>) = mpsc::channel(100);
+        provider.index(tx).await.unwrap();
 
         provider.remove_token().unwrap();
         provider.remove_from_db().await.unwrap();
