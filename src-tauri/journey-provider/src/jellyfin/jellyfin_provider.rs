@@ -187,8 +187,6 @@ impl JellyfinProvider {
     }
 }
 
-#[async_trait]
-#[inherent]
 impl Provider for JellyfinProvider {}
 
 #[cfg(test)]
@@ -233,7 +231,9 @@ mod variant_jellyfin {
         warn!("{}", env_map.var("TEST_JELLYFIN_URL").unwrap());
         let url = env_map.var("TEST_JELLYFIN_URL").unwrap();
 
-        let model = providers::ActiveModelEx::new().set_url(Url::parse(&url).unwrap());
+        let model = providers::ActiveModelEx::new()
+            .set_url(Url::parse(&url).unwrap())
+            .set_ty(ProviderVariant::JellyfinProvider);
         let mut provider = JellyfinProvider::new(model);
 
         assert!(provider.authenticated().is_err());
