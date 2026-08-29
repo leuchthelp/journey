@@ -7,13 +7,12 @@ use dyn_clone::{DynClone, clone_trait_object};
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
-use tokio::sync::mpsc::Sender;
 use tracing::warn;
 use url::Url;
 use uuid::Uuid;
 
+use crate::indexer::Indexer;
 use crate::jellyfin::jellyfin_provider::JellyfinProviderError;
-use crate::provider_manager::IndexerMsg;
 use journey_db::entity::providers::{self};
 use journey_db::entity::{ProviderKey, ProviderVariant};
 use journey_db::get_conn;
@@ -27,15 +26,15 @@ pub enum ProviderError {
     #[error("Found more than one access token, removing all.")]
     TooManyCredentialsError,
     #[error("Found no access token, nothing to remove.")]
-    NoCredentialsError,
+    NoCredentialsError(Option<String>),
     #[error("Found no such provider variant.")]
     NoSuchVariantError,
     #[error("Failed to create keyring entry.")]
-    FailedCreateEntryError,
+    FailedCreateEntryError(String),
     #[error("Failed to remove keyring entry. Credentials might leak.")]
-    FailedRemoveEntryError,
+    FailedRemoveEntryError(String),
     #[error("Failed to save token to OS keyring.")]
-    SaveTokenError,
+    SaveTokenError(String),
     #[error("Failed to insert provider to database.")]
     FailedDbInsertError(String),
     #[error("Failed to delete provider from database. Might not exist.")]
@@ -55,16 +54,15 @@ pub type ProviderResult<T> = Result<T, ProviderError>;
 pub trait NewProvider {
     type Provider;
 
-    fn new(model: providers::ActiveModelEx) -> ProviderResult<Box<Self::Provider>>;
+    fn new(model: providers::ActiveModelEx) -> Box<Self::Provider>;
 }
 
 #[async_trait]
 pub trait RequiredForProvider {
     fn ty(&self) -> ProviderVariant;
     fn get_model(&self) -> &providers::ActiveModelEx;
-    fn set_model(&mut self, new: providers::ActiveModelEx);
     fn invalidate(&mut self) -> ProviderResult<()>;
-    async fn index(&self, comm_indexer: Sender<IndexerMsg>) -> ProviderResult<()>;
+    fn get_indexer(&self) -> ProviderResult<Box<dyn Indexer>>;
     async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<String>;
 }
 
@@ -96,13 +94,13 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
             PRODUCT_NAME,
             &format!("{}-{}", self.server_id()?, self.user_id()?),
         ) {
-            Ok(entry) => entry,
-            Err(_) => return Err(ProviderError::FailedCreateEntryError),
-        };
+            Ok(entry) => Ok(entry),
+            Err(err) => Err(ProviderError::FailedCreateEntryError(err.to_string())),
+        }?;
 
         match token_entry.set_password(&access_token) {
             Ok(_) => Ok(()),
-            Err(_) => Err(ProviderError::SaveTokenError),
+            Err(err) => Err(ProviderError::SaveTokenError(err.to_string())),
         }
     }
     fn retrieve_tokens(&self) -> ProviderResult<Vec<Entry>> {
@@ -116,7 +114,7 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
 
         match entries_res {
             Ok(entries) => Ok(entries),
-            Err(_) => Err(ProviderError::NoCredentialsError),
+            Err(err) => Err(ProviderError::NoCredentialsError(Some(err.to_string()))),
         }
     }
     fn remove_token(&self) -> ProviderResult<()> {
@@ -124,14 +122,14 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
 
         for entry in &entries {
             match entry.delete_credential() {
-                Ok(_) => (),
-                Err(_) => return Err(ProviderError::FailedRemoveEntryError),
-            };
+                Ok(_) => Ok(()),
+                Err(err) => Err(ProviderError::FailedRemoveEntryError(err.to_string())),
+            }?;
         }
 
         match entries.len() {
             len if len > 1 => Err(ProviderError::TooManyCredentialsError),
-            len if len < 1 => Err(ProviderError::NoCredentialsError),
+            len if len < 1 => Err(ProviderError::NoCredentialsError(None)),
             _ => Ok(()),
         }
     }
@@ -148,15 +146,16 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
             "TODO Need to validate all available tokens to ensure we are actually authenticated. 
             Currently not implemented, just finding any tokens is considered to be authenticated."
         );
-        warn!("tokens: {:#?}", tokens);
         match tokens.len() {
             len if len == 0 => Ok(false),
             _ => Ok(true),
         }
     }
     async fn add_to_db(&self) -> ProviderResult<()> {
-        let model = self.get_model().clone();
-        match providers::Entity::insert(model)
+        let mut model = self.get_model().clone();
+        model.ty.set_ne(self.ty());
+
+        match providers::Entity::insert(model.clone())
             .on_conflict(
                 OnConflict::column(providers::Column::UserId)
                     .do_nothing()

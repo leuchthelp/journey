@@ -12,3 +12,6 @@ pub use provider_manager::ProviderManager;
 pub use provider_manager::ProviderManagerError;
 pub use provider_manager::ProviderManagerFn;
 pub use provider_manager::ProviderManagerResult;
+
+mod indexer;
+mod indexer_manager;

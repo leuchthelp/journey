@@ -19,6 +19,7 @@ use uuid::Uuid;
     Deserialize,
     Type,
     Clone,
+    Copy,
     PartialEq,
     Eq,
     EnumIter,

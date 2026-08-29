@@ -1,11 +1,11 @@
+use uuid::Uuid;
+
+use crate::jellyfin::jellyfin_indexer::JellyfinIndexerError;
 use jellyfin_sdk_rs::{
     self as sdk,
     apis::configuration::Configuration,
     models::{self, BaseItemDtoQueryResult},
 };
-use uuid::Uuid;
-
-use crate::jellyfin_provider::JellyfinProviderError;
 
 #[bon::builder]
 pub async fn get_items_request(
@@ -98,7 +98,7 @@ pub async fn get_items_request(
     subtitle_languages: Option<Vec<String>>,
     enable_total_record_count: Option<bool>,
     enable_images: Option<bool>,
-) -> Result<BaseItemDtoQueryResult, JellyfinProviderError> {
+) -> Result<BaseItemDtoQueryResult, JellyfinIndexerError> {
     match sdk::apis::library_api::get_items(
         &configuration,
         user_id,
@@ -193,7 +193,7 @@ pub async fn get_items_request(
     .await
     {
         Ok(response) => Ok(response),
-        Err(err) => Err(JellyfinProviderError::ApiEntryRetrievalError(Some(
+        Err(err) => Err(JellyfinIndexerError::ApiEntryRetrievalError(Some(
             err.to_string(),
         ))),
     }

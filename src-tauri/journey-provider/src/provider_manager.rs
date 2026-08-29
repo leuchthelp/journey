@@ -1,4 +1,4 @@
-use std::collections::hash_map::{Keys, Values, ValuesMut};
+use std::collections::hash_map::Values;
 
 use anyhow::Result;
 use async_trait::async_trait;
@@ -33,7 +33,7 @@ pub enum ProviderManagerError {
     #[error("Provider is not registered, can not unregister.")]
     DeregisterError,
     #[error("Could not acquire database stream of provider values.")]
-    FailedDbStreamError,
+    FailedDbStreamError(String),
     #[error("Failed to index the given provider.")]
     FailedIndexingError,
     #[error("Provider has not been authenticated yet")]
@@ -55,31 +55,12 @@ pub struct IndexerMsg {
 pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
     fn get_type(
         &self,
-        ty: ProviderVariant,
+        ty: &ProviderVariant,
         model: providers::ActiveModelEx,
-    ) -> Result<Box<dyn Provider + Send + Sync>, ProviderManagerError> {
-        let provider: Result<Box<dyn Provider + Send + Sync>, ProviderManagerError> = match ty {
-            ProviderVariant::JellyfinProvider => Ok(JellyfinProvider::new(model)?),
-        };
-
-        Ok(provider?)
-    }
-    async fn init(&mut self) -> ProviderManagerResult<()> {
-        let conn = &get_conn().await?;
-        let mut known_providers = match Providers::find().stream(conn).await {
-            Ok(known) => known,
-            Err(_) => return Err(ProviderManagerError::FailedDbStreamError),
-        };
-
-        while let Ok(Some(known)) = known_providers.try_next().await {
-            let new_provider =
-                self.get_type(known.ty.clone(), known.into_active_model().into_ex())?;
-            self.register(new_provider)?;
+    ) -> Box<dyn Provider + Send + Sync> {
+        match ty {
+            ProviderVariant::JellyfinProvider => JellyfinProvider::new(model),
         }
-
-        let conn = get_conn().await?;
-        self.start_indexing(&conn).await?;
-        Ok(())
     }
     fn get_provider(&self, key: &ProviderKey) -> ProviderManagerResult<ProviderDTO> {
         let provider = self.get_variant(key)?;
@@ -96,7 +77,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
     fn get_providers(&self) -> ProviderManagerResult<Vec<ProviderDTO>> {
         let mut providers: Vec<ProviderDTO> = vec![];
 
-        for provider in self.get_variants_values()? {
+        for provider in self.get_variants_values() {
             let new = ProviderDTO::builder()
                 .ty(provider.ty())
                 .key(provider.key()?)
@@ -105,15 +86,31 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         }
         Ok(providers)
     }
+    async fn init(&mut self) -> ProviderManagerResult<()> {
+        let conn = &get_conn().await?;
+        let mut known_providers = match Providers::find().stream(conn).await {
+            Ok(known) => Ok(known),
+            Err(err) => Err(ProviderManagerError::FailedDbStreamError(err.to_string())),
+        }?;
+
+        while let Ok(Some(known)) = known_providers.try_next().await {
+            let ty = known.ty;
+            let new_provider = self.get_type(&ty, known.into_active_model().into_ex());
+            self.register(new_provider)?;
+        }
+
+        self.start_indexing(&conn).await?;
+        Ok(())
+    }
     async fn validate_provider(
         &self,
         token: String,
         provider: &Box<dyn Provider + Send + Sync>,
     ) -> ProviderManagerResult<()> {
         match provider.authenticated()? && self.provider_exists(&provider.key()?)? {
-            true => return Err(ProviderManagerError::ProviderInUseError),
-            false => (),
-        };
+            false => Ok(()),
+            true => Err(ProviderManagerError::ProviderInUseError),
+        }?;
 
         provider.save_token(&token)?;
         provider.add_to_db().await?;
@@ -126,11 +123,9 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         uname: String,
         psw: String,
     ) -> ProviderManagerResult<ProviderKey> {
-        let model = providers::ActiveModelEx::new()
-            .set_url(url)
-            .set_ty(ty.clone());
+        let model = providers::ActiveModelEx::new().set_url(url);
+        let mut provider = self.get_type(&ty, model);
 
-        let mut provider = self.get_type(ty, model)?;
         let token = provider.password_auth(uname, psw).await?;
         self.validate_provider(token, &provider).await?;
 
@@ -141,8 +136,8 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
     async fn start_indexing(&self, conn: &DatabaseConnection) -> ProviderManagerResult<()> {
         let mut tasks = vec![];
 
-        for provider in self.get_variants_values()? {
-            let (tx, mut rx): (Sender<IndexerMsg>, Receiver<IndexerMsg>) = mpsc::channel(100);
+        for provider in self.get_variants_values() {
+            let (comm, mut recv): (Sender<IndexerMsg>, Receiver<IndexerMsg>) = mpsc::channel(100);
 
             match provider.authenticated() {
                 Ok(true) => {
@@ -151,16 +146,17 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
                         provider.ty(),
                         provider.url()?
                     );
-
+                    let indexer = provider.get_indexer()?;
                     let task = conn.transaction::<_, _, ProviderManagerError>(|txn| {
-                        Box::pin(async move { Ok(provider.index(tx)) })
+                        Box::pin(async move { Ok(indexer.index(txn, comm)) })
                     });
 
                     tasks.push(task);
-                    Ok(())
                 }
-                Ok(_) => Err(ProviderManagerError::NotAuthenticatedError("".into())),
-                Err(err) => Err(ProviderManagerError::NotAuthenticatedError(err.to_string())),
+                Ok(_) => return Err(ProviderManagerError::NotAuthenticatedError("".into())),
+                Err(err) => {
+                    return Err(ProviderManagerError::NotAuthenticatedError(err.to_string()));
+                }
             };
         }
         Ok(())
@@ -173,19 +169,7 @@ pub trait RequiredForProviderManager {
         &self,
         key: &ProviderKey,
     ) -> ProviderManagerResult<&Box<dyn Provider + Send + Sync>>;
-    fn get_mut_variant(
-        &mut self,
-        key: &ProviderKey,
-    ) -> ProviderManagerResult<&mut Box<dyn Provider + Send + Sync>>;
-    fn get_variants_values(
-        &self,
-    ) -> ProviderManagerResult<Values<'_, ProviderKey, Box<dyn Provider + Send + Sync>>>;
-    fn get_mut_variants_values(
-        &mut self,
-    ) -> ProviderManagerResult<ValuesMut<'_, ProviderKey, Box<dyn Provider + Send + Sync>>>;
-    fn get_variants_keys(
-        &self,
-    ) -> ProviderManagerResult<Keys<'_, ProviderKey, Box<dyn Provider + Send + Sync>>>;
+    fn get_variants_values(&self) -> Values<'_, ProviderKey, Box<dyn Provider + Send + Sync>>;
     fn provider_exists(&self, key: &ProviderKey) -> ProviderManagerResult<bool>;
     fn register(&mut self, provider: Box<dyn Provider + Send + Sync>) -> ProviderManagerResult<()>;
     async fn deregister(&mut self, key: &ProviderKey) -> ProviderManagerResult<()>;
@@ -208,29 +192,8 @@ impl RequiredForProviderManager for ProviderManager {
             None => Err(ProviderManagerError::NoProviderError),
         }
     }
-    pub fn get_mut_variant(
-        &mut self,
-        key: &ProviderKey,
-    ) -> ProviderManagerResult<&mut Box<dyn Provider + Send + Sync>> {
-        match self.variants.get_mut(key) {
-            Some(variant) => Ok(variant),
-            None => Err(ProviderManagerError::NoProviderError),
-        }
-    }
-    pub fn get_variants_values(
-        &self,
-    ) -> ProviderManagerResult<Values<'_, ProviderKey, Box<dyn Provider + Send + Sync>>> {
-        Ok(self.variants.values())
-    }
-    pub fn get_mut_variants_values(
-        &mut self,
-    ) -> ProviderManagerResult<ValuesMut<'_, ProviderKey, Box<dyn Provider + Send + Sync>>> {
-        Ok(self.variants.values_mut())
-    }
-    pub fn get_variants_keys(
-        &self,
-    ) -> ProviderManagerResult<Keys<'_, ProviderKey, Box<dyn Provider + Send + Sync>>> {
-        Ok(self.variants.keys())
+    pub fn get_variants_values(&self) -> Values<'_, ProviderKey, Box<dyn Provider + Send + Sync>> {
+        self.variants.values()
     }
     pub fn provider_exists(&self, key: &ProviderKey) -> ProviderManagerResult<bool> {
         Ok(self.variants.contains_key(key))
@@ -277,7 +240,7 @@ mod provider_manager_test {
     async fn hash_no_login_failure() {
         let params =
             providers::ActiveModelEx::new().set_url(Url::parse("http://smth.example.com").unwrap());
-        let provider = JellyfinProvider::new(params).unwrap();
+        let provider = JellyfinProvider::new(params);
 
         let hash = provider.key();
         assert!(hash.is_err())
