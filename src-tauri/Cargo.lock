@@ -2568,7 +2568,7 @@ dependencies = [
 [[package]]
 name = "jellyfin-generated-client"
 version = "0.1.0"
-source = "git+https://github.com/leuchthelp/jellyfin-sdk-rs?branch=master#f5ee4a1e8f0af64b44a7666480d726058333606c"
+source = "git+https://github.com/leuchthelp/jellyfin-sdk-rs?branch=master#bbc67fa5b847f2aa580584675557635a13833bea"
 dependencies = [
  "chrono",
  "reqwest",
@@ -2585,7 +2585,7 @@ dependencies = [
 [[package]]
 name = "jellyfin-sdk-rs"
 version = "0.1.0"
-source = "git+https://github.com/leuchthelp/jellyfin-sdk-rs?branch=master#f5ee4a1e8f0af64b44a7666480d726058333606c"
+source = "git+https://github.com/leuchthelp/jellyfin-sdk-rs?branch=master#bbc67fa5b847f2aa580584675557635a13833bea"
 dependencies = [
  "bon",
  "jellyfin-generated-client",

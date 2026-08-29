@@ -15,8 +15,7 @@ use uuid::Uuid;
 
 use crate::{
     helpers::get_items_request,
-    indexer::{Indexer, IndexerError, IndexerResult, NewIndexer, RequiredForIndexer},
-    provider_manager::IndexerMsg,
+    indexer::{Indexer, IndexerError, IndexerMsg, IndexerResult, NewIndexer, RequiredForIndexer},
 };
 use journey_db::{
     JourneyDbError,
@@ -58,6 +57,9 @@ impl NewIndexer for JellyfinIndexer {
 impl RequiredForIndexer for JellyfinIndexer {
     fn index(&self, txn: &DatabaseTransaction, comm: Sender<IndexerMsg>) -> IndexerResult<()> {
         Ok(())
+    }
+    fn get_model(&self) -> &providers::ActiveModelEx {
+        &self.model
     }
 }
 

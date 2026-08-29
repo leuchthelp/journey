@@ -14,6 +14,7 @@ use thiserror::Error;
 use uuid::Uuid;
 
 use crate::{
+    ProviderError,
     indexer::{Indexer, NewIndexer},
     jellyfin::jellyfin_indexer::JellyfinIndexer,
     provider::{NewProvider, Provider, ProviderResult, RequiredForProvider},
@@ -25,26 +26,16 @@ use journey_utils::constants::{PRODUCT_NAME, PRODUCT_VERSION};
 pub enum JellyfinProviderError {
     #[error("Failed to retrieve Jellyfin API response entry.")]
     ApiEntryRetrievalError(Option<String>),
-    #[error("server_id hasn't been set yet, try authenticating first.")]
-    MissingServerIdError,
-    #[error("user_id hasn't been set yet, try authenticating first.")]
-    MissingUserIdError,
-    #[error("Url hasn't been set yet, provide one first.")]
-    MissingUrlError,
-    #[error("Failed to parse given String to Uuid.")]
-    FailedUuidParseError,
-    #[error("Failed to authenticate with username & password.")]
-    FailedPasswordAuthError,
     #[error("Failed to build client config for SDK client.")]
-    FailedBuildConfigError,
+    FailedBuildConfigError(String),
 }
 
 #[derive(Debug, Clone)]
 pub struct JellyfinProvider {
-    pub(crate) model: providers::ActiveModelEx,
-    pub(crate) config: Option<Configuration>,
-    pub(crate) client_info: ClientInfo,
-    pub(crate) device_info: DeviceInfo,
+    model: providers::ActiveModelEx,
+    config: Option<Configuration>,
+    client_info: ClientInfo,
+    device_info: DeviceInfo,
 }
 
 impl NewProvider for JellyfinProvider {
@@ -91,16 +82,24 @@ impl RequiredForProvider for JellyfinProvider {
         self.config = None;
         Ok(())
     }
+    pub fn get_indexer(&self) -> ProviderResult<Box<dyn Indexer + Send + Sync>> {
+        Ok(JellyfinIndexer::new(
+            self.get_model().clone(),
+            Some(self.get_config()?.clone()),
+        ))
+    }
     pub async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<String> {
-        let mut client_config = match configure()
+        let client_config = match configure()
             .base_url(&self.url()?)
             .client_info(&self.client_info)
             .device_info(&self.device_info)
             .call()
         {
-            Ok(config) => config,
-            Err(_) => return Err(JellyfinProviderError::FailedBuildConfigError.into()),
-        };
+            Ok(config) => Ok(config),
+            Err(err) => Err(JellyfinProviderError::FailedBuildConfigError(
+                err.to_string(),
+            )),
+        }?;
 
         let auth_by_name = AuthenticateUserByName {
             username: Some(Some(uname)),
@@ -108,7 +107,7 @@ impl RequiredForProvider for JellyfinProvider {
         };
         let auth_res = match authenticate_user_by_name(&client_config, auth_by_name).await {
             Ok(res) => res,
-            Err(_) => return Err(JellyfinProviderError::FailedPasswordAuthError.into()),
+            Err(_) => return Err(ProviderError::FailedPasswordAuthError),
         };
 
         let access_token = match auth_res.access_token.flatten() {
@@ -119,25 +118,21 @@ impl RequiredForProvider for JellyfinProvider {
         self.set_server_id(auth_res.server_id)?;
         self.set_user_id(auth_res.user)?;
 
-        client_config = match configure()
+        let client_config = match configure()
             .base_url(&self.url()?)
             .client_info(&self.client_info)
             .device_info(&self.device_info)
             .access_token(&access_token)
             .call()
         {
-            Ok(config) => config,
-            Err(_) => return Err(JellyfinProviderError::FailedBuildConfigError.into()),
-        };
+            Ok(config) => Ok(Some(config)),
+            Err(err) => Err(JellyfinProviderError::FailedBuildConfigError(
+                err.to_string(),
+            )),
+        }?;
 
-        self.config = Some(client_config);
+        self.config = client_config;
         Ok(access_token)
-    }
-    pub fn get_indexer(&self) -> ProviderResult<Box<dyn Indexer>> {
-        Ok(JellyfinIndexer::new(
-            self.get_model().clone(),
-            Some(self.get_config()?.clone()),
-        ))
     }
 }
 
@@ -149,9 +144,9 @@ impl JellyfinProvider {
         }?;
 
         let id = match Uuid::parse_str(&server_id) {
-            Ok(uuid) => Ok(uuid),
-            Err(_) => Err(JellyfinProviderError::FailedUuidParseError),
-        }?;
+            Ok(uuid) => uuid,
+            Err(_) => return Err(ProviderError::FailedUuidParseError),
+        };
 
         Ok(self.model.server_id.set_ne(id))
     }
@@ -173,9 +168,9 @@ impl JellyfinProvider {
         }?;
 
         let user_id = match user_dto.id {
-            Some(id) => Ok(id),
-            None => Err(JellyfinProviderError::MissingUserIdError),
-        }?;
+            Some(id) => id,
+            None => return Err(ProviderError::MissingUserIdError),
+        };
 
         Ok(self.model.user_id.set_ne(user_id))
     }
@@ -200,9 +195,9 @@ mod variant_jellyfin {
     use url::Url;
 
     use crate::{
+        indexer::IndexerMsg,
         jellyfin_provider::JellyfinProvider,
         provider::{NewProvider, Provider},
-        provider_manager::IndexerMsg,
     };
     use journey_db::entity::{ProviderVariant, providers};
     use journey_keyring::Entry;

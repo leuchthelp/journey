@@ -29,6 +29,16 @@ pub enum ProviderError {
     NoCredentialsError(Option<String>),
     #[error("Found no such provider variant.")]
     NoSuchVariantError,
+    #[error("server_id hasn't been set yet, try authenticating first.")]
+    MissingServerIdError,
+    #[error("user_id hasn't been set yet, try authenticating first.")]
+    MissingUserIdError,
+    #[error("Url hasn't been set yet, provide one first.")]
+    MissingUrlError,
+    #[error("Failed to parse given String to Uuid.")]
+    FailedUuidParseError,
+    #[error("Failed to authenticate with username & password.")]
+    FailedPasswordAuthError,
     #[error("Failed to create keyring entry.")]
     FailedCreateEntryError(String),
     #[error("Failed to remove keyring entry. Credentials might leak.")]
@@ -54,7 +64,7 @@ pub type ProviderResult<T> = Result<T, ProviderError>;
 pub trait NewProvider {
     type Provider;
 
-    fn new(model: providers::ActiveModelEx) -> Box<Self::Provider>;
+    fn new(model: providers::ActiveModelEx) -> Box<Self>;
 }
 
 #[async_trait]
@@ -62,7 +72,7 @@ pub trait RequiredForProvider {
     fn ty(&self) -> ProviderVariant;
     fn get_model(&self) -> &providers::ActiveModelEx;
     fn invalidate(&mut self) -> ProviderResult<()>;
-    fn get_indexer(&self) -> ProviderResult<Box<dyn Indexer>>;
+    fn get_indexer(&self) -> ProviderResult<Box<dyn Indexer + Send + Sync>>;
     async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<String>;
 }
 
@@ -71,13 +81,13 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
     fn user_id(&self) -> ProviderResult<Uuid> {
         match self.get_model().user_id.try_as_ref() {
             Some(user_id) if *user_id != Uuid::nil() => Ok(*user_id),
-            _ => Err(JellyfinProviderError::MissingServerIdError.into()),
+            _ => Err(ProviderError::MissingServerIdError),
         }
     }
     fn server_id(&self) -> ProviderResult<Uuid> {
         match self.get_model().server_id.try_as_ref() {
             Some(server_id) if *server_id != Uuid::nil() => Ok(*server_id),
-            _ => Err(JellyfinProviderError::MissingServerIdError.into()),
+            _ => Err(ProviderError::MissingServerIdError),
         }
     }
     fn url(&self) -> ProviderResult<Url> {
@@ -86,7 +96,7 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
                 Ok(url) => url,
                 Err(err) => return Err(ProviderError::FailedParseUrlError(err.to_string())),
             }),
-            _ => Err(JellyfinProviderError::MissingUrlError.into()),
+            _ => Err(ProviderError::MissingUrlError),
         }
     }
     fn save_token(&self, access_token: &String) -> ProviderResult<()> {

@@ -8,18 +8,19 @@ use rapidhash::RapidHashMap;
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
-use tokio::sync::mpsc::{self, Receiver, Sender};
 use tracing::info;
 
 use crate::{
     ProviderError,
+    indexer::{Indexer, IndexerError},
+    indexer_manager::{IndexerManager, IndexerManagerError},
     jellyfin_provider::JellyfinProvider,
     provider::{NewProvider, Provider},
 };
 use journey_db::{
     entity::{ProviderDTO, ProviderKey, ProviderVariant, Providers, providers},
     get_conn,
-    sea_orm::{DatabaseConnection, EntityTrait, IntoActiveModel, TransactionTrait},
+    sea_orm::{EntityTrait, IntoActiveModel},
 };
 
 #[derive(Debug, Error, Serialize, Type)]
@@ -41,14 +42,26 @@ pub enum ProviderManagerError {
     #[error(transparent)]
     ProviderError(#[from] ProviderError),
     #[error(transparent)]
+    IndexerError(#[from] IndexerError),
+    #[error(transparent)]
+    IndexerManagerError(#[from] IndexerManagerError),
+    #[error(transparent)]
     JourneyDbError(#[from] journey_db::JourneyDbError),
 }
 
 pub type ProviderManagerResult<T> = Result<T, ProviderManagerError>;
 
-pub struct IndexerMsg {
-    pub item: Option<String>,
-    pub success: bool,
+#[async_trait]
+pub trait RequiredForProviderManager {
+    fn get_variant(
+        &self,
+        key: &ProviderKey,
+    ) -> ProviderManagerResult<&Box<dyn Provider + Send + Sync>>;
+    fn get_variants_values(&self) -> Values<'_, ProviderKey, Box<dyn Provider + Send + Sync>>;
+    fn get_indexer_manager(&mut self) -> &mut IndexerManager;
+    fn provider_exists(&self, key: &ProviderKey) -> ProviderManagerResult<bool>;
+    fn register(&mut self, provider: Box<dyn Provider + Send + Sync>) -> ProviderManagerResult<()>;
+    async fn deregister(&mut self, key: &ProviderKey) -> ProviderManagerResult<()>;
 }
 
 #[async_trait]
@@ -86,6 +99,27 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         }
         Ok(providers)
     }
+    fn get_indexers(&self) -> ProviderManagerResult<Vec<Box<dyn Indexer + Send + Sync>>> {
+        let mut indexers = vec![];
+        for provider in self.get_variants_values() {
+            let indexer = match provider.authenticated() {
+                Ok(true) => {
+                    info!(
+                        "Beginning indexing on provider: {} for: {}",
+                        provider.ty(),
+                        provider.url()?
+                    );
+                    Ok(provider.get_indexer()?)
+                }
+                Ok(_) => Err(ProviderManagerError::NotAuthenticatedError("".into())),
+                Err(err) => Err(ProviderManagerError::NotAuthenticatedError(err.to_string())),
+            }?;
+
+            indexers.push(indexer);
+        }
+
+        Ok(indexers)
+    }
     async fn init(&mut self) -> ProviderManagerResult<()> {
         let conn = &get_conn().await?;
         let mut known_providers = match Providers::find().stream(conn).await {
@@ -99,21 +133,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
             self.register(new_provider)?;
         }
 
-        self.start_indexing(&conn).await?;
-        Ok(())
-    }
-    async fn validate_provider(
-        &self,
-        token: String,
-        provider: &Box<dyn Provider + Send + Sync>,
-    ) -> ProviderManagerResult<()> {
-        match provider.authenticated()? && self.provider_exists(&provider.key()?)? {
-            false => Ok(()),
-            true => Err(ProviderManagerError::ProviderInUseError),
-        }?;
-
-        provider.save_token(&token)?;
-        provider.add_to_db().await?;
+        self.start_indexing().await?;
         Ok(())
     }
     async fn password_auth(
@@ -133,51 +153,35 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         self.register(provider)?;
         Ok(key)
     }
-    async fn start_indexing(&self, conn: &DatabaseConnection) -> ProviderManagerResult<()> {
-        let mut tasks = vec![];
+    async fn validate_provider(
+        &self,
+        token: String,
+        provider: &Box<dyn Provider + Send + Sync>,
+    ) -> ProviderManagerResult<()> {
+        match provider.authenticated()? && self.provider_exists(&provider.key()?)? {
+            false => Ok(()),
+            true => Err(ProviderManagerError::ProviderInUseError),
+        }?;
 
-        for provider in self.get_variants_values() {
-            let (comm, mut recv): (Sender<IndexerMsg>, Receiver<IndexerMsg>) = mpsc::channel(100);
+        provider.save_token(&token)?;
+        provider.add_to_db().await?;
+        Ok(())
+    }
+    async fn start_indexing(&mut self) -> ProviderManagerResult<()> {
+        let indexers = self.get_indexers()?;
+        let indexer_manager = self.get_indexer_manager();
 
-            match provider.authenticated() {
-                Ok(true) => {
-                    info!(
-                        "Beginning indexing on provider: {} for: {}",
-                        provider.ty(),
-                        provider.url()?
-                    );
-                    let indexer = provider.get_indexer()?;
-                    let task = conn.transaction::<_, _, ProviderManagerError>(|txn| {
-                        Box::pin(async move { Ok(indexer.index(txn, comm)) })
-                    });
-
-                    tasks.push(task);
-                }
-                Ok(_) => return Err(ProviderManagerError::NotAuthenticatedError("".into())),
-                Err(err) => {
-                    return Err(ProviderManagerError::NotAuthenticatedError(err.to_string()));
-                }
-            };
+        for indexer in indexers {
+            indexer_manager.register(indexer)?;
         }
         Ok(())
     }
 }
 
-#[async_trait]
-pub trait RequiredForProviderManager {
-    fn get_variant(
-        &self,
-        key: &ProviderKey,
-    ) -> ProviderManagerResult<&Box<dyn Provider + Send + Sync>>;
-    fn get_variants_values(&self) -> Values<'_, ProviderKey, Box<dyn Provider + Send + Sync>>;
-    fn provider_exists(&self, key: &ProviderKey) -> ProviderManagerResult<bool>;
-    fn register(&mut self, provider: Box<dyn Provider + Send + Sync>) -> ProviderManagerResult<()>;
-    async fn deregister(&mut self, key: &ProviderKey) -> ProviderManagerResult<()>;
-}
-
-#[derive(Default, Clone, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct ProviderManager {
-    pub(crate) variants: RapidHashMap<ProviderKey, Box<dyn Provider + Send + Sync>>,
+    variants: RapidHashMap<ProviderKey, Box<dyn Provider + Send + Sync>>,
+    indexer_manager: IndexerManager,
 }
 
 #[async_trait]
@@ -194,6 +198,9 @@ impl RequiredForProviderManager for ProviderManager {
     }
     pub fn get_variants_values(&self) -> Values<'_, ProviderKey, Box<dyn Provider + Send + Sync>> {
         self.variants.values()
+    }
+    pub fn get_indexer_manager(&mut self) -> &mut IndexerManager {
+        &mut self.indexer_manager
     }
     pub fn provider_exists(&self, key: &ProviderKey) -> ProviderManagerResult<bool> {
         Ok(self.variants.contains_key(key))

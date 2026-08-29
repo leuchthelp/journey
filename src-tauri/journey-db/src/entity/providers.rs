@@ -22,6 +22,7 @@ use uuid::Uuid;
     Copy,
     PartialEq,
     Eq,
+    Hash,
     EnumIter,
     EnumString,
     DeriveValueType,
