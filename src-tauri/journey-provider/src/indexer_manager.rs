@@ -14,7 +14,7 @@ use tokio::{
 };
 use uuid::Uuid;
 
-use crate::indexer::{Indexer, IndexerError, IndexerMsg, IndexerResult};
+use crate::indexer::{Indexer, IndexerError, IndexerMsg};
 
 #[derive(Debug, Error, Serialize, Type)]
 pub enum IndexerManagerError {
@@ -64,7 +64,7 @@ impl RequiredForIndexerManager for IndexerManager {
 
             match conn
                 .transaction::<_, _, IndexerManagerError>(|txn| {
-                    Box::pin(async move { Ok(indexer.index(txn, comm)) })
+                    Box::pin(async move { Ok(indexer.index(txn, comm).await?) })
                 })
                 .await
             {

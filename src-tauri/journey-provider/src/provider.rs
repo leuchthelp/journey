@@ -27,13 +27,13 @@ pub enum ProviderError {
     TooManyCredentialsError,
     #[error("Found no access token, nothing to remove.")]
     NoCredentialsError(Option<String>),
-    #[error("Found no such provider variant.")]
-    NoSuchVariantError,
-    #[error("server_id hasn't been set yet, try authenticating first.")]
+    #[error("ProviderVariant has not been set yet.")]
+    MissingVariantError,
+    #[error("server_id has not been set yet, try authenticating first.")]
     MissingServerIdError,
-    #[error("user_id hasn't been set yet, try authenticating first.")]
+    #[error("user_id has not been set yet, try authenticating first.")]
     MissingUserIdError,
-    #[error("Url hasn't been set yet, provide one first.")]
+    #[error("Url has not been set yet, provide one first.")]
     MissingUrlError,
     #[error("Failed to parse given String to Uuid.")]
     FailedUuidParseError,
@@ -69,7 +69,6 @@ pub trait NewProvider {
 
 #[async_trait]
 pub trait RequiredForProvider {
-    fn ty(&self) -> ProviderVariant;
     fn get_model(&self) -> &providers::ActiveModelEx;
     fn invalidate(&mut self) -> ProviderResult<()>;
     fn get_indexer(&self) -> ProviderResult<Box<dyn Indexer + Send + Sync>>;
@@ -78,6 +77,12 @@ pub trait RequiredForProvider {
 
 #[async_trait]
 pub trait Provider: RequiredForProvider + DynClone + Debug {
+    fn ty(&self) -> ProviderResult<ProviderVariant> {
+        match self.get_model().ty.try_as_ref() {
+            Some(variant) => Ok(*variant),
+            _ => Err(ProviderError::MissingVariantError),
+        }
+    }
     fn user_id(&self) -> ProviderResult<Uuid> {
         match self.get_model().user_id.try_as_ref() {
             Some(user_id) if *user_id != Uuid::nil() => Ok(*user_id),

@@ -28,11 +28,15 @@ pub enum IndexerError {
     ApiEntryRetrievalError(Option<String>),
     #[error("Failed to insert provider to database.")]
     FailedDbInsertError(String),
-    #[error("server_id hasn't been set yet, try authenticating first.")]
+    #[error(
+        "ProviderVariant has not been set. This cannot be done here. Check the original Provider implementation"
+    )]
+    MissingVariantError,
+    #[error("server_id has not been set yet, try authenticating first.")]
     MissingServerIdError,
-    #[error("user_id hasn't been set yet, try authenticating first.")]
+    #[error("user_id has not been set yet, try authenticating first.")]
     MissingUserIdError,
-    #[error("Url hasn't been set yet, provide one first.")]
+    #[error("Url has not been set yet, provide one first.")]
     MissingUrlError,
     #[error(transparent)]
     JellyfinIndexerError(#[from] JellyfinIndexerError),
@@ -51,15 +55,22 @@ pub trait NewIndexer {
 
 #[async_trait]
 pub trait RequiredForIndexer {
-    fn index(&self, txn: &DatabaseTransaction, comm: Sender<IndexerMsg>) -> IndexerResult<()>;
     fn get_model(&self) -> &providers::ActiveModelEx;
+    async fn index(&self, txn: &DatabaseTransaction, comm: Sender<IndexerMsg>)
+    -> IndexerResult<()>;
 }
 
 #[async_trait]
 pub trait Indexer: RequiredForIndexer + DynClone + Debug + Send {
     fn ty(&self) -> IndexerResult<ProviderVariant> {
         match self.get_model().ty.try_as_ref() {
-            Some(user_id) => Ok(*user_id),
+            Some(variant) => Ok(*variant),
+            _ => Err(IndexerError::MissingVariantError),
+        }
+    }
+    fn user_id(&self) -> IndexerResult<Uuid> {
+        match self.get_model().user_id.try_as_ref() {
+            Some(user_id) if *user_id != Uuid::nil() => Ok(*user_id),
             _ => Err(IndexerError::MissingServerIdError),
         }
     }

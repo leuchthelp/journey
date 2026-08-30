@@ -71,9 +71,6 @@ impl NewProvider for JellyfinProvider {
 #[async_trait]
 #[inherent]
 impl RequiredForProvider for JellyfinProvider {
-    pub fn ty(&self) -> ProviderVariant {
-        ProviderVariant::JellyfinProvider
-    }
     pub fn get_model(&self) -> &providers::ActiveModelEx {
         &self.model
     }
@@ -209,7 +206,7 @@ mod variant_jellyfin {
             providers::ActiveModelEx::new().set_url(Url::parse("http://smth.example.com").unwrap());
 
         assert!(matches!(
-            JellyfinProvider::new(model).ty(),
+            JellyfinProvider::new(model).ty().unwrap(),
             ProviderVariant::JellyfinProvider
         ));
     }

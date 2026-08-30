@@ -1,6 +1,8 @@
 use std::fmt::Debug;
 
+use async_trait::async_trait;
 use futures::future::try_join_all;
+use inherent::inherent;
 use jellyfin_sdk_rs::{
     apis::{configuration::Configuration, image_api::get_item_image_infos},
     models::{BaseItemDto, BaseItemKind, ImageType},
@@ -54,12 +56,24 @@ impl NewIndexer for JellyfinIndexer {
     }
 }
 
+#[async_trait]
+#[inherent]
 impl RequiredForIndexer for JellyfinIndexer {
-    fn index(&self, txn: &DatabaseTransaction, comm: Sender<IndexerMsg>) -> IndexerResult<()> {
-        Ok(())
-    }
     fn get_model(&self) -> &providers::ActiveModelEx {
         &self.model
+    }
+    async fn index(
+        &self,
+        txn: &DatabaseTransaction,
+        comm: Sender<IndexerMsg>,
+    ) -> IndexerResult<()> {
+        let user_id = self.user_id()?.to_string();
+        let model = self.get_model().clone();
+
+        self.index_by_type(&comm, model, &user_id, vec![BaseItemKind::MusicArtist])
+            .await?;
+
+        Ok(())
     }
 }
 

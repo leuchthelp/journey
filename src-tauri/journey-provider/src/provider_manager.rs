@@ -80,7 +80,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
 
         let provider_dto = ProviderDTO::builder()
             .authenticated(provider.authenticated()?)
-            .ty(provider.ty())
+            .ty(provider.ty()?)
             .url(provider.url()?)
             .key(provider.key()?)
             .build();
@@ -92,7 +92,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
 
         for provider in self.get_variants_values() {
             let new = ProviderDTO::builder()
-                .ty(provider.ty())
+                .ty(provider.ty()?)
                 .key(provider.key()?)
                 .build();
             providers.push(new);
@@ -106,7 +106,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
                 Ok(true) => {
                     info!(
                         "Beginning indexing on provider: {} for: {}",
-                        provider.ty(),
+                        provider.ty()?,
                         provider.url()?
                     );
                     Ok(provider.get_indexer()?)
@@ -119,6 +119,15 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         }
 
         Ok(indexers)
+    }
+    fn start_indexing(&mut self) -> ProviderManagerResult<()> {
+        let indexers = self.get_indexers()?;
+        let indexer_manager = self.get_indexer_manager();
+
+        for indexer in indexers {
+            indexer_manager.register(indexer)?;
+        }
+        Ok(())
     }
     async fn init(&mut self) -> ProviderManagerResult<()> {
         let conn = &get_conn().await?;
@@ -133,7 +142,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
             self.register(new_provider)?;
         }
 
-        self.start_indexing().await?;
+        self.start_indexing()?;
         Ok(())
     }
     async fn password_auth(
@@ -165,15 +174,6 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
 
         provider.save_token(&token)?;
         provider.add_to_db().await?;
-        Ok(())
-    }
-    async fn start_indexing(&mut self) -> ProviderManagerResult<()> {
-        let indexers = self.get_indexers()?;
-        let indexer_manager = self.get_indexer_manager();
-
-        for indexer in indexers {
-            indexer_manager.register(indexer)?;
-        }
         Ok(())
     }
 }
