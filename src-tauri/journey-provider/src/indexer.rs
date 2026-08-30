@@ -6,7 +6,7 @@ use dyn_clone::{DynClone, clone_trait_object};
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
-use tokio::sync::mpsc::Sender;
+use tokio::sync::mpsc::UnboundedSender;
 use uuid::Uuid;
 
 use crate::{indexer_manager::IndexerKey, jellyfin::jellyfin_indexer::JellyfinIndexerError};
@@ -59,8 +59,11 @@ pub trait NewIndexer {
 #[async_trait]
 pub trait RequiredForIndexer {
     fn get_model(&self) -> &providers::ActiveModelEx;
-    async fn index(&self, txn: &DatabaseTransaction, comm: Sender<IndexerMsg>)
-    -> IndexerResult<()>;
+    async fn index(
+        &self,
+        txn: &DatabaseTransaction,
+        comm: UnboundedSender<IndexerMsg>,
+    ) -> IndexerResult<()>;
 }
 
 #[async_trait]

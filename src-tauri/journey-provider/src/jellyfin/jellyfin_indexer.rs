@@ -10,7 +10,7 @@ use jellyfin_sdk_rs::{
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
-use tokio::sync::mpsc::Sender;
+use tokio::sync::mpsc::UnboundedSender;
 use tracing::warn;
 use url::Url;
 use uuid::Uuid;
@@ -65,7 +65,7 @@ impl RequiredForIndexer for JellyfinIndexer {
     pub async fn index(
         &self,
         txn: &DatabaseTransaction,
-        comm: Sender<IndexerMsg>,
+        comm: UnboundedSender<IndexerMsg>,
     ) -> IndexerResult<()> {
         let user_id = self.user_id()?.to_string();
 
@@ -137,7 +137,7 @@ impl JellyfinIndexer {
     async fn index_by_type(
         &self,
         txn: &DatabaseTransaction,
-        comm: &Sender<IndexerMsg>,
+        comm: &UnboundedSender<IndexerMsg>,
         user_id: &str,
         kind: Vec<BaseItemKind>,
     ) -> IndexerResult<()> {
@@ -187,7 +187,7 @@ impl JellyfinIndexer {
     async fn add_media_item(
         &self,
         txn: &DatabaseTransaction,
-        comm: &Sender<IndexerMsg>,
+        comm: &UnboundedSender<IndexerMsg>,
         item: &BaseItemDto,
     ) -> IndexerResult<()> {
         let conn = get_conn().await?;
@@ -218,7 +218,7 @@ impl JellyfinIndexer {
             item: item.name.clone().flatten(),
             success: true,
         };
-        match comm.try_send(msg) {
+        match comm.send(msg) {
             Ok(_) => Ok(()),
             Err(err) => Err(IndexerError::FailedMsgSendError(err.to_string())),
         }

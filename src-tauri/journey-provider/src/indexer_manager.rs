@@ -9,7 +9,7 @@ use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
 use tokio::{
-    sync::mpsc::{self, Receiver, Sender},
+    sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
     task::JoinHandle,
 };
 use uuid::Uuid;
@@ -18,9 +18,11 @@ use crate::indexer::{Indexer, IndexerError, IndexerMsg};
 
 #[derive(Debug, Error, Serialize, Type)]
 pub enum IndexerManagerError {
-    #[error("Failed to run transaction")]
+    #[error("Failed to run transaction: {0}")]
     FailedTransactionError(String),
-    #[error("Message channel for {0} does not exist")]
+    #[error("Failed to run indexer task: {0}")]
+    FailedTaskError(String),
+    #[error("Message channel for {0} does not exist.")]
     NoSuchCommError(String),
     #[error(transparent)]
     IndexerError(#[from] IndexerError),
@@ -49,7 +51,10 @@ impl Display for IndexerKey {
 #[async_trait]
 pub trait RequiredForIndexerManager {
     fn register(&mut self, indexer: Box<dyn Indexer + Send + Sync>) -> IndexerManagerResult<()>;
-    fn get_status(&mut self, key: &IndexerKey) -> IndexerManagerResult<&mut Receiver<IndexerMsg>>;
+    fn get_status(
+        &mut self,
+        key: &IndexerKey,
+    ) -> IndexerManagerResult<&mut UnboundedReceiver<IndexerMsg>>;
     async fn complete_tasks(&mut self) -> IndexerManagerResult<()>;
 }
 
@@ -59,7 +64,7 @@ pub trait IndexerManagerFn: RequiredForIndexerManager {}
 #[derive(Default, Debug)]
 pub struct IndexerManager {
     tasks: RapidHashMap<IndexerKey, JoinHandle<IndexerManagerResult<()>>>,
-    comms: RapidHashMap<IndexerKey, Receiver<IndexerMsg>>,
+    comms: RapidHashMap<IndexerKey, UnboundedReceiver<IndexerMsg>>,
 }
 
 #[async_trait]
@@ -69,11 +74,11 @@ impl RequiredForIndexerManager for IndexerManager {
         &mut self,
         indexer: Box<dyn Indexer + Send + Sync>,
     ) -> IndexerManagerResult<()> {
-        let (comm, recv): (Sender<IndexerMsg>, Receiver<IndexerMsg>) =
-            mpsc::channel(tokio::sync::Semaphore::MAX_PERMITS);
+        let (comm, recv): (UnboundedSender<IndexerMsg>, UnboundedReceiver<IndexerMsg>) =
+            mpsc::unbounded_channel();
 
         let index_background_op = async |indexer: Box<dyn Indexer + Send + Sync>,
-                                         comm: Sender<IndexerMsg>|
+                                         comm: UnboundedSender<IndexerMsg>|
                -> IndexerManagerResult<()> {
             let conn = get_conn().await?;
 
@@ -98,7 +103,7 @@ impl RequiredForIndexerManager for IndexerManager {
     pub fn get_status(
         &mut self,
         key: &IndexerKey,
-    ) -> IndexerManagerResult<&mut Receiver<IndexerMsg>> {
+    ) -> IndexerManagerResult<&mut UnboundedReceiver<IndexerMsg>> {
         match self.comms.get_mut(key) {
             Some(comm) => Ok(comm),
             None => Err(IndexerManagerError::NoSuchCommError(key.to_string())),
@@ -106,7 +111,10 @@ impl RequiredForIndexerManager for IndexerManager {
     }
     pub async fn complete_tasks(&mut self) -> IndexerManagerResult<()> {
         for task in self.tasks.values_mut() {
-            task.await.unwrap()?;
+            match task.await {
+                Ok(res) => res,
+                Err(err) => Err(IndexerManagerError::FailedTaskError(err.to_string())),
+            }?;
         }
 
         Ok(())
