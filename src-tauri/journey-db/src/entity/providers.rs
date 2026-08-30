@@ -13,6 +13,7 @@ use url::Url;
 use uuid::Uuid;
 
 #[derive(
+    Default,
     Display,
     Debug,
     Serialize,
@@ -29,11 +30,13 @@ use uuid::Uuid;
 )]
 #[sea_orm(value_type = "String")]
 pub enum ProviderVariant {
+    #[default]
+    Unknown,
     JellyfinProvider,
 }
 
 #[sea_orm::model]
-#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
+#[derive(Default, Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
 #[sea_orm(table_name = "providers")]
 pub struct Model {
     #[sea_orm(primary_key)]

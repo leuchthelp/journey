@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::fmt::{Display, Formatter};
 
 use anyhow::Result;
 use async_trait::async_trait;
@@ -20,6 +20,8 @@ use crate::indexer::{Indexer, IndexerError, IndexerMsg};
 pub enum IndexerManagerError {
     #[error("Failed to run transaction")]
     FailedTransactionError(String),
+    #[error("Message channel for {0} does not exist")]
+    NoSuchCommError(String),
     #[error(transparent)]
     IndexerError(#[from] IndexerError),
     #[error(transparent)]
@@ -34,18 +36,30 @@ pub struct IndexerKey {
     pub server_id: Uuid,
 }
 
+impl Display for IndexerKey {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        write!(
+            f,
+            "Key for server: {}, provider: {}",
+            self.server_id, self.variant
+        )
+    }
+}
+
 #[async_trait]
 pub trait RequiredForIndexerManager {
     fn register(&mut self, indexer: Box<dyn Indexer + Send + Sync>) -> IndexerManagerResult<()>;
+    fn get_status(&mut self, key: &IndexerKey) -> IndexerManagerResult<&mut Receiver<IndexerMsg>>;
+    async fn complete_tasks(&mut self) -> IndexerManagerResult<()>;
 }
 
 #[async_trait]
 pub trait IndexerManagerFn: RequiredForIndexerManager {}
 
-#[derive(Default, Clone, Debug)]
+#[derive(Default, Debug)]
 pub struct IndexerManager {
-    tasks: RapidHashMap<IndexerKey, Arc<JoinHandle<IndexerManagerResult<()>>>>,
-    comms: RapidHashMap<IndexerKey, Arc<Receiver<IndexerMsg>>>,
+    tasks: RapidHashMap<IndexerKey, JoinHandle<IndexerManagerResult<()>>>,
+    comms: RapidHashMap<IndexerKey, Receiver<IndexerMsg>>,
 }
 
 #[async_trait]
@@ -55,7 +69,8 @@ impl RequiredForIndexerManager for IndexerManager {
         &mut self,
         indexer: Box<dyn Indexer + Send + Sync>,
     ) -> IndexerManagerResult<()> {
-        let (comm, recv): (Sender<IndexerMsg>, Receiver<IndexerMsg>) = mpsc::channel(100);
+        let (comm, recv): (Sender<IndexerMsg>, Receiver<IndexerMsg>) =
+            mpsc::channel(tokio::sync::Semaphore::MAX_PERMITS);
 
         let index_background_op = async |indexer: Box<dyn Indexer + Send + Sync>,
                                          comm: Sender<IndexerMsg>|
@@ -76,8 +91,24 @@ impl RequiredForIndexerManager for IndexerManager {
         let key = indexer.key()?;
         let task = tokio::spawn(index_background_op(indexer, comm));
 
-        self.tasks.insert(key, task.into());
-        self.comms.insert(key, recv.into());
+        self.tasks.insert(key, task);
+        self.comms.insert(key, recv);
+        Ok(())
+    }
+    pub fn get_status(
+        &mut self,
+        key: &IndexerKey,
+    ) -> IndexerManagerResult<&mut Receiver<IndexerMsg>> {
+        match self.comms.get_mut(key) {
+            Some(comm) => Ok(comm),
+            None => Err(IndexerManagerError::NoSuchCommError(key.to_string())),
+        }
+    }
+    pub async fn complete_tasks(&mut self) -> IndexerManagerResult<()> {
+        for task in self.tasks.values_mut() {
+            task.await.unwrap()?;
+        }
+
         Ok(())
     }
 }

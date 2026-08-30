@@ -54,7 +54,7 @@ pub async fn get_router() -> Result<Router<Wry>> {
     Ok(router)
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct AppStateInner {
     pub provider_manager: ProviderManager,
 }

@@ -15,6 +15,7 @@ use journey_db::{
     sea_orm::DatabaseTransaction,
 };
 
+#[derive(Debug)]
 pub struct IndexerMsg {
     pub item: Option<String>,
     pub success: bool,
@@ -22,12 +23,14 @@ pub struct IndexerMsg {
 
 #[derive(Debug, Error, Serialize, Type)]
 pub enum IndexerError {
-    #[error("Failed to parse the given String to an Url.")]
+    #[error("Failed to parse the given String to an Url: {0}")]
     FailedParseUrlError(String),
     #[error("Failed to retrieve Jellyfin API response entry.")]
     ApiEntryRetrievalError(Option<String>),
-    #[error("Failed to insert provider to database.")]
+    #[error("Failed to insert into database: {0}")]
     FailedDbInsertError(String),
+    #[error("Failed to send update message over channel: {0}")]
+    FailedMsgSendError(String),
     #[error(
         "ProviderVariant has not been set. This cannot be done here. Check the original Provider implementation"
     )]

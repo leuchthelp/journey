@@ -8,6 +8,8 @@ use thiserror::Error;
 pub enum JourneyDbError {
     #[error("Failed to establish database connection.")]
     ConnectionError(String),
+    #[error("Record not found.")]
+    RecordNotFound(String),
 }
 
 pub async fn get_conn() -> Result<DatabaseConnection, JourneyDbError> {

@@ -25,6 +25,8 @@ use journey_db::{
 
 #[derive(Debug, Error, Serialize, Type)]
 pub enum ProviderManagerError {
+    #[error(r#"ProviderVariant is "Unknown" & value is not Set on ActiveModel."#)]
+    UnknownProviderError,
     #[error("No providers registered yet. Please add some first")]
     NoProviderError,
     #[error("Could not register provider, might be unauthenticated.")]
@@ -69,10 +71,13 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
     fn get_type(
         &self,
         ty: &ProviderVariant,
-        model: providers::ActiveModelEx,
-    ) -> Box<dyn Provider + Send + Sync> {
+        model: impl IntoActiveModel<providers::ActiveModelEx>,
+    ) -> ProviderManagerResult<Box<dyn Provider + Send + Sync>> {
         match ty {
-            ProviderVariant::JellyfinProvider => JellyfinProvider::new(model),
+            ProviderVariant::JellyfinProvider => {
+                Ok(JellyfinProvider::new(model.into_active_model()))
+            }
+            ProviderVariant::Unknown => Err(ProviderManagerError::UnknownProviderError),
         }
     }
     fn get_provider(&self, key: &ProviderKey) -> ProviderManagerResult<ProviderDTO> {
@@ -127,6 +132,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         for indexer in indexers {
             indexer_manager.register(indexer)?;
         }
+
         Ok(())
     }
     async fn init(&mut self) -> ProviderManagerResult<()> {
@@ -138,7 +144,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
 
         while let Ok(Some(known)) = known_providers.try_next().await {
             let ty = known.ty;
-            let new_provider = self.get_type(&ty, known.into_active_model().into_ex());
+            let new_provider = self.get_type(&ty, known.into_ex())?;
             self.register(new_provider)?;
         }
 
@@ -153,7 +159,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         psw: String,
     ) -> ProviderManagerResult<ProviderKey> {
         let model = providers::ActiveModelEx::new().set_url(url).set_ty(ty);
-        let mut provider = self.get_type(&ty, model);
+        let mut provider = self.get_type(&ty, model)?;
 
         let token = provider.password_auth(uname, psw).await?;
         self.validate_provider(token, &provider).await?;
@@ -178,7 +184,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug)]
 pub struct ProviderManager {
     variants: RapidHashMap<ProviderKey, Box<dyn Provider + Send + Sync>>,
     indexer_manager: IndexerManager,

@@ -43,9 +43,8 @@ pub struct Model {
     #[sea_orm(unique)]
     pub uuid: Option<Uuid>,
     pub ty: MediaItemType,
+    #[sea_orm(default = "#ff000000")]
     pub outline_gradient: String,
-    pub loaded: bool,
-    pub local: Option<String>,
     #[sea_orm(has_many)]
     pub original: HasMany<super::original::Entity>,
     #[sea_orm(has_many)]
@@ -75,8 +74,6 @@ pub struct MediaItemDTO {
     #[serde(rename = "type")]
     pub ty: MediaItemType,
     pub outline_gradient: Option<String>,
-    pub loaded: bool,
-    pub local: Option<String>,
     pub original: Option<Vec<OriginalDTO>>,
     pub content: Option<Vec<ContentDTO>>,
     pub providers: Option<Vec<ProviderDTO>>,
@@ -101,8 +98,6 @@ impl Convertible<ModelEx> for MediaItemDTO {
             uuid: item.uuid,
             ty: item.ty,
             outline_gradient: Some(item.outline_gradient),
-            loaded: item.loaded,
-            local: item.local,
             original: original,
             content: content,
             providers: providers,

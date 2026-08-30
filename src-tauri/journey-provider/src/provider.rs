@@ -45,7 +45,7 @@ pub enum ProviderError {
     FailedRemoveEntryError(String),
     #[error("Failed to save token to OS keyring.")]
     SaveTokenError(String),
-    #[error("Failed to insert provider to database.")]
+    #[error("Failed to insert provider into database.")]
     FailedDbInsertError(String),
     #[error("Failed to delete provider from database. Might not exist.")]
     FailedDbRemoveError(String),

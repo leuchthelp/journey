@@ -5,7 +5,7 @@ use inherent::inherent;
 use sea_orm::entity::prelude::*;
 
 #[sea_orm::model]
-#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
+#[derive(Default, Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
 #[sea_orm(table_name = "original")]
 pub struct Model {
     #[sea_orm(primary_key)]

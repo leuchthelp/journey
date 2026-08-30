@@ -33,7 +33,7 @@ pub enum ContentType {
 }
 
 #[sea_orm::model]
-#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
+#[derive(Default, Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
 #[sea_orm(table_name = "content")]
 pub struct Model {
     #[sea_orm(primary_key)]

@@ -29,7 +29,7 @@ use journey_db::{
         original, providers,
     },
     get_conn,
-    sea_orm::{DatabaseTransaction, IntoActiveModel},
+    sea_orm::{DatabaseConnection, DatabaseTransaction, DbErr, IntoActiveModel},
 };
 
 #[derive(Debug, Error, Serialize, Type)]
@@ -59,18 +59,21 @@ impl NewIndexer for JellyfinIndexer {
 #[async_trait]
 #[inherent]
 impl RequiredForIndexer for JellyfinIndexer {
-    fn get_model(&self) -> &providers::ActiveModelEx {
+    pub fn get_model(&self) -> &providers::ActiveModelEx {
         &self.model
     }
-    async fn index(
+    pub async fn index(
         &self,
         txn: &DatabaseTransaction,
         comm: Sender<IndexerMsg>,
     ) -> IndexerResult<()> {
         let user_id = self.user_id()?.to_string();
-        let model = self.get_model().clone();
 
-        self.index_by_type(&comm, model, &user_id, vec![BaseItemKind::MusicArtist])
+        self.index_by_type(txn, &comm, &user_id, vec![BaseItemKind::MusicArtist])
+            .await?;
+        self.index_by_type(txn, &comm, &user_id, vec![BaseItemKind::MusicAlbum])
+            .await?;
+        self.index_by_type(txn, &comm, &user_id, vec![BaseItemKind::Audio])
             .await?;
 
         Ok(())
@@ -96,30 +99,142 @@ impl JellyfinIndexer {
             _ => MediaItemType::Unknown,
         })
     }
-    #[allow(unreachable_patterns)]
-    fn match_image_type(&self, kind: ImageType) -> IndexerResult<images::ImageType> {
-        Ok(match kind {
-            ImageType::Art => images::ImageType::Art,
-            ImageType::Backdrop => images::ImageType::Backdrop,
-            ImageType::Banner => images::ImageType::Banner,
-            ImageType::Box => images::ImageType::Box,
-            ImageType::BoxRear => images::ImageType::BoxRear,
-            ImageType::Chapter => images::ImageType::Chapter,
-            ImageType::Disc => images::ImageType::Disc,
-            ImageType::Logo => images::ImageType::Logo,
-            ImageType::Menu => images::ImageType::Menu,
-            ImageType::Primary => images::ImageType::Primary,
-            ImageType::Profile => images::ImageType::Profile,
-            ImageType::Screenshot => images::ImageType::Screenshot,
-            ImageType::Thumb => images::ImageType::Thumb,
-            _ => images::ImageType::Unknown,
-        })
-    }
     fn check_entry<T>(&self, entry: Option<T>) -> IndexerResult<T> {
         match entry {
             Some(entry) => Ok(entry),
             _ => Err(JellyfinIndexerError::ApiEntryRetrievalError(None).into()),
         }
+    }
+    fn check_exists<T: PartialEq>(&self, current: &T, slice: &[T]) -> bool {
+        let mut flag = false;
+
+        for provider in slice {
+            if provider == current {
+                flag = true
+            }
+        }
+
+        flag
+    }
+    async fn get_items(
+        &self,
+        user_id: &str,
+        kind: Vec<BaseItemKind>,
+    ) -> IndexerResult<Vec<BaseItemDto>> {
+        warn!("Getting BaseItemDto's for user: {}", user_id);
+
+        let response = get_items_request()
+            .configuration(self.get_config()?)
+            .user_id(user_id)
+            .recursive(true)
+            .include_item_types(kind)
+            //.limit(1)
+            .call()
+            .await?;
+
+        Ok(self.check_entry(response.items)?)
+    }
+    async fn index_by_type(
+        &self,
+        txn: &DatabaseTransaction,
+        comm: &Sender<IndexerMsg>,
+        user_id: &str,
+        kind: Vec<BaseItemKind>,
+    ) -> IndexerResult<()> {
+        let items = self.get_items(user_id, kind).await?;
+        let tasks = items
+            .iter()
+            .map(|item| self.add_media_item(txn, comm, item));
+
+        try_join_all(tasks).await?;
+        Ok(())
+    }
+    async fn get_music_brainz_id(&self, item: &BaseItemDto) -> IndexerResult<Option<Uuid>> {
+        // let external_info_res = get_metadata_editor_info(self.get_config()?, &id.to_string()).await;
+        // warn!("{:#?}", external_info_res);
+
+        let user_data = self.check_entry(item.user_data.clone().flatten())?;
+        match self.check_entry(user_data.item_id) {
+            Ok(id) => Ok(Some(id)),
+            Err(_) => {
+                warn!(
+                    "Could not find a musicbrainz id for item: {:#?}, generating tmp one",
+                    item.name.clone().flatten()
+                );
+                Ok(None)
+            }
+        }
+    }
+    async fn existing_media_item(
+        &self,
+        conn: &DatabaseConnection,
+        music_brainz_id: &Option<Uuid>,
+    ) -> IndexerResult<Option<media_items::ModelEx>> {
+        match media_items::Entity::load()
+            .filter_by_uuid(*music_brainz_id)
+            .with(providers::Entity)
+            .with(content::Entity)
+            .with(original::Entity)
+            .with(images::Entity)
+            .one(conn)
+            .await
+        {
+            Ok(item) => Ok(item),
+            Err(DbErr::RecordNotFound(_)) => Ok(None),
+            Err(err) => Err(JourneyDbError::RecordNotFound(err.to_string()).into()),
+        }
+    }
+    async fn add_media_item(
+        &self,
+        txn: &DatabaseTransaction,
+        comm: &Sender<IndexerMsg>,
+        item: &BaseItemDto,
+    ) -> IndexerResult<()> {
+        let conn = get_conn().await?;
+
+        let music_brainz_id = self.get_music_brainz_id(item).await?;
+        let mut media_item = match self.existing_media_item(&conn, &music_brainz_id).await? {
+            Some(item) => item.into_active_model(),
+            None => {
+                let ty = self.match_item_type(self.check_entry(item.r#type)?)?;
+                media_items::ActiveModelEx::default()
+                    .set_ty(ty)
+                    .set_uuid(music_brainz_id)
+                    .set_outline_gradient("#ff000000")
+            }
+        };
+
+        match self.check_exists(self.get_model(), media_item.providers.as_slice()) {
+            true => (),
+            false => _ = media_item.providers.push(self.get_model().clone()),
+        }
+
+        match media_item.save(txn).await {
+            Ok(_) => (),
+            Err(err) => return Err(IndexerError::FailedDbInsertError(err.to_string())),
+        };
+
+        let msg = IndexerMsg {
+            item: item.name.clone().flatten(),
+            success: true,
+        };
+        match comm.try_send(msg) {
+            Ok(_) => Ok(()),
+            Err(err) => Err(IndexerError::FailedMsgSendError(err.to_string())),
+        }
+    }
+    fn add_original(
+        &self,
+        music_brainz_id: &Uuid,
+        item: &BaseItemDto,
+    ) -> IndexerResult<original::ActiveModelEx> {
+        let item_id = self.check_entry(item.id)?;
+        let original = original::ActiveModelEx::new()
+            .set_uuid(item_id)
+            .set_parent_id(*music_brainz_id)
+            .set_server_id(self.server_id()?);
+
+        Ok(original)
     }
     fn wrap_content(
         &self,
@@ -140,113 +255,64 @@ impl JellyfinIndexer {
             }
         }
     }
-    async fn index_by_type(
+    fn add_content(
         &self,
-        comm_indexer: &Sender<IndexerMsg>,
-        mut model: providers::ActiveModelEx,
-        user_id: &str,
-        kind: Vec<BaseItemKind>,
-    ) -> IndexerResult<()> {
-        let items = self.get_items(user_id, kind).await?;
-        let tasks = items
-            .iter()
-            .map(|item| self.build_media_item(comm_indexer, &model, item));
-        let media_items = try_join_all(tasks).await?;
-
-        for item in media_items {
-            model.media_items.push(item);
-        }
-
-        match model.save(&get_conn().await?).await {
-            Ok(_) => Ok(()),
-            Err(err) => Err(IndexerError::FailedDbInsertError(format!(
-                "{} with specific: {:#?}",
-                err,
-                err.sql_err()
-            ))),
-        }
-    }
-    async fn build_media_item(
-        &self,
-        comm_indexer: &Sender<IndexerMsg>,
-        model: &providers::ActiveModelEx,
+        id: &Uuid,
         item: &BaseItemDto,
-    ) -> IndexerResult<media_items::ActiveModelEx> {
-        let item_id = self.check_entry(item.id)?;
-        let ty = self.match_item_type(self.check_entry(item.r#type)?)?;
-        let images = self.get_images(model, &item_id);
-        let content = self.get_content(&item_id, item);
-        let parents = self.get_item_parents(item);
-        let music_brainz_id = self.get_music_brainz_id(item).await?;
+    ) -> IndexerResult<Vec<content::ActiveModelEx>> {
+        warn!(
+            "Getting content for: {} - item: {:#?}",
+            id,
+            item.name.clone().flatten()
+        );
 
-        let original = original::ActiveModelEx::new()
-            .set_uuid(item_id)
-            .set_parent_id(music_brainz_id)
-            .set_server_id(*model.server_id.as_ref());
+        let album = self.wrap_content(item.album.clone().flatten(), id, ContentType::Album);
 
-        let mut media_item = media_items::ActiveModelEx::new()
-            .set_ty(ty)
-            .set_uuid(music_brainz_id)
-            .set_outline_gradient("#ff000000")
-            .set_loaded(false)
-            .set_local(None)
-            .add_original(original);
+        let artists = self.wrap_content(
+            item.album_artist.clone().flatten(),
+            id,
+            ContentType::Artists,
+        );
 
-        for image in images.await? {
-            media_item.images.push(image);
-        }
+        let container =
+            self.wrap_content(item.container.clone().flatten(), id, ContentType::Container);
 
-        for parent in parents.await? {
-            media_item.parents.push(parent);
-        }
-
-        for entry in content.await? {
-            media_item.content.push(entry);
-        }
-
-        let msg = IndexerMsg {
-            item: item.name.clone().flatten(),
-            success: true,
+        let date = match self.check_entry(item.premiere_date.clone().flatten()) {
+            Ok(date) => Some(date.to_string()),
+            Err(_) => None,
         };
-        match comm_indexer.try_send(msg) {
-            Ok(_) => Ok(media_item),
-            Err(err) => Err(IndexerError::FailedDbInsertError(err.to_string())),
-        }
-    }
-    async fn get_items(
-        &self,
-        user_id: &str,
-        kind: Vec<BaseItemKind>,
-    ) -> IndexerResult<Vec<BaseItemDto>> {
-        warn!("Getting BaseItemDto's for user: {}", user_id);
+        let release_date = self.wrap_content(date, id, ContentType::ReleaseDate);
 
-        let response = get_items_request()
-            .configuration(self.get_config()?)
-            .user_id(user_id)
-            .recursive(true)
-            .include_item_types(kind)
-            .call()
-            .await?;
-
-        Ok(self.check_entry(response.items)?)
-    }
-    async fn get_music_brainz_id(&self, item: &BaseItemDto) -> IndexerResult<Option<Uuid>> {
-        // let external_info_res = get_metadata_editor_info(self.get_config()?, &id.to_string()).await;
-        // warn!("{:#?}", external_info_res);
-
-        let user_data = self.check_entry(item.user_data.clone().flatten())?;
-        match self.check_entry(user_data.item_id) {
-            Ok(id) => Ok(Some(id)),
-            Err(_) => {
-                warn!(
-                    "Could not find a musicbrainz id for item: {:#?}, generating tmp one",
-                    item.name.clone().flatten()
-                );
-                Ok(None)
+        let mut res: Vec<content::ActiveModelEx> = vec![];
+        for potential in vec![album, artists, container, release_date] {
+            match potential {
+                Some(model) => res.push(model),
+                _ => (),
             }
         }
+
+        Ok(res)
     }
-    async fn get_images(
+    #[allow(unreachable_patterns)]
+    fn match_image_type(&self, kind: ImageType) -> IndexerResult<images::ImageType> {
+        Ok(match kind {
+            ImageType::Art => images::ImageType::Art,
+            ImageType::Backdrop => images::ImageType::Backdrop,
+            ImageType::Banner => images::ImageType::Banner,
+            ImageType::Box => images::ImageType::Box,
+            ImageType::BoxRear => images::ImageType::BoxRear,
+            ImageType::Chapter => images::ImageType::Chapter,
+            ImageType::Disc => images::ImageType::Disc,
+            ImageType::Logo => images::ImageType::Logo,
+            ImageType::Menu => images::ImageType::Menu,
+            ImageType::Primary => images::ImageType::Primary,
+            ImageType::Profile => images::ImageType::Profile,
+            ImageType::Screenshot => images::ImageType::Screenshot,
+            ImageType::Thumb => images::ImageType::Thumb,
+            _ => images::ImageType::Unknown,
+        })
+    }
+    async fn add_images(
         &self,
         model: &providers::ActiveModelEx,
         id: &Uuid,
@@ -285,7 +351,7 @@ impl JellyfinIndexer {
             let image_model = images::ActiveModelEx::new()
                 .set_url(url)
                 .set_ty(ty)
-                .set_server_id(*model.server_id.as_ref())
+                .set_server_id(self.server_id()?)
                 .set_provider(model.clone());
 
             images.push(image_model);
@@ -293,7 +359,7 @@ impl JellyfinIndexer {
 
         Ok(images)
     }
-    async fn get_item_parents(
+    async fn add_item_parents(
         &self,
         item: &BaseItemDto,
     ) -> IndexerResult<Vec<media_items::ActiveModel>> {
@@ -346,43 +412,5 @@ impl JellyfinIndexer {
             }
         }
         Ok(parents)
-    }
-    async fn get_content(
-        &self,
-        id: &Uuid,
-        item: &BaseItemDto,
-    ) -> IndexerResult<Vec<content::ActiveModelEx>> {
-        warn!(
-            "Getting content for: {} - item: {:#?}",
-            id,
-            item.name.clone().flatten()
-        );
-
-        let album = self.wrap_content(item.album.clone().flatten(), id, ContentType::Album);
-
-        let artists = self.wrap_content(
-            item.album_artist.clone().flatten(),
-            id,
-            ContentType::Artists,
-        );
-
-        let container =
-            self.wrap_content(item.container.clone().flatten(), id, ContentType::Container);
-
-        let date = match self.check_entry(item.premiere_date.clone().flatten()) {
-            Ok(date) => Some(date.to_string()),
-            Err(_) => None,
-        };
-        let release_date = self.wrap_content(date, id, ContentType::ReleaseDate);
-
-        let mut res: Vec<content::ActiveModelEx> = vec![];
-        for potential in vec![album, artists, container, release_date] {
-            match potential {
-                Some(model) => res.push(model),
-                _ => (),
-            }
-        }
-
-        Ok(res)
     }
 }

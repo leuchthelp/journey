@@ -19,7 +19,7 @@ use crate::{
     jellyfin::jellyfin_indexer::JellyfinIndexer,
     provider::{NewProvider, Provider, ProviderResult, RequiredForProvider},
 };
-use journey_db::entity::{ProviderVariant, providers};
+use journey_db::entity::providers;
 use journey_utils::constants::{PRODUCT_NAME, PRODUCT_VERSION};
 
 #[derive(Debug, Error, Serialize, Type)]
@@ -187,12 +187,11 @@ mod variant_jellyfin {
 
     use serial_test::serial;
     use test_log::test;
-    use tokio::sync::mpsc::{self, Receiver, Sender};
     use tracing::warn;
     use url::Url;
 
     use crate::{
-        indexer::IndexerMsg,
+        indexer_manager::IndexerManager,
         jellyfin_provider::JellyfinProvider,
         provider::{NewProvider, Provider},
     };
@@ -202,8 +201,9 @@ mod variant_jellyfin {
 
     #[test]
     fn matching_name() {
-        let model =
-            providers::ActiveModelEx::new().set_url(Url::parse("http://smth.example.com").unwrap());
+        let model = providers::ActiveModelEx::new()
+            .set_url(Url::parse("http://smth.example.com").unwrap())
+            .set_ty(ProviderVariant::JellyfinProvider);
 
         assert!(matches!(
             JellyfinProvider::new(model).ty().unwrap(),
@@ -251,8 +251,18 @@ mod variant_jellyfin {
         let test = Entry::search(&HashMap::from([("service", "journey")])).unwrap();
         test.iter().for_each(|f| warn!("{:#?}", f.get_password()));
 
-        let (_tx, mut _rx): (Sender<IndexerMsg>, Receiver<IndexerMsg>) = mpsc::channel(100);
-        let _indexer = provider.get_indexer().unwrap();
+        let indexer = provider.get_indexer().unwrap();
+        let key = indexer.key().unwrap();
+
+        let mut indexer_manager = IndexerManager::default();
+        indexer_manager.register(indexer).unwrap();
+        indexer_manager.complete_tasks().await.unwrap();
+
+        let comm = indexer_manager.get_status(&key).unwrap();
+
+        while let Some(res) = comm.recv().await {
+            warn!("msg: {:#?}", res);
+        }
 
         provider.remove_token().unwrap();
         provider.remove_from_db().await.unwrap();
