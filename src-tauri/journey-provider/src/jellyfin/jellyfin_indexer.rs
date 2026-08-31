@@ -7,6 +7,7 @@ use jellyfin_sdk_rs::{
     apis::{configuration::Configuration, image_api::get_item_image_infos},
     models::{BaseItemDto, BaseItemKind, ImageType},
 };
+use rapidhash::{HashSetExt, RapidHashSet};
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
@@ -18,6 +19,7 @@ use uuid::Uuid;
 use crate::{
     helpers::get_items_request,
     indexer::{Indexer, IndexerError, IndexerMsg, IndexerResult, NewIndexer, RequiredForIndexer},
+    indexer_manager::IndexerManagerError,
 };
 use journey_db::{
     JourneyDbError,
@@ -29,7 +31,10 @@ use journey_db::{
         original, providers,
     },
     get_conn,
-    sea_orm::{DatabaseConnection, DatabaseTransaction, DbErr, IntoActiveModel},
+    sea_orm::{
+        ActiveValue, DatabaseConnection, DatabaseTransaction, DbErr, EntityTrait, IntoActiveModel,
+        TransactionTrait, sqlx::Value,
+    },
 };
 
 #[derive(Debug, Error, Serialize, Type)]
@@ -106,15 +111,7 @@ impl JellyfinIndexer {
         }
     }
     fn check_exists<T: PartialEq>(&self, current: &T, slice: &[T]) -> bool {
-        let mut flag = false;
-
-        for provider in slice {
-            if provider == current {
-                flag = true
-            }
-        }
-
-        flag
+        slice.contains(current)
     }
     async fn get_items(
         &self,
@@ -176,6 +173,7 @@ impl JellyfinIndexer {
             .with(content::Entity)
             .with(original::Entity)
             .with(images::Entity)
+            .with(media_items::Entity)
             .one(conn)
             .await
         {
@@ -192,6 +190,8 @@ impl JellyfinIndexer {
     ) -> IndexerResult<()> {
         let conn = get_conn().await?;
 
+        let item_id = self.check_entry(item.id)?;
+
         let music_brainz_id = self.get_music_brainz_id(item).await?;
         let mut media_item = match self.existing_media_item(&conn, &music_brainz_id).await? {
             Some(item) => item.into_active_model(),
@@ -204,11 +204,31 @@ impl JellyfinIndexer {
             }
         };
 
+        let task_images = self.add_images(media_item.images.as_slice(), &item_id);
+        let task_parents = self.add_item_parents(media_item.parents.as_slice(), item);
+
         match self.check_exists(self.get_model(), media_item.providers.as_slice()) {
             true => (),
             false => _ = media_item.providers.push(self.get_model().clone()),
         }
 
+        for content in self.add_content(media_item.content.as_slice(), &item_id, item)? {
+            media_item.content.push(content);
+        }
+
+        for image in task_images.await? {
+            media_item.images.push(image);
+        }
+
+        for parent in task_parents.await? {
+            media_item.parents.push(parent);
+        }
+
+        /*
+           Should roll it's own nested transaction & therefore provide savepoint & rollback functionality according to:
+           - https://www.sea-ql.org/SeaORM/docs/advanced-query/transaction/#nested-transaction
+           - https://www.sea-ql.org/SeaORM/docs/advanced-query/nested-active-model/
+        */
         match media_item.save(txn).await {
             Ok(_) => (),
             Err(err) => return Err(IndexerError::FailedDbInsertError(err.to_string())),
@@ -257,6 +277,7 @@ impl JellyfinIndexer {
     }
     fn add_content(
         &self,
+        existing: &[content::ActiveModelEx],
         id: &Uuid,
         item: &BaseItemDto,
     ) -> IndexerResult<Vec<content::ActiveModelEx>> {
@@ -314,53 +335,61 @@ impl JellyfinIndexer {
     }
     async fn add_images(
         &self,
-        model: &providers::ActiveModelEx,
+        existing: &[images::ActiveModelEx],
         id: &Uuid,
     ) -> IndexerResult<Vec<images::ActiveModelEx>> {
         warn!("Getting images for: {}", id);
 
         let images_req = match get_item_image_infos(self.get_config()?, &id.to_string()).await {
-            Ok(images) => images,
-            Err(err) => {
-                return Err(
-                    JellyfinIndexerError::ApiEntryRetrievalError(Some(err.to_string())).into(),
-                );
-            }
-        };
+            Ok(images) => Ok(images),
+            Err(err) => Err(JellyfinIndexerError::ApiEntryRetrievalError(Some(
+                err.to_string(),
+            ))),
+        }?;
 
-        let base_url = model.url.as_ref();
+        let mut known_images = RapidHashSet::default();
+        for image in existing {
+            if let Some(url) = image.url.try_as_ref() {
+                known_images.insert(url);
+            }
+        }
+
+        let base_url = self.url()?;
         let mut images: Vec<images::ActiveModelEx> = vec![];
         for image_info in images_req {
-            let ty = match image_info.image_type {
-                Some(ty) => self.match_image_type(ty),
-                _ => return Err(JellyfinIndexerError::ApiEntryRetrievalError(None).into()),
-            }?;
-
+            let ty = self.match_image_type(self.check_entry(image_info.image_type)?)?;
             let tag = self.check_entry(image_info.image_tag.flatten())?;
+            let init_url = &format!("{}{}/{}", base_url, tag, ty);
 
-            let url = match Url::parse(&format!("{}{}/{}", base_url, tag, ty)) {
-                Ok(url) => url,
-                Err(err) => {
-                    return Err(IndexerError::FailedParseUrlError(format!(
-                        "failed with: {} for base: {}/{}",
-                        err, base_url, ty
-                    )));
+            match known_images.contains(init_url) {
+                false => {
+                    let url = match Url::parse(init_url) {
+                        Ok(url) => url,
+                        Err(err) => {
+                            return Err(IndexerError::FailedParseUrlError(format!(
+                                "failed with: {} for base: {}/{}",
+                                err, base_url, ty
+                            )));
+                        }
+                    };
+
+                    let image_model = images::ActiveModelEx::new()
+                        .set_url(url)
+                        .set_ty(ty)
+                        .set_server_id(self.server_id()?)
+                        .set_provider(self.get_model().clone());
+
+                    images.push(image_model)
                 }
-            };
-
-            let image_model = images::ActiveModelEx::new()
-                .set_url(url)
-                .set_ty(ty)
-                .set_server_id(self.server_id()?)
-                .set_provider(model.clone());
-
-            images.push(image_model);
+                true => (),
+            }
         }
 
         Ok(images)
     }
     async fn add_item_parents(
         &self,
+        existing: &[media_items::ActiveModelEx],
         item: &BaseItemDto,
     ) -> IndexerResult<Vec<media_items::ActiveModel>> {
         warn!("Getting parents for: {:#?}", item.name.clone().flatten());
@@ -391,6 +420,13 @@ impl JellyfinIndexer {
                 "No album artists for: {:#?} with id: {:#?} -> skipping",
                 item.id, item.name
             ),
+        }
+
+        let mut known_parents = RapidHashSet::default();
+        for parent in existing {
+            if let Some(Some(music_brainz_id)) = parent.uuid.try_as_ref() {
+                known_parents.insert(music_brainz_id);
+            }
         }
 
         let conn = &get_conn().await?;

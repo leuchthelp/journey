@@ -7,6 +7,7 @@ use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
 use tokio::sync::mpsc::UnboundedSender;
+use url::Url;
 use uuid::Uuid;
 
 use crate::{indexer_manager::IndexerKey, jellyfin::jellyfin_indexer::JellyfinIndexerError};
@@ -31,6 +32,8 @@ pub enum IndexerError {
     FailedDbInsertError(String),
     #[error("Failed to send update message over channel: {0}")]
     FailedMsgSendError(String),
+    #[error("Failed to run transaction: {0}")]
+    FailedTransactionError(String),
     #[error(
         "ProviderVariant has not been set. This cannot be done here. Check the original Provider implementation"
     )]
@@ -84,6 +87,15 @@ pub trait Indexer: RequiredForIndexer + DynClone + Debug + Send {
         match self.get_model().server_id.try_as_ref() {
             Some(server_id) if *server_id != Uuid::nil() => Ok(*server_id),
             _ => Err(IndexerError::MissingServerIdError),
+        }
+    }
+    fn url(&self) -> IndexerResult<Url> {
+        match self.get_model().url.try_as_ref() {
+            Some(url) => Ok(match Url::parse(url) {
+                Ok(url) => url,
+                Err(err) => return Err(IndexerError::FailedParseUrlError(err.to_string())),
+            }),
+            _ => Err(IndexerError::MissingUrlError),
         }
     }
     fn key(&self) -> IndexerResult<IndexerKey> {
