@@ -41,7 +41,8 @@ pub struct Model {
     #[sea_orm(primary_key)]
     id: i32,
     #[sea_orm(unique)]
-    pub uuid: Option<Uuid>,
+    pub uuid: Uuid,
+    pub is_tmp: bool,
     pub ty: MediaItemType,
     #[sea_orm(default = "#ff000000")]
     pub outline_gradient: String,
@@ -70,7 +71,8 @@ impl ActiveModelBehavior for ActiveModel {}
 #[derive(Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaItemDTO {
-    pub uuid: Option<Uuid>,
+    pub uuid: Uuid,
+    pub is_tmp: bool,
     #[serde(rename = "type")]
     pub ty: MediaItemType,
     pub outline_gradient: Option<String>,
@@ -96,6 +98,7 @@ impl Convertible<ModelEx> for MediaItemDTO {
 
         Ok(MediaItemDTO {
             uuid: item.uuid,
+            is_tmp: item.is_tmp,
             ty: item.ty,
             outline_gradient: Some(item.outline_gradient),
             original: original,

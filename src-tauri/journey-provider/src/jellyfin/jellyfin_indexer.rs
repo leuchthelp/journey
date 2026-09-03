@@ -5,9 +5,9 @@ use futures::future::try_join_all;
 use inherent::inherent;
 use jellyfin_sdk_rs::{
     apis::{configuration::Configuration, image_api::get_item_image_infos},
-    models::{BaseItemDto, BaseItemKind, ImageType},
+    models::{BaseItemDto, BaseItemKind, ImageType, ItemFields},
 };
-use rapidhash::{HashSetExt, RapidHashSet};
+use rapidhash::RapidHashSet;
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
@@ -19,7 +19,6 @@ use uuid::Uuid;
 use crate::{
     helpers::get_items_request,
     indexer::{Indexer, IndexerError, IndexerMsg, IndexerResult, NewIndexer, RequiredForIndexer},
-    indexer_manager::IndexerManagerError,
 };
 use journey_db::{
     JourneyDbError,
@@ -31,10 +30,7 @@ use journey_db::{
         original, providers,
     },
     get_conn,
-    sea_orm::{
-        ActiveValue, DatabaseConnection, DatabaseTransaction, DbErr, EntityTrait, IntoActiveModel,
-        TransactionTrait, sqlx::Value,
-    },
+    sea_orm::{DatabaseConnection, DatabaseTransaction, DbErr, IntoActiveModel},
 };
 
 #[derive(Debug, Error, Serialize, Type)]
@@ -74,12 +70,12 @@ impl RequiredForIndexer for JellyfinIndexer {
     ) -> IndexerResult<()> {
         let user_id = self.user_id()?.to_string();
 
-        self.index_by_type(txn, &comm, &user_id, vec![BaseItemKind::MusicArtist])
-            .await?;
+        // self.index_by_type(txn, &comm, &user_id, vec![BaseItemKind::MusicArtist])
+        //     .await?;
         self.index_by_type(txn, &comm, &user_id, vec![BaseItemKind::MusicAlbum])
             .await?;
-        self.index_by_type(txn, &comm, &user_id, vec![BaseItemKind::Audio])
-            .await?;
+        // self.index_by_type(txn, &comm, &user_id, vec![BaseItemKind::Audio])
+        //     .await?;
 
         Ok(())
     }
@@ -125,7 +121,8 @@ impl JellyfinIndexer {
             .user_id(user_id)
             .recursive(true)
             .include_item_types(kind)
-            //.limit(1)
+            .limit(7)
+            .fields(vec![ItemFields::ProviderIds])
             .call()
             .await?;
 
@@ -146,26 +143,36 @@ impl JellyfinIndexer {
         try_join_all(tasks).await?;
         Ok(())
     }
-    async fn get_music_brainz_id(&self, item: &BaseItemDto) -> IndexerResult<Option<Uuid>> {
-        // let external_info_res = get_metadata_editor_info(self.get_config()?, &id.to_string()).await;
-        // warn!("{:#?}", external_info_res);
+    fn get_music_brainz_id(
+        &self,
+        item: &BaseItemDto,
+        ty: MediaItemType,
+    ) -> IndexerResult<(Uuid, bool)> {
+        let known = self.check_entry(item.provider_ids.clone().flatten())?;
+        warn!("provider_ids: {:#?}", known);
 
-        let user_data = self.check_entry(item.user_data.clone().flatten())?;
-        match self.check_entry(user_data.item_id) {
-            Ok(id) => Ok(Some(id)),
-            Err(_) => {
-                warn!(
-                    "Could not find a musicbrainz id for item: {:#?}, generating tmp one",
-                    item.name.clone().flatten()
-                );
-                Ok(None)
-            }
+        let potential_id = match ty {
+            MediaItemType::Artist => known.get("MusicBrainzArtist"),
+            MediaItemType::Album => known.get("MusicBrainzReleaseGroup"),
+            MediaItemType::Audio => known.get("MusicBrainzReleaseGroup"),
+            _ => None,
+        };
+
+        match potential_id {
+            Some(id) => match Uuid::parse_str(id) {
+                Ok(uuid) => Ok((uuid, false)),
+                Err(err) => {
+                    warn!("ReleaseGroup id was not a Uuid: {}", err);
+                    Ok((Uuid::now_v7(), true))
+                }
+            },
+            None => Ok((Uuid::now_v7(), true)),
         }
     }
     async fn existing_media_item(
         &self,
         conn: &DatabaseConnection,
-        music_brainz_id: &Option<Uuid>,
+        music_brainz_id: &Uuid,
     ) -> IndexerResult<Option<media_items::ModelEx>> {
         match media_items::Entity::load()
             .filter_by_uuid(*music_brainz_id)
@@ -173,12 +180,17 @@ impl JellyfinIndexer {
             .with(content::Entity)
             .with(original::Entity)
             .with(images::Entity)
-            .with(media_items::Entity)
             .one(conn)
             .await
         {
             Ok(item) => Ok(item),
-            Err(DbErr::RecordNotFound(_)) => Ok(None),
+            Err(DbErr::RecordNotFound(err)) => {
+                warn!(
+                    "Did find existing MediaItem for id: {:#?}, detailed: {}",
+                    music_brainz_id, err
+                );
+                Ok(None)
+            }
             Err(err) => Err(JourneyDbError::RecordNotFound(err.to_string()).into()),
         }
     }
@@ -192,16 +204,15 @@ impl JellyfinIndexer {
 
         let item_id = self.check_entry(item.id)?;
 
-        let music_brainz_id = self.get_music_brainz_id(item).await?;
+        let ty = self.match_item_type(self.check_entry(item.r#type)?)?;
+        let (music_brainz_id, is_tmp) = self.get_music_brainz_id(item, ty)?;
         let mut media_item = match self.existing_media_item(&conn, &music_brainz_id).await? {
             Some(item) => item.into_active_model(),
-            None => {
-                let ty = self.match_item_type(self.check_entry(item.r#type)?)?;
-                media_items::ActiveModelEx::default()
-                    .set_ty(ty)
-                    .set_uuid(music_brainz_id)
-                    .set_outline_gradient("#ff000000")
-            }
+            None => media_items::ActiveModelEx::default()
+                .set_ty(ty)
+                .set_uuid(music_brainz_id)
+                .set_is_tmp(is_tmp)
+                .set_outline_gradient("#ff000000"),
         };
 
         let task_images = self.add_images(media_item.images.as_slice(), &item_id);
@@ -424,7 +435,7 @@ impl JellyfinIndexer {
 
         let mut known_parents = RapidHashSet::default();
         for parent in existing {
-            if let Some(Some(music_brainz_id)) = parent.uuid.try_as_ref() {
+            if let Some(music_brainz_id) = parent.uuid.try_as_ref() {
                 known_parents.insert(music_brainz_id);
             }
         }
