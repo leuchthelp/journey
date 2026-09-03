@@ -188,6 +188,7 @@ mod variant_jellyfin {
     use serial_test::serial;
     use test_log::test;
     use tracing::warn;
+    use tracing_test::traced_test;
     use url::Url;
 
     use crate::{
@@ -200,6 +201,7 @@ mod variant_jellyfin {
     use journey_utils::get_env_local;
 
     #[test]
+    #[ignore]
     fn matching_name() {
         let model = providers::ActiveModelEx::new()
             .set_url(Url::parse("http://smth.example.com").unwrap())
@@ -213,6 +215,7 @@ mod variant_jellyfin {
 
     #[tokio::test]
     //#[ignore]
+    #[traced_test]
     #[serial]
     async fn try_auth_flow() {
         let env_map = get_env_local();

@@ -9,6 +9,7 @@ use jellyfin_sdk_rs::{
 };
 use rapidhash::RapidHashSet;
 use serde::Serialize;
+use similar::TextDiff;
 use specta::Type;
 use thiserror::Error;
 use tokio::sync::mpsc::UnboundedSender;
@@ -30,7 +31,10 @@ use journey_db::{
         original, providers,
     },
     get_conn,
-    sea_orm::{DatabaseConnection, DatabaseTransaction, DbErr, IntoActiveModel},
+    sea_orm::{
+        ColumnTrait, DatabaseConnection, DatabaseTransaction, DbErr, IntoActiveModel, QueryFilter,
+    },
+    sea_query::Expr,
 };
 
 #[derive(Debug, Error, Serialize, Type)]
@@ -70,12 +74,12 @@ impl RequiredForIndexer for JellyfinIndexer {
     ) -> IndexerResult<()> {
         let user_id = self.user_id()?.to_string();
 
-        // self.index_by_type(txn, &comm, &user_id, vec![BaseItemKind::MusicArtist])
-        //     .await?;
+        self.index_by_type(txn, &comm, &user_id, vec![BaseItemKind::MusicArtist])
+            .await?;
         self.index_by_type(txn, &comm, &user_id, vec![BaseItemKind::MusicAlbum])
             .await?;
-        // self.index_by_type(txn, &comm, &user_id, vec![BaseItemKind::Audio])
-        //     .await?;
+        self.index_by_type(txn, &comm, &user_id, vec![BaseItemKind::Audio])
+            .await?;
 
         Ok(())
     }
@@ -121,7 +125,7 @@ impl JellyfinIndexer {
             .user_id(user_id)
             .recursive(true)
             .include_item_types(kind)
-            .limit(7)
+            //.limit(7)
             .fields(vec![ItemFields::ProviderIds])
             .call()
             .await?;
@@ -140,7 +144,10 @@ impl JellyfinIndexer {
             .iter()
             .map(|item| self.add_media_item(txn, comm, item));
 
-        try_join_all(tasks).await?;
+        for task in tasks {
+            task.await?
+        }
+        //try_join_all(tasks).await?;
         Ok(())
     }
     fn get_music_brainz_id(
@@ -169,29 +176,69 @@ impl JellyfinIndexer {
             None => Ok((Uuid::now_v7(), true)),
         }
     }
-    async fn existing_media_item(
+    async fn filtered_call(
         &self,
         conn: &DatabaseConnection,
-        music_brainz_id: &Uuid,
-    ) -> IndexerResult<Option<media_items::ModelEx>> {
+        filter: Expr,
+    ) -> IndexerResult<Option<Vec<media_items::ModelEx>>> {
         match media_items::Entity::load()
-            .filter_by_uuid(*music_brainz_id)
+            .filter(filter)
             .with(providers::Entity)
             .with(content::Entity)
             .with(original::Entity)
             .with(images::Entity)
-            .one(conn)
+            .all(conn)
             .await
         {
-            Ok(item) => Ok(item),
+            Ok(items) => match items.is_empty() {
+                false => Ok(Some(items)),
+                true => Ok(None),
+            },
             Err(DbErr::RecordNotFound(err)) => {
-                warn!(
-                    "Did find existing MediaItem for id: {:#?}, detailed: {}",
-                    music_brainz_id, err
-                );
+                warn!("Did find existing MediaItem: {}", err);
                 Ok(None)
             }
             Err(err) => Err(JourneyDbError::RecordNotFound(err.to_string()).into()),
+        }
+    }
+    async fn existing_media_item(
+        &self,
+        conn: &DatabaseConnection,
+        music_brainz_id: &Uuid,
+        weak_id: &String,
+    ) -> IndexerResult<Option<media_items::ModelEx>> {
+        let filter_music_brainz_id = media_items::Column::Uuid.eq(*music_brainz_id);
+
+        match self.filtered_call(conn, filter_music_brainz_id).await? {
+            Some(mut models) => Ok(models.pop()),
+            None => {
+                warn!("Could not find item with matching MediaBrainzId, falling back to WeakID");
+                let filter_weak_id = media_items::Column::WeakId.like(weak_id.clone());
+
+                match self.filtered_call(conn, filter_weak_id).await? {
+                    Some(mut models) => {
+                        let mut index: usize = 0;
+                        let mut max_prob: f32 = f32::MIN;
+                        for (i, model) in models.iter().enumerate() {
+                            let diff = TextDiff::from_chars(model.weak_id.clone(), weak_id);
+
+                            match diff.ratio() > max_prob {
+                                true => {
+                                    index = i;
+                                    max_prob = diff.ratio()
+                                }
+                                false => (),
+                            }
+                        }
+
+                        Ok(Some(models.remove(index)))
+                    }
+                    None => {
+                        warn!("Still couldn't find matching Model, does probably not exists yet.");
+                        Ok(None)
+                    }
+                }
+            }
         }
     }
     async fn add_media_item(
@@ -203,18 +250,24 @@ impl JellyfinIndexer {
         let conn = get_conn().await?;
 
         let item_id = self.check_entry(item.id)?;
+        let weak_id = self.check_entry(item.name.clone().flatten())?;
 
         let ty = self.match_item_type(self.check_entry(item.r#type)?)?;
         let (music_brainz_id, is_tmp) = self.get_music_brainz_id(item, ty)?;
-        let mut media_item = match self.existing_media_item(&conn, &music_brainz_id).await? {
+        let mut media_item = match self
+            .existing_media_item(&conn, &music_brainz_id, &weak_id)
+            .await?
+        {
             Some(item) => item.into_active_model(),
             None => media_items::ActiveModelEx::default()
                 .set_ty(ty)
                 .set_uuid(music_brainz_id)
+                .set_weak_id(&weak_id)
                 .set_is_tmp(is_tmp)
                 .set_outline_gradient("#ff000000"),
         };
 
+        warn!("must be new model: {:#?}", media_item);
         let task_images = self.add_images(media_item.images.as_slice(), &item_id);
         let task_parents = self.add_item_parents(media_item.parents.as_slice(), item);
 
@@ -246,7 +299,7 @@ impl JellyfinIndexer {
         };
 
         let msg = IndexerMsg {
-            item: item.name.clone().flatten(),
+            item: Some(weak_id),
             success: true,
         };
         match comm.send(msg) {
@@ -365,12 +418,13 @@ impl JellyfinIndexer {
             }
         }
 
+        warn!("known images: {:#?}", known_images);
+
         let base_url = self.url()?;
         let mut images: Vec<images::ActiveModelEx> = vec![];
         for image_info in images_req {
             let ty = self.match_image_type(self.check_entry(image_info.image_type)?)?;
-            let tag = self.check_entry(image_info.image_tag.flatten())?;
-            let init_url = &format!("{}{}/{}", base_url, tag, ty);
+            let init_url = &format!("{}Items/{}/Images/{}", base_url, id, ty);
 
             match known_images.contains(init_url) {
                 false => {
@@ -383,6 +437,7 @@ impl JellyfinIndexer {
                             )));
                         }
                     };
+                    warn!("new_url: {}", url);
 
                     let image_model = images::ActiveModelEx::new()
                         .set_url(url)

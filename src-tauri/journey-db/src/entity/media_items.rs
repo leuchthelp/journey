@@ -42,6 +42,7 @@ pub struct Model {
     id: i32,
     #[sea_orm(unique)]
     pub uuid: Uuid,
+    pub weak_id: String,
     pub is_tmp: bool,
     pub ty: MediaItemType,
     #[sea_orm(default = "#ff000000")]
