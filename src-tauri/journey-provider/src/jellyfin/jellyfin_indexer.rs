@@ -145,10 +145,10 @@ impl JellyfinIndexer {
             .iter()
             .map(|item| self.add_media_item(txn, comm, item));
 
-        for task in tasks {
-            task.await?
-        }
-        //try_join_all(tasks).await?;
+        // for task in tasks {
+        //     task.await?
+        // }
+        try_join_all(tasks).await?;
         Ok(())
     }
     fn get_music_brainz_id(
@@ -208,7 +208,7 @@ impl JellyfinIndexer {
         music_brainz_id: &Uuid,
         weak_id: &String,
         ty: &MediaItemType,
-    ) -> IndexerResult<Option<media_items::ModelEx>> {
+    ) -> IndexerResult<(Option<media_items::ModelEx>, uuid::Uuid)> {
         let filter_music_brainz_id = media_items::Column::Uuid.eq(*music_brainz_id);
         let filter_item_ty = media_items::Column::Ty.eq(*ty);
 
@@ -217,7 +217,7 @@ impl JellyfinIndexer {
             .add(filter_item_ty.clone());
 
         match self.filtered_call(conn, combined_filter.into()).await? {
-            Some(mut models) => Ok(models.pop()),
+            Some(mut models) => Ok((models.pop(), *music_brainz_id)),
             None => {
                 warn!("Could not find item with matching MediaBrainzId, falling back to WeakID");
                 let filter_weak_id = media_items::Column::WeakId.like(weak_id.clone());
@@ -240,11 +240,13 @@ impl JellyfinIndexer {
                             }
                         }
 
-                        Ok(Some(models.remove(index)))
+                        let model = models.remove(index);
+                        let real_id = model.uuid;
+                        Ok((Some(model), real_id))
                     }
                     None => {
                         warn!("Still couldn't find matching Model, does probably not exists yet.");
-                        Ok(None)
+                        Ok((None, *music_brainz_id))
                     }
                 }
             }
@@ -264,23 +266,29 @@ impl JellyfinIndexer {
         let ty = self.match_item_type(self.check_entry(item.r#type)?)?;
         let (music_brainz_id, is_tmp) = self.get_music_brainz_id(item, ty)?;
 
-        let (mut media_item, already_exists) = match self
+        /*
+            music_brainz_id could become a temporary one at which point we fall back to weak_id to perform
+            one last shot at finding an existing item to avoid duplicates.
+            However, in that case music_brainz_id becomes misaligned. Therefore it needs to be set back to
+            the actual one found in the database.
+        */
+        let (mut media_item, music_brainz_id, already_exists) = match self
             .existing_media_item(&conn, &music_brainz_id, &weak_id, &ty)
             .await?
         {
-            Some(item) => (item.into_active_model(), true),
-            None => (
+            (Some(item), music_brainz_id) => (item.into_active_model(), music_brainz_id, true),
+            (None, music_brainz_id) => (
                 media_items::ActiveModelEx::default()
                     .set_ty(ty)
                     .set_uuid(music_brainz_id)
                     .set_weak_id(&weak_id)
                     .set_is_tmp(is_tmp)
                     .set_outline_gradient("#ff000000"),
+                music_brainz_id,
                 false,
             ),
         };
 
-        warn!("must be new model: {:#?}", media_item);
         let task_images = self.add_images(media_item.images.as_slice(), &item_id);
         let task_parents = self.add_item_parents(media_item.parents.as_slice(), item);
 
@@ -289,7 +297,13 @@ impl JellyfinIndexer {
             false => _ = media_item.providers.push(self.get_model().clone()),
         }
 
-        for content in self.add_content(media_item.content.as_slice(), &item_id, item)? {
+        let original = self.add_original(&music_brainz_id, item)?;
+        match self.check_exists(&original, media_item.original.as_slice()) {
+            true => (),
+            false => _ = media_item.providers.push(self.get_model().clone()),
+        }
+
+        for content in self.add_content(media_item.content.as_slice(), &music_brainz_id, item)? {
             media_item.content.push(content);
         }
 
@@ -365,6 +379,20 @@ impl JellyfinIndexer {
             item.name.clone().flatten()
         );
 
+        let mut known_content = RapidHashSet::default();
+        for content in existing {
+            match (
+                content.parent_id.try_as_ref(),
+                content.ty.try_as_ref(),
+                content.description.try_as_ref(),
+            ) {
+                (Some(Some(parent_id)), Some(ty), Some(Some(description))) => {
+                    _ = known_content.insert((parent_id, ty, description))
+                }
+                _ => (),
+            }
+        }
+
         let album = self.wrap_content(item.album.clone().flatten(), id, ContentType::Album);
 
         let artists = self.wrap_content(
@@ -385,7 +413,19 @@ impl JellyfinIndexer {
         let mut res: Vec<content::ActiveModelEx> = vec![];
         for potential in vec![album, artists, container, release_date] {
             match potential {
-                Some(model) => res.push(model),
+                Some(model) => match (
+                    model.parent_id.try_as_ref(),
+                    model.ty.try_as_ref(),
+                    model.description.try_as_ref(),
+                ) {
+                    (Some(Some(parent_id)), Some(ty), Some(Some(description))) => {
+                        match known_content.contains(&(parent_id, ty, description)) {
+                            false => res.push(model),
+                            true => (),
+                        }
+                    }
+                    _ => (),
+                },
                 _ => (),
             }
         }

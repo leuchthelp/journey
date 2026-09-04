@@ -18,6 +18,7 @@ use uuid::Uuid;
     Copy,
     PartialEq,
     Eq,
+    Hash,
     EnumIter,
     EnumString,
     DeriveValueType,
@@ -38,10 +39,13 @@ pub enum ContentType {
 pub struct Model {
     #[sea_orm(primary_key)]
     id: i32,
+    #[sea_orm(unique_key = "pair")]
     pub parent_id: Option<Uuid>,
     #[sea_orm(belongs_to, from = "parent_id", to = "uuid")]
     pub parent: BelongsTo<Option<super::media_items::Entity>>,
+    #[sea_orm(unique_key = "pair")]
     pub ty: ContentType,
+    #[sea_orm(unique_key = "pair")]
     pub description: Option<String>,
 }
 
