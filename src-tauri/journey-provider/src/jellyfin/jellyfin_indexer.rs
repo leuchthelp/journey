@@ -32,7 +32,8 @@ use journey_db::{
     },
     get_conn,
     sea_orm::{
-        ColumnTrait, DatabaseConnection, DatabaseTransaction, DbErr, IntoActiveModel, QueryFilter,
+        ColumnTrait, Condition, DatabaseConnection, DatabaseTransaction, DbErr, IntoActiveModel,
+        QueryFilter,
     },
     sea_query::Expr,
 };
@@ -206,16 +207,24 @@ impl JellyfinIndexer {
         conn: &DatabaseConnection,
         music_brainz_id: &Uuid,
         weak_id: &String,
+        ty: &MediaItemType,
     ) -> IndexerResult<Option<media_items::ModelEx>> {
         let filter_music_brainz_id = media_items::Column::Uuid.eq(*music_brainz_id);
+        let filter_item_ty = media_items::Column::Ty.eq(*ty);
 
-        match self.filtered_call(conn, filter_music_brainz_id).await? {
+        let combined_filter = Condition::all()
+            .add(filter_music_brainz_id)
+            .add(filter_item_ty.clone());
+
+        match self.filtered_call(conn, combined_filter.into()).await? {
             Some(mut models) => Ok(models.pop()),
             None => {
                 warn!("Could not find item with matching MediaBrainzId, falling back to WeakID");
                 let filter_weak_id = media_items::Column::WeakId.like(weak_id.clone());
 
-                match self.filtered_call(conn, filter_weak_id).await? {
+                let combined_filter = Condition::all().add(filter_weak_id).add(filter_item_ty);
+
+                match self.filtered_call(conn, combined_filter.into()).await? {
                     Some(mut models) => {
                         let mut index: usize = 0;
                         let mut max_prob: f32 = f32::MIN;
@@ -254,17 +263,21 @@ impl JellyfinIndexer {
 
         let ty = self.match_item_type(self.check_entry(item.r#type)?)?;
         let (music_brainz_id, is_tmp) = self.get_music_brainz_id(item, ty)?;
-        let mut media_item = match self
-            .existing_media_item(&conn, &music_brainz_id, &weak_id)
+
+        let (mut media_item, already_exists) = match self
+            .existing_media_item(&conn, &music_brainz_id, &weak_id, &ty)
             .await?
         {
-            Some(item) => item.into_active_model(),
-            None => media_items::ActiveModelEx::default()
-                .set_ty(ty)
-                .set_uuid(music_brainz_id)
-                .set_weak_id(&weak_id)
-                .set_is_tmp(is_tmp)
-                .set_outline_gradient("#ff000000"),
+            Some(item) => (item.into_active_model(), true),
+            None => (
+                media_items::ActiveModelEx::default()
+                    .set_ty(ty)
+                    .set_uuid(music_brainz_id)
+                    .set_weak_id(&weak_id)
+                    .set_is_tmp(is_tmp)
+                    .set_outline_gradient("#ff000000"),
+                false,
+            ),
         };
 
         warn!("must be new model: {:#?}", media_item);
@@ -293,14 +306,15 @@ impl JellyfinIndexer {
            - https://www.sea-ql.org/SeaORM/docs/advanced-query/transaction/#nested-transaction
            - https://www.sea-ql.org/SeaORM/docs/advanced-query/nested-active-model/
         */
-        match media_item.save(txn).await {
-            Ok(_) => (),
-            Err(err) => return Err(IndexerError::FailedDbInsertError(err.to_string())),
-        };
+        let success = match media_item.save(txn).await {
+            Ok(_) => Ok(true),
+            Err(err) => Err(journey_db::JourneyDbError::Unknown(err.to_string())),
+        }?;
 
         let msg = IndexerMsg {
             item: Some(weak_id),
-            success: true,
+            success: success,
+            already_exists: already_exists,
         };
         match comm.send(msg) {
             Ok(_) => Ok(()),
@@ -419,6 +433,7 @@ impl JellyfinIndexer {
         }
 
         warn!("known images: {:#?}", known_images);
+        warn!("images req: {:#?}", images_req);
 
         let base_url = self.url()?;
         let mut images: Vec<images::ActiveModelEx> = vec![];

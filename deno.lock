@@ -2,7 +2,7 @@
   "version": "5",
   "specifiers": {
     "jsr:@deno/installer-shell-setup@*": "0.3.4",
-    "npm:@lucide/svelte@^1.39.0": "1.39.0_svelte@5.57.0",
+    "npm:@lucide/svelte@^1.40.0": "1.40.0_svelte@5.57.0",
     "npm:@sveltejs/adapter-static@^4.0.0-next.4": "4.0.0-next.4_@sveltejs+kit@3.0.0-next.25_svelte@5.57.0",
     "npm:@sveltejs/enhanced-img@^1.0.0-next.5": "1.0.0-next.5_@sveltejs+vite-plugin-svelte@7.3.0_svelte@5.57.0_vite@8.2.2",
     "npm:@sveltejs/kit@^3.0.0-next.25": "3.0.0-next.25_@sveltejs+vite-plugin-svelte@7.3.0_svelte@5.57.0_typescript@6.0.3_vite@8.2.2",
@@ -255,8 +255,8 @@
         "@lit-labs/ssr-dom-shim"
       ]
     },
-    "@lucide/svelte@1.39.0_svelte@5.57.0": {
-      "integrity": "sha512-jCgA/RqDv9uWHs4DiIUef4kpf5TfLl9y8OMGrh+W4aQTCOscT4X2BX14ta65J+5ooslrN1bXXiO9AaeAOHAcPA==",
+    "@lucide/svelte@1.40.0_svelte@5.57.0": {
+      "integrity": "sha512-Uf0kxl48bLepYJDnXddrYX0/YuK2KnaF/tPm0zSZZEcEvrpJ9U8dPAFOC7LYATzjoNntwEAcugUXKZZ5/Gfo1Q==",
       "dependencies": [
         "svelte"
       ]
@@ -1414,7 +1414,7 @@
   "workspace": {
     "packageJson": {
       "dependencies": [
-        "npm:@lucide/svelte@^1.39.0",
+        "npm:@lucide/svelte@^1.40.0",
         "npm:@sveltejs/adapter-static@^4.0.0-next.4",
         "npm:@sveltejs/enhanced-img@^1.0.0-next.5",
         "npm:@sveltejs/kit@^3.0.0-next.25",

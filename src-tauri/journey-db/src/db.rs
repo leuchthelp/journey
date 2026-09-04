@@ -6,10 +6,12 @@ use thiserror::Error;
 
 #[derive(Debug, Error, Serialize, Type)]
 pub enum JourneyDbError {
-    #[error("Failed to establish database connection.")]
+    #[error("Failed to establish database connection: {0}")]
     ConnectionError(String),
-    #[error("Record not found.")]
+    #[error("Record not found: {0}")]
     RecordNotFound(String),
+    #[error("Unknown error occured: {0}")]
+    Unknown(String),
 }
 
 pub async fn get_conn() -> Result<DatabaseConnection, JourneyDbError> {

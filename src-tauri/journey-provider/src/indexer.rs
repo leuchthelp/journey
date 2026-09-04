@@ -20,6 +20,7 @@ use journey_db::{
 pub struct IndexerMsg {
     pub item: Option<String>,
     pub success: bool,
+    pub already_exists: bool,
 }
 
 #[derive(Debug, Error, Serialize, Type)]

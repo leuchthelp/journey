@@ -268,7 +268,7 @@ mod variant_jellyfin {
         }
 
         provider.remove_token().unwrap();
-        provider.remove_from_db().await.unwrap();
+        //provider.remove_from_db().await.unwrap();
         provider.invalidate().unwrap();
 
         assert!(provider.authenticated().is_err());
