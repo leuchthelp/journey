@@ -9,8 +9,8 @@ use crate::apis::{
     content_api::{ContentApi, ContentApiImpl},
     image_api::{ImageApi, ImageApiImpl},
     media_item_api::{MediaItemApi, MediaItemApiImpl},
-    original_api::{OriginalApi, OriginalApiImpl},
     provider_api::{ProviderApi, ProviderApiImpl},
+    source_api::{SourceApi, SourceApiImpl},
 };
 
 pub async fn get_router() -> Result<Router<Wry>> {
@@ -45,7 +45,7 @@ pub async fn get_router() -> Result<Router<Wry>> {
             .into_handler(),
         )
         .merge(
-            OriginalApiImpl {
+            SourceApiImpl {
                 state: state.clone(),
             }
             .into_handler(),

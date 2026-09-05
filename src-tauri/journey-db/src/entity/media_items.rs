@@ -1,5 +1,5 @@
 use crate::db::Convertible;
-use crate::entity::{ContentDTO, ImageDTO, OriginalDTO, ProviderDTO};
+use crate::entity::{ContentDTO, ImageDTO, SourceDTO, ProviderDTO};
 use anyhow::Result;
 use inherent::inherent;
 use sea_orm::entity::prelude::*;
@@ -48,7 +48,7 @@ pub struct Model {
     #[sea_orm(default = "#ff000000")]
     pub outline_gradient: String,
     #[sea_orm(has_many)]
-    pub original: HasMany<super::original::Entity>,
+    pub sources: HasMany<super::sources::Entity>,
     #[sea_orm(has_many)]
     pub content: HasMany<super::content::Entity>,
     #[sea_orm(has_many, via = "jt_media_item_to_provider")]
@@ -77,7 +77,7 @@ pub struct MediaItemDTO {
     #[serde(rename = "type")]
     pub ty: MediaItemType,
     pub outline_gradient: Option<String>,
-    pub original: Option<Vec<OriginalDTO>>,
+    pub sources: Option<Vec<SourceDTO>>,
     pub content: Option<Vec<ContentDTO>>,
     pub providers: Option<Vec<ProviderDTO>>,
     pub images: Option<Vec<ImageDTO>>,
@@ -90,7 +90,7 @@ impl Convertible<ModelEx> for MediaItemDTO {
     type DTO = MediaItemDTO;
 
     pub fn from_model(item: ModelEx) -> Result<Self> {
-        let original = OriginalDTO::to_dto_vec(item.original)?;
+        let sources = SourceDTO::to_dto_vec(item.sources)?;
         let content = ContentDTO::to_dto_vec(item.content)?;
         let providers = ProviderDTO::to_dto_vec(item.providers)?;
         let images = ImageDTO::to_dto_vec(item.images)?;
@@ -102,7 +102,7 @@ impl Convertible<ModelEx> for MediaItemDTO {
             is_tmp: item.is_tmp,
             ty: item.ty,
             outline_gradient: Some(item.outline_gradient),
-            original: original,
+            sources: sources,
             content: content,
             providers: providers,
             images: images,

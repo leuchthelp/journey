@@ -1,7 +1,7 @@
 pub mod content;
 pub mod images;
 pub mod media_items;
-pub mod original;
+pub mod sources;
 pub mod providers;
 
 // Junction tables
@@ -14,13 +14,13 @@ pub use jt_parent_to_child::Entity as JunctionParentToChild;
 pub use content::ContentDTO;
 pub use images::ImageDTO;
 pub use media_items::MediaItemDTO;
-pub use original::OriginalDTO;
+pub use sources::SourceDTO;
 pub use providers::ProviderDTO;
 
 pub use content::Entity as Content;
 pub use images::Entity as Images;
 pub use media_items::Entity as MediaItems;
-pub use original::Entity as Original;
+pub use sources::Entity as Original;
 pub use providers::Entity as Providers;
 
 pub use providers::ProviderKey;

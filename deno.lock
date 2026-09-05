@@ -31,7 +31,7 @@
     "npm:typescript@^6.0.3": "6.0.3",
     "npm:uuid@^14.0.2": "14.0.2",
     "npm:vite@^8.2.2": "8.2.2_@types+node@26.2.0",
-    "npm:vitest@^5.0.0-rc.4": "5.0.0-rc.4_@types+node@26.2.0_vite@8.2.2"
+    "npm:vitest@5": "5.0.0_@types+node@26.2.0_vite@8.2.2"
   },
   "jsr": {
     "@deno/installer-shell-setup@0.3.4": {
@@ -751,8 +751,8 @@
         "weakmap-polyfill"
       ]
     },
-    "@vitest/mocker@5.0.0-rc.4_vite@8.2.2": {
-      "integrity": "sha512-8DLV37U8yxj9p7bXuRq5e60FvU9znAv4wrb2dP0+ElP53mZjAu5ZtwRCbqEVAoLcs7zSTHHXuNUQAuS+RWblCQ==",
+    "@vitest/mocker@5.0.0_vite@8.2.2": {
+      "integrity": "sha512-66PGTMIiVJP3t4a5yxU9qPtf7MdTBs8jmToMvy+HVflB3Yy13WJZTtPePdvU+wjRV02SKK5doLbSA6o9pwOmiA==",
       "dependencies": [
         "@jridgewell/trace-mapping",
         "@vitest/spy",
@@ -764,8 +764,8 @@
         "vite"
       ]
     },
-    "@vitest/spy@5.0.0-rc.4": {
-      "integrity": "sha512-Fti74i6fwpyXyAKOCfxA1KwGtIIEQlsHkaQj/jgO4GkeQDaXoACuqp2UdUn3B40L8C5L6nqk/rAI8n9js4u2VQ=="
+    "@vitest/spy@5.0.0": {
+      "integrity": "sha512-uy+luWBAPw9XfthoHi5AkfHUnuPYEESjl0p/r+meoBnU8bxg5GDQ3Ey8MjcJ6sqahkL4PFyrvfMJJBw7LbU06g=="
     },
     "acorn@8.18.0": {
       "integrity": "sha512-lGq+9yr1/GuAWaVYIHRjvvySG5/4VfKIvC8EWxStPdcDh/Ka7FG3twP6v4d5BkravUilhIAsG4Qj83t02LWUPQ==",
@@ -1372,8 +1372,8 @@
         "vite"
       ]
     },
-    "vitest@5.0.0-rc.4_@types+node@26.2.0_vite@8.2.2": {
-      "integrity": "sha512-Yd2zKNMlZ0k1iy4ar3DorcOJ+fLJmbMoawONMQwhIVRWnbbAURVWhQDk1s1eTp0Am7ZdZhk4nwu2m0IBRl5Dtw==",
+    "vitest@5.0.0_@types+node@26.2.0_vite@8.2.2": {
+      "integrity": "sha512-gpsMNoRhMjMktVxPtstOH4/PJuPyovVaMDr4oDilXaGH1EcqM2OE96SoHT2VIQ6fTGtTjqmHDrEu2X9RQiXf8Q==",
       "dependencies": [
         "@types/chai",
         "@types/node",
@@ -1443,7 +1443,7 @@
         "npm:typescript@^6.0.3",
         "npm:uuid@^14.0.2",
         "npm:vite@^8.2.2",
-        "npm:vitest@^5.0.0-rc.4"
+        "npm:vitest@5"
       ]
     }
   }

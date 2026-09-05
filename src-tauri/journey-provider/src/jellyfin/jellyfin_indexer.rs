@@ -28,7 +28,7 @@ use journey_db::{
         content::{self, ContentType},
         images::{self},
         media_items::{self, MediaItemType},
-        original, providers,
+        providers, sources,
     },
     get_conn,
     sea_orm::{
@@ -186,7 +186,7 @@ impl JellyfinIndexer {
             .filter(filter)
             .with(providers::Entity)
             .with(content::Entity)
-            .with(original::Entity)
+            .with(sources::Entity)
             .with(images::Entity)
             .all(conn)
             .await
@@ -297,10 +297,10 @@ impl JellyfinIndexer {
             false => _ = media_item.providers.push(self.get_model().clone()),
         }
 
-        let original = self.add_original(&music_brainz_id, item)?;
-        match self.check_exists(&original, media_item.original.as_slice()) {
+        let source = self.add_source(&music_brainz_id, item)?;
+        match self.check_exists(&source, media_item.sources.as_slice()) {
             true => (),
-            false => _ = media_item.providers.push(self.get_model().clone()),
+            false => _ = media_item.sources.push(source),
         }
 
         for content in self.add_content(media_item.content.as_slice(), &music_brainz_id, item)? {
@@ -335,18 +335,18 @@ impl JellyfinIndexer {
             Err(err) => Err(IndexerError::FailedMsgSendError(err.to_string())),
         }
     }
-    fn add_original(
+    fn add_source(
         &self,
         music_brainz_id: &Uuid,
         item: &BaseItemDto,
-    ) -> IndexerResult<original::ActiveModelEx> {
+    ) -> IndexerResult<sources::ActiveModelEx> {
         let item_id = self.check_entry(item.id)?;
-        let original = original::ActiveModelEx::new()
+        let source = sources::ActiveModelEx::new()
             .set_uuid(item_id)
             .set_parent_id(*music_brainz_id)
             .set_server_id(self.server_id()?);
 
-        Ok(original)
+        Ok(source)
     }
     fn wrap_content(
         &self,
