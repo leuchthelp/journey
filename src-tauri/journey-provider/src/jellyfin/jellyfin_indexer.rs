@@ -14,7 +14,7 @@ use tracing::warn;
 use uuid::Uuid;
 
 use crate::{
-    indexer::{Indexer, IndexerMsg, IndexerResult, NewIndexer, RequiredForIndexer},
+    indexer::{Indexer, IndexerError, IndexerMsg, IndexerResult, NewIndexer, RequiredForIndexer},
     jellyfin::helpers::get_items_request,
 };
 use journey_db::{
@@ -61,16 +61,20 @@ impl RequiredForIndexer for JellyfinIndexer {
         &self,
         conn: &DatabaseConnection,
         comm: UnboundedSender<IndexerMsg>,
-    ) -> IndexerResult<()> {
+    ) -> IndexerResult<Vec<Option<IndexerError>>> {
         let user_id = self.user_id()?.to_string();
+        let mut final_res: Vec<Option<IndexerError>> = vec![];
 
         {
             let txn = match conn.begin().await {
                 Ok(txn) => Ok(txn),
-                Err(err) => Err(JourneyDbError::FailedTransactionError(err.to_string())),
+                Err(err) => Err(IndexerError::FailedTransactionError(err.to_string())),
             }?;
-            self.index_by_type(&txn, &comm, &user_id, vec![BaseItemKind::MusicArtist])
+            let mut res = self
+                .index_by_type(&txn, &comm, &user_id, vec![BaseItemKind::MusicArtist])
                 .await?;
+
+            final_res.append(&mut res);
             match txn.commit().await {
                 Ok(()) => Ok(()),
                 Err(err) => Err(JourneyDbError::FailedTransactionError(err.to_string())),
@@ -82,8 +86,11 @@ impl RequiredForIndexer for JellyfinIndexer {
                 Ok(txn) => Ok(txn),
                 Err(err) => Err(JourneyDbError::FailedTransactionError(err.to_string())),
             }?;
-            self.index_by_type(&txn, &comm, &user_id, vec![BaseItemKind::MusicAlbum])
+            let mut res = self
+                .index_by_type(&txn, &comm, &user_id, vec![BaseItemKind::MusicAlbum])
                 .await?;
+
+            final_res.append(&mut res);
             match txn.commit().await {
                 Ok(()) => Ok(()),
                 Err(err) => Err(JourneyDbError::FailedTransactionError(err.to_string())),
@@ -95,15 +102,18 @@ impl RequiredForIndexer for JellyfinIndexer {
                 Ok(txn) => Ok(txn),
                 Err(err) => Err(JourneyDbError::FailedTransactionError(err.to_string())),
             }?;
-            self.index_by_type(&txn, &comm, &user_id, vec![BaseItemKind::Audio])
+            let mut res = self
+                .index_by_type(&txn, &comm, &user_id, vec![BaseItemKind::Audio])
                 .await?;
+
+            final_res.append(&mut res);
             match txn.commit().await {
                 Ok(()) => Ok(()),
                 Err(err) => Err(JourneyDbError::FailedTransactionError(err.to_string())),
             }?;
         }
 
-        Ok(())
+        Ok(final_res)
     }
 }
 
@@ -156,22 +166,21 @@ impl JellyfinIndexer {
         comm: &UnboundedSender<IndexerMsg>,
         user_id: &str,
         kind: Vec<BaseItemKind>,
-    ) -> IndexerResult<()> {
+    ) -> IndexerResult<Vec<Option<IndexerError>>> {
         let items = self.get_items(user_id, kind).await?;
 
         let tasks = items
             .iter()
             .map(|item| self.assemble_media_item(txn, comm, item));
 
-        try_join_all(tasks).await?;
-        Ok(())
+        Ok(try_join_all(tasks).await?)
     }
     async fn assemble_media_item(
         &self,
         txn: &DatabaseTransaction,
         comm: &UnboundedSender<IndexerMsg>,
         item: &BaseItemDto,
-    ) -> IndexerResult<()> {
+    ) -> IndexerResult<Option<IndexerError>> {
         let source_id = self.check_entry(item.id)?;
         let task_images_metadata = self.get_images(source_id);
 
@@ -179,20 +188,21 @@ impl JellyfinIndexer {
         let ty = self.match_item_type(self.check_entry(item.r#type)?)?;
         let music_brainz_id = self.get_music_brainz_id(item, ty)?;
 
-        self.index_media_item(
-            txn,
-            comm,
-            music_brainz_id,
-            weak_id,
-            source_id,
-            ty,
-            self.get_content(item)?,
-            self.get_parent_source_ids(item),
-            task_images_metadata.await?,
-        )
-        .await?;
+        let res = self
+            .index_media_item(
+                txn,
+                comm,
+                music_brainz_id,
+                weak_id,
+                source_id,
+                ty,
+                self.get_content(item)?,
+                self.get_parent_source_ids(item),
+                task_images_metadata.await?,
+            )
+            .await?;
 
-        Ok(())
+        Ok(res)
     }
     fn get_music_brainz_id(
         &self,

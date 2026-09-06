@@ -85,7 +85,7 @@ pub trait RequiredForIndexer {
         &self,
         conn: &DatabaseConnection,
         comm: UnboundedSender<IndexerMsg>,
-    ) -> IndexerResult<()>;
+    ) -> IndexerResult<Vec<Option<IndexerError>>>;
 }
 
 #[async_trait]
@@ -239,7 +239,7 @@ pub trait Indexer: RequiredForIndexer + DynClone + Debug + Send {
         potential_new_content: Vec<(content::ContentType, Option<String>)>,
         potential_parent_source_ids: Vec<Uuid>,
         potential_new_image: Vec<(String, images::ImageType)>,
-    ) -> IndexerResult<()> {
+    ) -> IndexerResult<Option<IndexerError>> {
         let (mut media_item, music_brainz_id, already_exists) = self
             .build_media_item(txn, music_brainz_id, &weak_id, ty)
             .await?;
@@ -282,11 +282,13 @@ pub trait Indexer: RequiredForIndexer + DynClone + Debug + Send {
            - https://www.sea-ql.org/SeaORM/docs/advanced-query/transaction/#nested-transaction
            - https://www.sea-ql.org/SeaORM/docs/advanced-query/nested-active-model/
         */
-        let success = match media_item.save(txn).await {
-            Ok(_) => Ok(true),
-            Err(DbErr::Query(_)) => Ok(false),
-            Err(err) => Err(journey_db::JourneyDbError::Unknown(err.to_string())),
-        }?;
+        let (success, error) = match media_item.save(txn).await {
+            Ok(_) => (true, None),
+            Err(err) => (
+                false,
+                Some(journey_db::JourneyDbError::Unknown(err.to_string()).into()),
+            ),
+        };
 
         let msg = IndexerMsg {
             item: Some(weak_id),
@@ -295,7 +297,7 @@ pub trait Indexer: RequiredForIndexer + DynClone + Debug + Send {
         };
 
         match comm.send(msg) {
-            Ok(_) => Ok(()),
+            Ok(_) => Ok(error),
             Err(err) => Err(IndexerError::FailedMsgSendError(err.to_string())),
         }
     }

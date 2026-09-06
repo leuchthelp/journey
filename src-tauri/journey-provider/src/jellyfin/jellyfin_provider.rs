@@ -259,7 +259,8 @@ mod variant_jellyfin {
 
         let mut indexer_manager = IndexerManager::default();
         indexer_manager.register(indexer).unwrap();
-        indexer_manager.complete_tasks().await.unwrap();
+        let res = indexer_manager.finish_task(&key).await.unwrap();
+        warn!("msg: {:#?}", res);
 
         let comm = indexer_manager.get_status(&key).unwrap();
 
@@ -268,7 +269,7 @@ mod variant_jellyfin {
         }
 
         provider.remove_token().unwrap();
-        //provider.remove_from_db().await.unwrap();
+        provider.remove_from_db().await.unwrap();
         provider.invalidate().unwrap();
 
         assert!(provider.authenticated().is_err());
