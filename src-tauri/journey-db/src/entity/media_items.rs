@@ -1,5 +1,5 @@
 use crate::db::Convertible;
-use crate::entity::{ContentDTO, ImageDTO, SourceDTO, ProviderDTO};
+use crate::entity::{ContentDTO, ImageDTO, ProviderDTO, SourceDTO};
 use anyhow::Result;
 use inherent::inherent;
 use sea_orm::entity::prelude::*;

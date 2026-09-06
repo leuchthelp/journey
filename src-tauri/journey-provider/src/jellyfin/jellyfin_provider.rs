@@ -145,7 +145,7 @@ impl JellyfinProvider {
             Err(_) => return Err(ProviderError::FailedUuidParseError),
         };
 
-        Ok(self.model.server_id.set_ne(id))
+        Ok(self.model.provider_id.set_ne(id))
     }
 
     /*
@@ -232,7 +232,7 @@ mod variant_jellyfin {
         let mut provider = JellyfinProvider::new(model);
 
         assert!(provider.authenticated().is_err());
-        assert!(provider.server_id().is_err());
+        assert!(provider.provider_id().is_err());
         assert!(provider.user_id().is_err());
         assert!(provider.url().is_ok());
 
@@ -247,7 +247,7 @@ mod variant_jellyfin {
         provider.add_to_db().await.unwrap();
 
         assert!(provider.authenticated().unwrap() == true);
-        assert!(provider.server_id().is_ok());
+        assert!(provider.provider_id().is_ok());
         assert!(provider.user_id().is_ok());
         assert!(provider.url().is_ok());
 
@@ -272,7 +272,7 @@ mod variant_jellyfin {
         provider.invalidate().unwrap();
 
         assert!(provider.authenticated().is_err());
-        assert!(provider.server_id().is_err());
+        assert!(provider.provider_id().is_err());
         assert!(provider.user_id().is_err());
         assert!(provider.url().is_err());
 

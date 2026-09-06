@@ -15,7 +15,7 @@ pub struct Model {
     pub parent_id: Option<Uuid>,
     #[sea_orm(belongs_to, from = "parent_id", to = "music_brainz_id")]
     pub parent: BelongsTo<Option<super::media_items::Entity>>,
-    pub server_id: Uuid,
+    pub provider_id: Uuid,
 }
 
 impl ActiveModelBehavior for ActiveModel {}
@@ -26,7 +26,7 @@ impl ActiveModelBehavior for ActiveModel {}
 pub struct SourceDTO {
     pub parent_id: Option<Uuid>,
     pub parent: Option<MediaItemDTO>,
-    pub server_id: Uuid,
+    pub provider_id: Uuid,
 }
 
 #[inherent]
@@ -42,7 +42,7 @@ impl Convertible<ModelEx> for SourceDTO {
         Ok(SourceDTO {
             parent_id: item.parent_id,
             parent: parent,
-            server_id: item.server_id,
+            provider_id: item.provider_id,
         })
     }
 }

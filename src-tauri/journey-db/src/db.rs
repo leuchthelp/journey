@@ -10,6 +10,8 @@ pub enum JourneyDbError {
     ConnectionError(String),
     #[error("Record not found: {0}")]
     RecordNotFound(String),
+    #[error("Transaction failed: {0}")]
+    FailedTransactionError(String),
     #[error("Unknown error occured: {0}")]
     Unknown(String),
 }

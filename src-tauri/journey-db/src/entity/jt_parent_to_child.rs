@@ -11,7 +11,12 @@ pub struct Model {
     pub child_id: Uuid,
     #[sea_orm(belongs_to, from = "parent_id", to = "music_brainz_id")]
     pub parent: BelongsTo<super::media_items::Entity>,
-    #[sea_orm(belongs_to, relation_enum = "Child", from = "child_id", to = "music_brainz_id")]
+    #[sea_orm(
+        belongs_to,
+        relation_enum = "Child",
+        from = "child_id",
+        to = "music_brainz_id"
+    )]
     pub child: BelongsTo<super::media_items::Entity>,
 }
 

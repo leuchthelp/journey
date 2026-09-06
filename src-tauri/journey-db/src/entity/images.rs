@@ -54,8 +54,8 @@ pub struct Model {
     id: i32,
     #[sea_orm(unique)]
     pub url: String,
-    pub server_id: Option<Uuid>,
-    #[sea_orm(belongs_to, from = "server_id", to = "server_id")]
+    pub provider_id: Option<Uuid>,
+    #[sea_orm(belongs_to, from = "provider_id", to = "provider_id")]
     pub provider: BelongsTo<Option<super::providers::Entity>>,
     pub ty: ImageType,
     #[sea_orm(has_many, via = "jt_media_item_to_image")]
@@ -69,7 +69,7 @@ impl ActiveModelBehavior for ActiveModel {}
 #[serde(rename_all = "camelCase")]
 pub struct ImageDTO {
     pub url: Url,
-    pub server_id: Option<Uuid>,
+    pub provider_id: Option<Uuid>,
     pub provider: Option<ProviderDTO>,
     pub ty: ImageType,
     pub media_items: Option<Vec<MediaItemDTO>>,
@@ -89,7 +89,7 @@ impl Convertible<ModelEx> for ImageDTO {
 
         Ok(ImageDTO {
             url: Url::parse(&item.url)?,
-            server_id: item.server_id,
+            provider_id: item.provider_id,
             provider: provider,
             ty: item.ty,
             media_items: media_items,
@@ -102,7 +102,7 @@ impl ImageDTO {
         return ImageDTO {
             url: Url::parse("https://example.net").unwrap(),
             ty: ImageType::Primary,
-            server_id: None,
+            provider_id: None,
             provider: None,
             media_items: None,
         };

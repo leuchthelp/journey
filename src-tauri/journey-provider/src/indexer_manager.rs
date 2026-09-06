@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter};
 use anyhow::Result;
 use async_trait::async_trait;
 use inherent::inherent;
-use journey_db::{entity::ProviderVariant, get_conn, sea_orm::TransactionTrait};
+use journey_db::{entity::ProviderVariant, get_conn};
 use rapidhash::RapidHashMap;
 use serde::Serialize;
 use specta::Type;
@@ -35,7 +35,7 @@ pub type IndexerManagerResult<T> = Result<T, IndexerManagerError>;
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub struct IndexerKey {
     pub variant: ProviderVariant,
-    pub server_id: Uuid,
+    pub provider_id: Uuid,
 }
 
 impl Display for IndexerKey {
@@ -43,7 +43,7 @@ impl Display for IndexerKey {
         write!(
             f,
             "Key for server: {}, provider: {}",
-            self.server_id, self.variant
+            self.provider_id, self.variant
         )
     }
 }
@@ -81,16 +81,7 @@ impl RequiredForIndexerManager for IndexerManager {
                                          comm: UnboundedSender<IndexerMsg>|
                -> IndexerManagerResult<()> {
             let conn = get_conn().await?;
-
-            match conn
-                .transaction::<_, _, IndexerManagerError>(|txn| {
-                    Box::pin(async move { Ok(indexer.index(txn, comm).await?) })
-                })
-                .await
-            {
-                Ok(_) => Ok(()),
-                Err(err) => Err(IndexerManagerError::FailedTransactionError(err.to_string())),
-            }
+            Ok(indexer.index(&conn, comm).await?)
         };
 
         let key = indexer.key()?;

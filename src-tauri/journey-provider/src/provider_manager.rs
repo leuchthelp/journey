@@ -18,7 +18,7 @@ use crate::{
     provider::{NewProvider, Provider},
 };
 use journey_db::{
-    entity::{ProviderDTO, ProviderKey, ProviderVariant, Providers, providers},
+    entity::{ProviderDTO, ProviderKey, ProviderVariant, providers},
     get_conn,
     sea_orm::{EntityTrait, IntoActiveModel},
 };
@@ -137,7 +137,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
     }
     async fn init(&mut self) -> ProviderManagerResult<()> {
         let conn = &get_conn().await?;
-        let mut known_providers = match Providers::find().stream(conn).await {
+        let mut known_providers = match providers::Entity::find().stream(conn).await {
             Ok(known) => Ok(known),
             Err(err) => Err(ProviderManagerError::FailedDbStreamError(err.to_string())),
         }?;

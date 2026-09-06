@@ -89,8 +89,8 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
             _ => Err(ProviderError::MissingServerIdError),
         }
     }
-    fn server_id(&self) -> ProviderResult<Uuid> {
-        match self.get_model().server_id.try_as_ref() {
+    fn provider_id(&self) -> ProviderResult<Uuid> {
+        match self.get_model().provider_id.try_as_ref() {
             Some(server_id) if *server_id != Uuid::nil() => Ok(*server_id),
             _ => Err(ProviderError::MissingServerIdError),
         }
@@ -107,7 +107,7 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
     fn save_token(&self, access_token: &String) -> ProviderResult<()> {
         let token_entry = match Entry::new(
             PRODUCT_NAME,
-            &format!("{}-{}", self.server_id()?, self.user_id()?),
+            &format!("{}-{}", self.provider_id()?, self.user_id()?),
         ) {
             Ok(entry) => Ok(entry),
             Err(err) => Err(ProviderError::FailedCreateEntryError(err.to_string())),
@@ -123,7 +123,7 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
             ("service", "journey"),
             (
                 "user",
-                &format!("{}-{}", self.server_id()?, self.user_id()?),
+                &format!("{}-{}", self.provider_id()?, self.user_id()?),
             ),
         ]));
 
@@ -151,7 +151,7 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
     fn key(&self) -> ProviderResult<ProviderKey> {
         Ok(ProviderKey {
             user_id: self.user_id()?,
-            server_id: self.server_id()?,
+            provider_id: self.provider_id()?,
         })
     }
     fn authenticated(&self) -> ProviderResult<bool> {

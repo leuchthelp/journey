@@ -9,5 +9,6 @@ jellyfin-sdk-rs
 
 #Manual
 *.sqlite
+*.splite-journal
 
 #Allowed

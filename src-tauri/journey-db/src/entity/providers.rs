@@ -40,7 +40,7 @@ pub enum ProviderVariant {
 #[sea_orm(table_name = "providers")]
 pub struct Model {
     #[sea_orm(primary_key)]
-    pub server_id: Uuid,
+    pub provider_id: Uuid,
     #[sea_orm(unique)]
     pub user_id: Uuid,
     pub ty: ProviderVariant,
@@ -58,7 +58,7 @@ impl ActiveModelBehavior for ActiveModel {}
 #[serde(rename_all = "camelCase")]
 pub struct ProviderKey {
     pub user_id: Uuid,
-    pub server_id: Uuid,
+    pub provider_id: Uuid,
 }
 
 #[taurpc::ipc_type]
@@ -86,7 +86,7 @@ impl Convertible<ModelEx> for ProviderDTO {
             authenticated: Some(false),
             key: Some(ProviderKey {
                 user_id: item.user_id,
-                server_id: item.server_id,
+                provider_id: item.provider_id,
             }),
             ty: item.ty,
             url: Some(Url::parse(&item.url)?),

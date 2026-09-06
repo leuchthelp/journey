@@ -1,5 +1,4 @@
 mod jellyfin;
-pub use jellyfin::helpers;
 pub use jellyfin::jellyfin_provider;
 
 mod provider;
@@ -15,3 +14,5 @@ pub use provider_manager::ProviderManagerResult;
 
 mod indexer;
 mod indexer_manager;
+
+mod helpers;

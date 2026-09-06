@@ -40,13 +40,13 @@ pub struct Model {
     #[sea_orm(primary_key)]
     id: i32,
     #[sea_orm(unique_key = "pair")]
-    pub parent_id: Option<Uuid>,
+    pub parent_id: Uuid,
     #[sea_orm(belongs_to, from = "parent_id", to = "music_brainz_id")]
-    pub parent: BelongsTo<Option<super::media_items::Entity>>,
+    pub parent: BelongsTo<super::media_items::Entity>,
     #[sea_orm(unique_key = "pair")]
     pub ty: ContentType,
     #[sea_orm(unique_key = "pair")]
-    pub description: Option<String>,
+    pub description: String,
 }
 
 impl ActiveModelBehavior for ActiveModel {}
@@ -55,11 +55,11 @@ impl ActiveModelBehavior for ActiveModel {}
 #[derive(Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct ContentDTO {
-    pub parent_id: Option<Uuid>,
+    pub parent_id: Uuid,
     pub parent: Option<MediaItemDTO>,
     #[serde(rename = "type")]
     pub ty: ContentType,
-    pub description: Option<String>,
+    pub description: String,
 }
 
 #[inherent]
