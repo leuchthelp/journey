@@ -284,6 +284,7 @@ pub trait Indexer: RequiredForIndexer + DynClone + Debug + Send {
         */
         let success = match media_item.save(txn).await {
             Ok(_) => Ok(true),
+            Err(DbErr::Query(_)) => Ok(false),
             Err(err) => Err(journey_db::JourneyDbError::Unknown(err.to_string())),
         }?;
 
