@@ -41,7 +41,7 @@ pub struct Model {
     id: i32,
     #[sea_orm(unique_key = "pair")]
     pub parent_id: Option<Uuid>,
-    #[sea_orm(belongs_to, from = "parent_id", to = "uuid")]
+    #[sea_orm(belongs_to, from = "parent_id", to = "music_brainz_id")]
     pub parent: BelongsTo<Option<super::media_items::Entity>>,
     #[sea_orm(unique_key = "pair")]
     pub ty: ContentType,

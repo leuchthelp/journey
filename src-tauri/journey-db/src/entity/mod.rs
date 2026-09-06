@@ -17,11 +17,5 @@ pub use media_items::MediaItemDTO;
 pub use sources::SourceDTO;
 pub use providers::ProviderDTO;
 
-pub use content::Entity as Content;
-pub use images::Entity as Images;
-pub use media_items::Entity as MediaItems;
-pub use sources::Entity as Original;
-pub use providers::Entity as Providers;
-
 pub use providers::ProviderKey;
 pub use providers::ProviderVariant;

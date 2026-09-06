@@ -11,9 +11,9 @@ pub struct Model {
     #[sea_orm(primary_key)]
     id: i32,
     #[sea_orm(unique)]
-    pub uuid: Uuid,
+    pub source_id: Uuid,
     pub parent_id: Option<Uuid>,
-    #[sea_orm(belongs_to, from = "parent_id", to = "uuid")]
+    #[sea_orm(belongs_to, from = "parent_id", to = "music_brainz_id")]
     pub parent: BelongsTo<Option<super::media_items::Entity>>,
     pub server_id: Uuid,
 }

@@ -41,7 +41,7 @@ pub struct Model {
     #[sea_orm(primary_key)]
     id: i32,
     #[sea_orm(unique)]
-    pub uuid: Uuid,
+    pub music_brainz_id: Uuid,
     pub weak_id: String,
     pub is_tmp: bool,
     pub ty: MediaItemType,
@@ -98,7 +98,7 @@ impl Convertible<ModelEx> for MediaItemDTO {
         let parents = MediaItemDTO::to_dto_vec(item.parents)?;
 
         Ok(MediaItemDTO {
-            uuid: item.uuid,
+            uuid: item.music_brainz_id,
             is_tmp: item.is_tmp,
             ty: item.ty,
             outline_gradient: Some(item.outline_gradient),

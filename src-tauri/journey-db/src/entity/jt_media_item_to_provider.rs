@@ -9,7 +9,7 @@ pub struct Model {
     pub media_item_id: Uuid,
     #[sea_orm(primary_key, auto_increment = false)]
     pub provider_id: Uuid,
-    #[sea_orm(belongs_to, from = "media_item_id", to = "uuid")]
+    #[sea_orm(belongs_to, from = "media_item_id", to = "music_brainz_id")]
     pub media_item: BelongsTo<super::media_items::Entity>,
     #[sea_orm(belongs_to, from = "provider_id", to = "user_id")]
     pub provider: BelongsTo<super::providers::Entity>,

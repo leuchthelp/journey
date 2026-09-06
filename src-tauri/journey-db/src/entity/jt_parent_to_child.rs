@@ -9,9 +9,9 @@ pub struct Model {
     pub parent_id: Uuid,
     #[sea_orm(primary_key, auto_increment = false)]
     pub child_id: Uuid,
-    #[sea_orm(belongs_to, from = "parent_id", to = "uuid")]
+    #[sea_orm(belongs_to, from = "parent_id", to = "music_brainz_id")]
     pub parent: BelongsTo<super::media_items::Entity>,
-    #[sea_orm(belongs_to, relation_enum = "Child", from = "child_id", to = "uuid")]
+    #[sea_orm(belongs_to, relation_enum = "Child", from = "child_id", to = "music_brainz_id")]
     pub child: BelongsTo<super::media_items::Entity>,
 }
 
