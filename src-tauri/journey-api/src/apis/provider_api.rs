@@ -1,18 +1,26 @@
 use anyhow::Result;
 use journey_db::entity::{ProviderDTO, ProviderKey, ProviderVariant};
-use journey_provider::{ProviderError, ProviderManagerError, ProviderManagerFn};
+use journey_provider::{
+    IndexerKey, IndexerManagerError, IndexerMsg, ProviderError, ProviderManagerError,
+    ProviderManagerFn,
+};
 use serde::Serialize;
 use specta::Type;
+use tauri::ipc::Channel;
 use thiserror::Error;
 
 use crate::AppState;
 
 #[derive(Debug, Error, Serialize, Type)]
 pub enum ProviderApiError {
+    #[error("Failed to send msg via channel: {0}")]
+    FailedChannelSendError(String),
     #[error(transparent)]
     ProviderManagerError(#[from] ProviderManagerError),
     #[error(transparent)]
     ProviderError(#[from] ProviderError),
+    #[error(transparent)]
+    IndexerManagerError(#[from] IndexerManagerError),
 }
 
 type ProviderApiResult<T> = Result<T, ProviderApiError>;
@@ -28,6 +36,10 @@ pub trait ProviderApi {
         psw: String,
     ) -> ProviderApiResult<ProviderKey>;
     async fn deregister(key: ProviderKey) -> ProviderApiResult<()>;
+    async fn indexer_status(
+        key: IndexerKey,
+        on_event: Channel<IndexerMsg>,
+    ) -> ProviderApiResult<()>;
 }
 
 #[derive(Clone, Debug)]
@@ -64,5 +76,41 @@ impl ProviderApi for ProviderApiImpl {
     async fn deregister(self, key: ProviderKey) -> ProviderApiResult<()> {
         let mut lock = self.state.write().await;
         Ok(lock.provider_manager.deregister(&key).await?)
+    }
+    async fn indexer_status(
+        self,
+        key: IndexerKey,
+        on_event: Channel<IndexerMsg>,
+    ) -> ProviderApiResult<()> {
+        let mut comm = self
+            .state
+            .write()
+            .await
+            .provider_manager
+            .get_indexer_manager()
+            .consume_status(&key)?;
+
+        while let Some(msg) = comm.recv().await {
+            match on_event.send(msg) {
+                Ok(_) => Ok(()),
+                Err(err) => Err(ProviderApiError::FailedChannelSendError(err.to_string())),
+            }?;
+        }
+
+        let indexer_task = self
+            .state
+            .write()
+            .await
+            .provider_manager
+            .get_indexer_manager()
+            .consume_task(&key)
+            .await?;
+
+        let _res = match indexer_task.await {
+            Ok(res) => res,
+            Err(err) => Err(IndexerManagerError::FailedTaskError(err.to_string())),
+        }?;
+
+        Ok(())
     }
 }

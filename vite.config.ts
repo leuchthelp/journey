@@ -19,6 +19,7 @@ export default defineConfig(() => ({
           async: true,
         },
       },
+      alias: { $lib: "src/lib" },
 
       adapter: adapter({
         fallback: "index.html",

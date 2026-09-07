@@ -1,5 +1,5 @@
-import type { PageLoad } from "./$types.d.ts";
 import { type MediaItemDTO } from "#lib/bindings.ts";
+import type { PageLoad } from "./$types";
 // import { itemCache } from "$lib/components/MediaItems/ItemCache.ts";
 // import type { MediaItem } from "$lib/db/relations.ts";
 

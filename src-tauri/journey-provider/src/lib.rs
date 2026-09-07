@@ -15,4 +15,9 @@ pub use provider_manager::ProviderManagerResult;
 mod indexer;
 mod indexer_manager;
 
+pub use indexer::IndexerMsg;
+
+pub use indexer_manager::IndexerKey;
+pub use indexer_manager::IndexerManagerError;
+
 mod helpers;

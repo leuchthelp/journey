@@ -9,43 +9,196 @@ import {
 export type ContentApiError = string;
 
 export type ContentDTO = {
-  id: number;
-  parentId: string | null;
+  parentId: string;
   parent: MediaItemDTO | null;
-  type: string;
+  type: ContentType;
   description: string;
 };
+
+export type ContentType =
+  "Unknown" | "Album" | "Artists" | "Container" | "ReleaseDate";
 
 export type ImageApiError = string;
 
 export type ImageDTO = {
   url: string;
-  serverId: string | null;
+  providerId: string | null;
   provider: ProviderDTO | null;
-  type: string;
+  ty: ImageType;
   mediaItems: MediaItemDTO[] | null;
 };
 
-export type JellyfinProviderError =
-  | "ApiEntryRetrievalError"
+export type ImageType =
+  | "Unknown"
+  | "Primary"
+  | "Art"
+  | "Backdrop"
+  | "Banner"
+  | "Logo"
+  | "Thumb"
+  | "Disc"
+  | "Box"
+  | "Screenshot"
+  | "Menu"
+  | "Chapter"
+  | "BoxRear"
+  | "Profile";
+
+export type IndexerError =
+  | ({ FailedParseUrlError: string } & {
+      ApiEntryRetrievalError?: never;
+      FailedDbInsertError?: never;
+      FailedMsgSendError?: never;
+      FailedTransactionError?: never;
+      JellyfinIndexerError?: never;
+      JourneyDbError?: never;
+    })
+  | ({ ApiEntryRetrievalError: string | null } & {
+      FailedDbInsertError?: never;
+      FailedMsgSendError?: never;
+      FailedParseUrlError?: never;
+      FailedTransactionError?: never;
+      JellyfinIndexerError?: never;
+      JourneyDbError?: never;
+    })
+  | ({ FailedDbInsertError: string } & {
+      ApiEntryRetrievalError?: never;
+      FailedMsgSendError?: never;
+      FailedParseUrlError?: never;
+      FailedTransactionError?: never;
+      JellyfinIndexerError?: never;
+      JourneyDbError?: never;
+    })
+  | ({ FailedMsgSendError: string } & {
+      ApiEntryRetrievalError?: never;
+      FailedDbInsertError?: never;
+      FailedParseUrlError?: never;
+      FailedTransactionError?: never;
+      JellyfinIndexerError?: never;
+      JourneyDbError?: never;
+    })
+  | ({ FailedTransactionError: string } & {
+      ApiEntryRetrievalError?: never;
+      FailedDbInsertError?: never;
+      FailedMsgSendError?: never;
+      FailedParseUrlError?: never;
+      JellyfinIndexerError?: never;
+      JourneyDbError?: never;
+    })
+  | "MissingVariantError"
   | "MissingServerIdError"
   | "MissingUserIdError"
   | "MissingUrlError"
-  | "FailedUuidParseError"
-  | "FailedPasswordAuthError"
-  | "FailedBuildConfigError";
+  | ({ JellyfinIndexerError: JellyfinIndexerError } & {
+      ApiEntryRetrievalError?: never;
+      FailedDbInsertError?: never;
+      FailedMsgSendError?: never;
+      FailedParseUrlError?: never;
+      FailedTransactionError?: never;
+      JourneyDbError?: never;
+    })
+  | ({ JourneyDbError: JourneyDbError } & {
+      ApiEntryRetrievalError?: never;
+      FailedDbInsertError?: never;
+      FailedMsgSendError?: never;
+      FailedParseUrlError?: never;
+      FailedTransactionError?: never;
+      JellyfinIndexerError?: never;
+    });
 
-export type JourneyDbError = "ConnectionError";
+export type IndexerKey = {
+  variant: ProviderVariant;
+  provider_id: string;
+};
+
+export type IndexerManagerError =
+  | ({ FailedTransactionError: string } & {
+      FailedTaskError?: never;
+      IndexerError?: never;
+      JourneyDbError?: never;
+      NoSuchCommError?: never;
+      NoSuchTaskError?: never;
+    })
+  | ({ FailedTaskError: string } & {
+      FailedTransactionError?: never;
+      IndexerError?: never;
+      JourneyDbError?: never;
+      NoSuchCommError?: never;
+      NoSuchTaskError?: never;
+    })
+  | ({ NoSuchCommError: string } & {
+      FailedTaskError?: never;
+      FailedTransactionError?: never;
+      IndexerError?: never;
+      JourneyDbError?: never;
+      NoSuchTaskError?: never;
+    })
+  | ({ NoSuchTaskError: string } & {
+      FailedTaskError?: never;
+      FailedTransactionError?: never;
+      IndexerError?: never;
+      JourneyDbError?: never;
+      NoSuchCommError?: never;
+    })
+  | ({ IndexerError: IndexerError } & {
+      FailedTaskError?: never;
+      FailedTransactionError?: never;
+      JourneyDbError?: never;
+      NoSuchCommError?: never;
+      NoSuchTaskError?: never;
+    })
+  | ({ JourneyDbError: JourneyDbError } & {
+      FailedTaskError?: never;
+      FailedTransactionError?: never;
+      IndexerError?: never;
+      NoSuchCommError?: never;
+      NoSuchTaskError?: never;
+    });
+
+export type IndexerMsg = {
+  item: string | null;
+  success: boolean;
+  already_exists: boolean;
+};
+
+export type JellyfinIndexerError = { ApiEntryRetrievalError: string | null };
+
+export type JellyfinProviderError =
+  | ({ ApiEntryRetrievalError: string | null } & {
+      FailedBuildConfigError?: never;
+    })
+  | ({ FailedBuildConfigError: string } & { ApiEntryRetrievalError?: never });
+
+export type JourneyDbError =
+  | ({ ConnectionError: string } & {
+      FailedTransactionError?: never;
+      RecordNotFound?: never;
+      Unknown?: never;
+    })
+  | ({ RecordNotFound: string } & {
+      ConnectionError?: never;
+      FailedTransactionError?: never;
+      Unknown?: never;
+    })
+  | ({ FailedTransactionError: string } & {
+      ConnectionError?: never;
+      RecordNotFound?: never;
+      Unknown?: never;
+    })
+  | ({ Unknown: string } & {
+      ConnectionError?: never;
+      FailedTransactionError?: never;
+      RecordNotFound?: never;
+    });
 
 export type MediaItemApiError = string;
 
 export type MediaItemDTO = {
   uuid: string;
-  type: string;
-  outlineGradient: string;
-  loaded: boolean;
-  local: string;
-  original: OriginalDTO[] | null;
+  isTmp: boolean;
+  type: MediaItemType;
+  outlineGradient: string | null;
+  sources: SourceDTO[] | null;
   content: ContentDTO[] | null;
   providers: ProviderDTO[] | null;
   images: ImageDTO[] | null;
@@ -53,19 +206,30 @@ export type MediaItemDTO = {
   parents: MediaItemDTO[] | null;
 };
 
-export type OriginalApiError = string;
-
-export type OriginalDTO = {
-  id: number;
-  parentId: string | null;
-  parent: MediaItemDTO | null;
-  serverId: string;
-  url: string;
-};
+export type MediaItemType =
+  "Unknown" | "Audio" | "Playlist" | "Artist" | "Album" | "Genre";
 
 export type ProviderApiError =
-  | ({ ProviderManagerError: ProviderManagerError } & { ProviderError?: never })
-  | ({ ProviderError: ProviderError } & { ProviderManagerError?: never });
+  | ({ FailedChannelSendError: string } & {
+      IndexerManagerError?: never;
+      ProviderError?: never;
+      ProviderManagerError?: never;
+    })
+  | ({ ProviderManagerError: ProviderManagerError } & {
+      FailedChannelSendError?: never;
+      IndexerManagerError?: never;
+      ProviderError?: never;
+    })
+  | ({ ProviderError: ProviderError } & {
+      FailedChannelSendError?: never;
+      IndexerManagerError?: never;
+      ProviderManagerError?: never;
+    })
+  | ({ IndexerManagerError: IndexerManagerError } & {
+      FailedChannelSendError?: never;
+      ProviderError?: never;
+      ProviderManagerError?: never;
+    });
 
 export type ProviderDTO = {
   authenticated: boolean | null;
@@ -78,67 +242,224 @@ export type ProviderDTO = {
 
 export type ProviderError =
   | "TooManyCredentialsError"
-  | "NoCredentialsError"
-  | "NoSuchVariantError"
-  | "FailedCreateEntryError"
-  | "FailedRemoveEntryError"
-  | "SaveTokenError"
-  | "FailedDbInsertError"
-  | "FailedDbRemoveError"
-  | "FailedConvModelError"
-  | "FailedParseUrlError"
-  | ({ JellyfinProviderError: JellyfinProviderError } & {
+  | ({ NoCredentialsError: string | null } & {
+      FailedConvModelError?: never;
+      FailedCreateEntryError?: never;
+      FailedDbInsertError?: never;
+      FailedDbRemoveError?: never;
+      FailedParseUrlError?: never;
+      FailedRemoveEntryError?: never;
+      JellyfinProviderError?: never;
       JourneyDbError?: never;
+      SaveTokenError?: never;
     })
-  | ({ JourneyDbError: JourneyDbError } & { JellyfinProviderError?: never });
+  | "MissingVariantError"
+  | "MissingServerIdError"
+  | "MissingUserIdError"
+  | "MissingUrlError"
+  | "FailedUuidParseError"
+  | "FailedPasswordAuthError"
+  | ({ FailedCreateEntryError: string } & {
+      FailedConvModelError?: never;
+      FailedDbInsertError?: never;
+      FailedDbRemoveError?: never;
+      FailedParseUrlError?: never;
+      FailedRemoveEntryError?: never;
+      JellyfinProviderError?: never;
+      JourneyDbError?: never;
+      NoCredentialsError?: never;
+      SaveTokenError?: never;
+    })
+  | ({ FailedRemoveEntryError: string } & {
+      FailedConvModelError?: never;
+      FailedCreateEntryError?: never;
+      FailedDbInsertError?: never;
+      FailedDbRemoveError?: never;
+      FailedParseUrlError?: never;
+      JellyfinProviderError?: never;
+      JourneyDbError?: never;
+      NoCredentialsError?: never;
+      SaveTokenError?: never;
+    })
+  | ({ SaveTokenError: string } & {
+      FailedConvModelError?: never;
+      FailedCreateEntryError?: never;
+      FailedDbInsertError?: never;
+      FailedDbRemoveError?: never;
+      FailedParseUrlError?: never;
+      FailedRemoveEntryError?: never;
+      JellyfinProviderError?: never;
+      JourneyDbError?: never;
+      NoCredentialsError?: never;
+    })
+  | ({ FailedDbInsertError: string } & {
+      FailedConvModelError?: never;
+      FailedCreateEntryError?: never;
+      FailedDbRemoveError?: never;
+      FailedParseUrlError?: never;
+      FailedRemoveEntryError?: never;
+      JellyfinProviderError?: never;
+      JourneyDbError?: never;
+      NoCredentialsError?: never;
+      SaveTokenError?: never;
+    })
+  | ({ FailedDbRemoveError: string } & {
+      FailedConvModelError?: never;
+      FailedCreateEntryError?: never;
+      FailedDbInsertError?: never;
+      FailedParseUrlError?: never;
+      FailedRemoveEntryError?: never;
+      JellyfinProviderError?: never;
+      JourneyDbError?: never;
+      NoCredentialsError?: never;
+      SaveTokenError?: never;
+    })
+  | ({ FailedConvModelError: string } & {
+      FailedCreateEntryError?: never;
+      FailedDbInsertError?: never;
+      FailedDbRemoveError?: never;
+      FailedParseUrlError?: never;
+      FailedRemoveEntryError?: never;
+      JellyfinProviderError?: never;
+      JourneyDbError?: never;
+      NoCredentialsError?: never;
+      SaveTokenError?: never;
+    })
+  | ({ FailedParseUrlError: string } & {
+      FailedConvModelError?: never;
+      FailedCreateEntryError?: never;
+      FailedDbInsertError?: never;
+      FailedDbRemoveError?: never;
+      FailedRemoveEntryError?: never;
+      JellyfinProviderError?: never;
+      JourneyDbError?: never;
+      NoCredentialsError?: never;
+      SaveTokenError?: never;
+    })
+  | ({ JellyfinProviderError: JellyfinProviderError } & {
+      FailedConvModelError?: never;
+      FailedCreateEntryError?: never;
+      FailedDbInsertError?: never;
+      FailedDbRemoveError?: never;
+      FailedParseUrlError?: never;
+      FailedRemoveEntryError?: never;
+      JourneyDbError?: never;
+      NoCredentialsError?: never;
+      SaveTokenError?: never;
+    })
+  | ({ JourneyDbError: JourneyDbError } & {
+      FailedConvModelError?: never;
+      FailedCreateEntryError?: never;
+      FailedDbInsertError?: never;
+      FailedDbRemoveError?: never;
+      FailedParseUrlError?: never;
+      FailedRemoveEntryError?: never;
+      JellyfinProviderError?: never;
+      NoCredentialsError?: never;
+      SaveTokenError?: never;
+    });
 
 export type ProviderKey = {
   userId: string;
-  serverId: string;
+  providerId: string;
 };
 
 export type ProviderManagerError =
+  | "UnknownProviderError"
   | "NoProviderError"
   | "RegisterError"
   | "ProviderInUseError"
   | "DeregisterError"
-  | "FailedDbStreamError"
-  | ({ ProviderError: ProviderError } & { JourneyDbError?: never })
-  | ({ JourneyDbError: JourneyDbError } & { ProviderError?: never });
+  | ({ FailedDbStreamError: string } & {
+      IndexerError?: never;
+      IndexerManagerError?: never;
+      JourneyDbError?: never;
+      NotAuthenticatedError?: never;
+      ProviderError?: never;
+    })
+  | "FailedIndexingError"
+  | ({ NotAuthenticatedError: string } & {
+      FailedDbStreamError?: never;
+      IndexerError?: never;
+      IndexerManagerError?: never;
+      JourneyDbError?: never;
+      ProviderError?: never;
+    })
+  | ({ ProviderError: ProviderError } & {
+      FailedDbStreamError?: never;
+      IndexerError?: never;
+      IndexerManagerError?: never;
+      JourneyDbError?: never;
+      NotAuthenticatedError?: never;
+    })
+  | ({ IndexerError: IndexerError } & {
+      FailedDbStreamError?: never;
+      IndexerManagerError?: never;
+      JourneyDbError?: never;
+      NotAuthenticatedError?: never;
+      ProviderError?: never;
+    })
+  | ({ IndexerManagerError: IndexerManagerError } & {
+      FailedDbStreamError?: never;
+      IndexerError?: never;
+      JourneyDbError?: never;
+      NotAuthenticatedError?: never;
+      ProviderError?: never;
+    })
+  | ({ JourneyDbError: JourneyDbError } & {
+      FailedDbStreamError?: never;
+      IndexerError?: never;
+      IndexerManagerError?: never;
+      NotAuthenticatedError?: never;
+      ProviderError?: never;
+    });
 
-export type ProviderVariant = "JellyfinProvider";
+export type ProviderVariant = "Unknown" | "JellyfinProvider";
 
 export type Result<T, E> = {
   ok: T;
   err: E;
 };
+
+export type SourceApiError = string;
+
+export type SourceDTO = {
+  parentId: string | null;
+  parent: MediaItemDTO | null;
+  providerId: string;
+};
 const ARGS_MAP = {
+  Source: { get_source: [] },
   content: { get_content: [] },
   image: { get_images: [] },
   mediaItem: { get_media_items: [] },
-  original: { get_original: [] },
   provider: {
     deregister: ["key"],
     get_provider: ["key"],
     get_providers: [],
+    indexer_status: ["key", "on_event"],
     password_auth: ["url", "ty", "uname", "psw"],
   },
 };
 
 const RESULT_MAP = {
+  Source: { get_source: true },
   content: { get_content: true },
   image: { get_images: true },
   mediaItem: { get_media_items: true },
-  original: { get_original: true },
   provider: {
     deregister: true,
     get_provider: true,
     get_providers: true,
+    indexer_status: true,
     password_auth: true,
   },
 };
 
 export type Router = {
+  Source: {
+    get_source: () => Promise<TauRpcResult<SourceDTO, SourceApiError>>;
+  };
   content: {
     get_content: () => Promise<TauRpcResult<ContentDTO, ContentApiError>>;
   };
@@ -150,9 +471,6 @@ export type Router = {
       TauRpcResult<MediaItemDTO, MediaItemApiError>
     >;
   };
-  original: {
-    get_original: () => Promise<TauRpcResult<OriginalDTO, OriginalApiError>>;
-  };
   provider: {
     deregister: (
       key: ProviderKey,
@@ -161,6 +479,10 @@ export type Router = {
       key: ProviderKey,
     ) => Promise<TauRpcResult<ProviderDTO, ProviderApiError>>;
     get_providers: () => Promise<TauRpcResult<ProviderDTO[], ProviderApiError>>;
+    indexer_status: (
+      key: IndexerKey,
+      onEvent: (response: IndexerMsg) => void,
+    ) => Promise<TauRpcResult<null, ProviderApiError>>;
     password_auth: (
       url: string,
       ty: ProviderVariant,

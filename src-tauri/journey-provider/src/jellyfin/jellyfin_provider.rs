@@ -259,10 +259,16 @@ mod variant_jellyfin {
 
         let mut indexer_manager = IndexerManager::default();
         indexer_manager.register(indexer).unwrap();
-        let res = indexer_manager.finish_task(&key).await.unwrap();
+        let res = indexer_manager
+            .consume_task(&key)
+            .await
+            .unwrap()
+            .await
+            .unwrap()
+            .unwrap();
         warn!("msg: {:#?}", res);
 
-        let comm = indexer_manager.get_status(&key).unwrap();
+        let mut comm = indexer_manager.consume_status(&key).unwrap();
 
         while let Some(res) = comm.recv().await {
             warn!("msg: {:#?}", res);

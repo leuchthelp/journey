@@ -166,6 +166,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
 
         let key = provider.key()?;
         self.register(provider)?;
+        self.start_indexing()?;
         Ok(key)
     }
     async fn validate_provider(

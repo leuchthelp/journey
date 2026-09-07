@@ -5,11 +5,7 @@
   import ProviderAccordion from "#lib/components/Settings/Provider/ProviderAccordion.svelte";
   import Settings from "#lib/components/Settings/Settings.svelte";
   import { toAuthComponent } from "#lib/snippets/ToAuthComponent.svelte";
-  import "@videojs/html/audio/player";
-  import "@videojs/html/audio/minimal-skin";
-  import "@videojs/html/ui/controls";
-  import "@videojs/html/ui/play-button";
-  import Player from "#lib/components/Player/Player.svelte";
+  // import Player from "#lib/components/Player/Player.svelte";
   import { API } from "#lib/proxy.ts";
   import type { ProviderDTO, ProviderVariant } from "#lib/bindings.ts";
 
@@ -50,7 +46,7 @@
   {@render children()}
 </main>
 
-<Player />
+<!-- <Player /> -->
 <audio-player class="z-1">
   <media-container>
     <Playbar.Root>

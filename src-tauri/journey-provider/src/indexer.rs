@@ -34,6 +34,7 @@ use journey_db::{
     sea_query::Expr,
 };
 
+#[taurpc::ipc_type]
 #[derive(Debug)]
 pub struct IndexerMsg {
     pub item: Option<String>,

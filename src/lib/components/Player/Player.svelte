@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { store } from "./PlayerControlls.svelte";
+  import { store } from "./PlayerControls.svelte";
 
   let test = $state(store);
 

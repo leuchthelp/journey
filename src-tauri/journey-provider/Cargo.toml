@@ -25,6 +25,7 @@ tracing = { workspace = true }
 tracing-test = { workspace = true }
 futures = { workspace = true }
 serde = { workspace = true }
+taurpc = { workspace = true }
 specta = { workspace = true }
 tokio = { workspace = true }
 journey-db = { workspace = true }

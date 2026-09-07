@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use inherent::inherent;
 use journey_db::{entity::ProviderVariant, get_conn};
 use rapidhash::RapidHashMap;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use specta::Type;
 use thiserror::Error;
 use tokio::{
@@ -34,7 +34,8 @@ pub enum IndexerManagerError {
 
 pub type IndexerManagerResult<T> = Result<T, IndexerManagerError>;
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+#[taurpc::ipc_type]
+#[derive(Debug, PartialEq, Eq, Hash, Copy)]
 pub struct IndexerKey {
     pub variant: ProviderVariant,
     pub provider_id: Uuid,
@@ -53,14 +54,14 @@ impl Display for IndexerKey {
 #[async_trait]
 pub trait RequiredForIndexerManager {
     fn register(&mut self, indexer: Box<dyn Indexer + Send + Sync>) -> IndexerManagerResult<()>;
-    fn get_status(
+    fn consume_status(
         &mut self,
         key: &IndexerKey,
-    ) -> IndexerManagerResult<&mut UnboundedReceiver<IndexerMsg>>;
-    async fn finish_task(
+    ) -> IndexerManagerResult<UnboundedReceiver<IndexerMsg>>;
+    async fn consume_task(
         &mut self,
         key: &IndexerKey,
-    ) -> IndexerManagerResult<Vec<Option<IndexerError>>>;
+    ) -> IndexerManagerResult<JoinHandle<IndexerManagerResult<Vec<Option<IndexerError>>>>>;
 }
 
 #[async_trait]
@@ -97,24 +98,21 @@ impl RequiredForIndexerManager for IndexerManager {
         self.comms.insert(key, recv);
         Ok(())
     }
-    pub fn get_status(
+    pub fn consume_status(
         &mut self,
         key: &IndexerKey,
-    ) -> IndexerManagerResult<&mut UnboundedReceiver<IndexerMsg>> {
-        match self.comms.get_mut(key) {
+    ) -> IndexerManagerResult<UnboundedReceiver<IndexerMsg>> {
+        match self.comms.remove(key) {
             Some(comm) => Ok(comm),
             None => Err(IndexerManagerError::NoSuchCommError(key.to_string())),
         }
     }
-    pub async fn finish_task(
+    pub async fn consume_task(
         &mut self,
         key: &IndexerKey,
-    ) -> IndexerManagerResult<Vec<Option<IndexerError>>> {
+    ) -> IndexerManagerResult<JoinHandle<IndexerManagerResult<Vec<Option<IndexerError>>>>> {
         match self.tasks.remove(key) {
-            Some(task) => match task.await {
-                Ok(res) => res,
-                Err(err) => Err(IndexerManagerError::FailedTaskError(err.to_string())),
-            },
+            Some(task) => Ok(task),
             None => Err(IndexerManagerError::NoSuchTaskError(key.to_string())),
         }
     }

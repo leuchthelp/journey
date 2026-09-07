@@ -10,7 +10,5 @@
   "[svelte]": {
     "editor.defaultFormatter": "svelte.svelte-vscode"
   },
-  "cSpell.words": [
-    "brainz"
-  ]
+  "cSpell.words": ["brainz"]
 }
