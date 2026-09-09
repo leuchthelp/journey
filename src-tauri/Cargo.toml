@@ -48,8 +48,11 @@ specta = { version = "2.0.0-rc.25", features = [
     "uuid",
     "url",
     "tokio",
+    "jiff",
 ] }
+specta-serde = { version = "0.0.12" }
 specta-typescript = "0.0.12"
+jiff = { version = "0.2.35", features = ["serde"] }
 bon = "3.9"
 similar = "3.2.0"
 url = { version = "2.5.8", features = ["serde"] }

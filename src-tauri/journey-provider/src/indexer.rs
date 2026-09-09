@@ -4,6 +4,20 @@ use anyhow::Result;
 use async_trait::async_trait;
 use dyn_clone::{DynClone, clone_trait_object};
 use futures::future::try_join_all;
+use jiff::Timestamp;
+use journey_db::JourneyDbError;
+use journey_db::entity::{
+    ProviderVariant,
+    content::{self},
+    images, jt_parent_to_child,
+    media_items::{self, MediaItemType},
+    providers, sources,
+};
+use journey_db::sea_orm::{
+    ColumnTrait, Condition, DatabaseConnection, DatabaseTransaction, DbErr, EntityTrait,
+    IntoActiveModel, QueryFilter,
+};
+use journey_db::sea_query::Expr;
 use rapidhash::RapidHashSet;
 use serde::Serialize;
 use similar::TextDiff;
@@ -18,28 +32,27 @@ use crate::{
     helpers::check_exists, indexer_manager::IndexerKey,
     jellyfin::jellyfin_indexer::JellyfinIndexerError,
 };
-use journey_db::{
-    JourneyDbError,
-    entity::{
-        ProviderVariant,
-        content::{self},
-        images, jt_parent_to_child,
-        media_items::{self, MediaItemType},
-        providers, sources,
-    },
-    sea_orm::{
-        ColumnTrait, Condition, DatabaseConnection, DatabaseTransaction, DbErr, EntityTrait,
-        IntoActiveModel, QueryFilter,
-    },
-    sea_query::Expr,
-};
 
-#[taurpc::ipc_type]
-#[derive(Debug)]
-pub struct IndexerMsg {
-    pub item: Option<String>,
-    pub success: bool,
-    pub already_exists: bool,
+#[derive(Debug, Serialize, Type)]
+#[serde(
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase",
+    tag = "event",
+    content = "data"
+)]
+pub enum IndexerMsg {
+    Started {
+        total: i32,
+        time: Timestamp,
+    },
+    Progress {
+        item: Option<String>,
+        success: bool,
+        already_exists: bool,
+    },
+    Finished {
+        time: Timestamp,
+    },
 }
 
 #[derive(Debug, Error, Serialize, Type)]
@@ -291,7 +304,7 @@ pub trait Indexer: RequiredForIndexer + DynClone + Debug + Send {
             ),
         };
 
-        let msg = IndexerMsg {
+        let msg = IndexerMsg::Progress {
             item: Some(weak_id),
             success: success,
             already_exists: already_exists,

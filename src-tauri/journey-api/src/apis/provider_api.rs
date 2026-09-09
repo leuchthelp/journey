@@ -103,8 +103,7 @@ impl ProviderApi for ProviderApiImpl {
             .await
             .provider_manager
             .get_indexer_manager()
-            .consume_task(&key)
-            .await?;
+            .consume_task(&key)?;
 
         let _res = match indexer_task.await {
             Ok(res) => res,

@@ -261,7 +261,6 @@ mod variant_jellyfin {
         indexer_manager.register(indexer).unwrap();
         let res = indexer_manager
             .consume_task(&key)
-            .await
             .unwrap()
             .await
             .unwrap()

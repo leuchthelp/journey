@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use inherent::inherent;
 use journey_db::{entity::ProviderVariant, get_conn};
 use rapidhash::RapidHashMap;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
 use tokio::{
@@ -36,6 +36,7 @@ pub type IndexerManagerResult<T> = Result<T, IndexerManagerError>;
 
 #[taurpc::ipc_type]
 #[derive(Debug, PartialEq, Eq, Hash, Copy)]
+#[serde(rename_all = "camelCase")]
 pub struct IndexerKey {
     pub variant: ProviderVariant,
     pub provider_id: Uuid,
@@ -58,7 +59,7 @@ pub trait RequiredForIndexerManager {
         &mut self,
         key: &IndexerKey,
     ) -> IndexerManagerResult<UnboundedReceiver<IndexerMsg>>;
-    async fn consume_task(
+    fn consume_task(
         &mut self,
         key: &IndexerKey,
     ) -> IndexerManagerResult<JoinHandle<IndexerManagerResult<Vec<Option<IndexerError>>>>>;
@@ -107,7 +108,7 @@ impl RequiredForIndexerManager for IndexerManager {
             None => Err(IndexerManagerError::NoSuchCommError(key.to_string())),
         }
     }
-    pub async fn consume_task(
+    pub fn consume_task(
         &mut self,
         key: &IndexerKey,
     ) -> IndexerManagerResult<JoinHandle<IndexerManagerResult<Vec<Option<IndexerError>>>>> {

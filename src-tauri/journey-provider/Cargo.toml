@@ -11,6 +11,7 @@ tauri-plugin-os = { workspace = true }
 reqwest = { workspace = true }
 chrono = { workspace = true }
 url = { workspace = true }
+jiff = { workspace = true }
 similar = { workspace = true }
 rapidhash = { workspace = true }
 bon = { workspace = true }

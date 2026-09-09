@@ -14,7 +14,7 @@
       );
     }
 
-    let tmp = (await provider)?.url;
+    let tmp = provider?.url;
     if (typeof tmp === "string") url = tmp;
 
     await API.provider.deregister(key).then((response) => {
@@ -65,7 +65,7 @@
     }
 
     let key: IndexerKey = {
-      provider_id: provider.key?.providerId,
+      providerId: provider.key?.providerId,
       variant: provider.type,
     };
 
@@ -80,10 +80,13 @@
 
     await API.provider
       .indexer_status(key, (incoming) => {
-        if (incoming.item) msg = incoming.item;
-        console.log(
-          `indexer status: ${incoming.item}, ${incoming.success}, ${incoming.already_exists}`,
-        );
+        if (incoming.event === "progress") {
+          let data = incoming.data;
+          if (data.item) msg = data.item;
+          console.log(
+            `indexer status: ${data.item}, ${data.success}, ${data.alreadyExists}`,
+          );
+        }
       })
       .then((response) => {
         return strip(response);
@@ -123,19 +126,17 @@
       {/await}
     </div>
   {:else}
-    <form>
+    <form onsubmit={async () => await authenticateProvider(url, uname, psw)}>
       <label for="url">Server Address</label>
-      <input type="url" required bind:value={url} />
+      <input type="url" id="url" required bind:value={url} />
 
       <label for="uname">Username</label>
-      <input required bind:value={uname} />
+      <input type="text" id="uname" required bind:value={uname} />
 
       <label for="psw">Password</label>
-      <input type="password" required bind:value={psw} />
+      <input type="password" id="psw" required bind:value={psw} />
 
-      <button onclick={async () => await authenticateProvider(url, uname, psw)}
-        >Connect</button
-      >
+      <button type="submit">Connect</button>
     </form>
   {/if}
 </div>

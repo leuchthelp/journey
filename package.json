@@ -13,10 +13,10 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@lucide/svelte": "^1.41.0",
+    "@lucide/svelte": "^1.43.0",
     "@sveltejs/adapter-static": "^4.0.0-next.4",
     "@sveltejs/enhanced-img": "^1.0.0-next.5",
-    "@sveltejs/kit": "^3.0.0-next.25",
+    "@sveltejs/kit": "^3.0.0-next.27",
     "@tailwindcss/vite": "^4.3.3",
     "@tauri-apps/api": "^2.11.1",
     "@tauri-apps/plugin-fs": "~2.5.2",
