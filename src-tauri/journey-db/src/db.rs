@@ -5,6 +5,7 @@ use specta::Type;
 use thiserror::Error;
 
 #[derive(Debug, Error, Serialize, Type)]
+#[serde(tag = "error", content = "data")]
 pub enum JourneyDbError {
     #[error("Failed to establish database connection: {0}")]
     ConnectionError(String),
@@ -12,7 +13,7 @@ pub enum JourneyDbError {
     RecordNotFound(String),
     #[error("Transaction failed: {0}")]
     FailedTransactionError(String),
-    #[error("Unknown error occured: {0}")]
+    #[error("Unknown error occurred: {0}")]
     Unknown(String),
 }
 

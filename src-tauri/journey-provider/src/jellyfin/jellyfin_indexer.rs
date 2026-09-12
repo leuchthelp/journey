@@ -6,6 +6,16 @@ use jellyfin_sdk_rs::{
     apis::{configuration::Configuration, image_api::get_item_image_infos},
     models::{BaseItemDto, BaseItemKind, ImageType, ItemFields},
 };
+use journey_db::{
+    JourneyDbError,
+    entity::{
+        content::{self},
+        images::{self},
+        media_items::{self, MediaItemType},
+        providers,
+    },
+    sea_orm::{DatabaseConnection, DatabaseTransaction, TransactionTrait},
+};
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
@@ -17,18 +27,9 @@ use crate::{
     indexer::{Indexer, IndexerError, IndexerMsg, IndexerResult, NewIndexer, RequiredForIndexer},
     jellyfin::helpers::get_items_request,
 };
-use journey_db::{
-    JourneyDbError,
-    entity::{
-        content::{self},
-        images::{self},
-        media_items::{self, MediaItemType},
-        providers,
-    },
-    sea_orm::{DatabaseConnection, DatabaseTransaction, TransactionTrait},
-};
 
 #[derive(Debug, Error, Serialize, Type)]
+#[serde(tag = "error", content = "data")]
 pub enum JellyfinIndexerError {
     #[error("Failed to retrieve Jellyfin API response entry.")]
     ApiEntryRetrievalError(Option<String>),

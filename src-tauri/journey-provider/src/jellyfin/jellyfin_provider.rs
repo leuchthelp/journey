@@ -8,6 +8,8 @@ use jellyfin_sdk_rs::{
     models::{AuthenticateUserByName, UserDto},
     required::{ClientInfo, DeviceInfo},
 };
+use journey_db::entity::providers;
+use journey_utils::constants::{PRODUCT_NAME, PRODUCT_VERSION};
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
@@ -19,10 +21,9 @@ use crate::{
     jellyfin::jellyfin_indexer::JellyfinIndexer,
     provider::{NewProvider, Provider, ProviderResult, RequiredForProvider},
 };
-use journey_db::entity::providers;
-use journey_utils::constants::{PRODUCT_NAME, PRODUCT_VERSION};
 
 #[derive(Debug, Error, Serialize, Type)]
+#[serde(tag = "error", content = "data")]
 pub enum JellyfinProviderError {
     #[error("Failed to retrieve Jellyfin API response entry.")]
     ApiEntryRetrievalError(Option<String>),
@@ -104,7 +105,7 @@ impl RequiredForProvider for JellyfinProvider {
         };
         let auth_res = match authenticate_user_by_name(&client_config, auth_by_name).await {
             Ok(res) => res,
-            Err(_) => return Err(ProviderError::FailedPasswordAuthError),
+            Err(err) => return Err(ProviderError::FailedPasswordAuthError(err.to_string())),
         };
 
         let access_token = match auth_res.access_token.flatten() {
@@ -142,7 +143,7 @@ impl JellyfinProvider {
 
         let id = match Uuid::parse_str(&server_id) {
             Ok(uuid) => uuid,
-            Err(_) => return Err(ProviderError::FailedUuidParseError),
+            Err(err) => return Err(ProviderError::FailedUuidParseError(err.to_string())),
         };
 
         Ok(self.model.provider_id.set_ne(id))

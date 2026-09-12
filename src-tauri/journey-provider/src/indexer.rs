@@ -34,12 +34,7 @@ use crate::{
 };
 
 #[derive(Debug, Serialize, Type)]
-#[serde(
-    rename_all = "camelCase",
-    rename_all_fields = "camelCase",
-    tag = "event",
-    content = "data"
-)]
+#[serde(rename_all_fields = "camelCase", tag = "event", content = "data")]
 pub enum IndexerMsg {
     Started {
         total: i32,
@@ -56,6 +51,7 @@ pub enum IndexerMsg {
 }
 
 #[derive(Debug, Error, Serialize, Type)]
+#[serde(tag = "error", content = "data")]
 pub enum IndexerError {
     #[error("Failed to parse the given String to an Url: {0}")]
     FailedParseUrlError(String),

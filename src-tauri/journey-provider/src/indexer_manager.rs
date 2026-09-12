@@ -17,6 +17,7 @@ use uuid::Uuid;
 use crate::indexer::{Indexer, IndexerError, IndexerMsg};
 
 #[derive(Debug, Error, Serialize, Type)]
+#[serde(tag = "error", content = "data")]
 pub enum IndexerManagerError {
     #[error("Failed to run transaction: {0}")]
     FailedTransactionError(String),

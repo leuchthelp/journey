@@ -12,6 +12,7 @@ use thiserror::Error;
 use crate::AppState;
 
 #[derive(Debug, Error, Serialize, Type)]
+#[serde(tag = "error", content = "data")]
 pub enum ProviderApiError {
     #[error("Failed to send msg via channel: {0}")]
     FailedChannelSendError(String),

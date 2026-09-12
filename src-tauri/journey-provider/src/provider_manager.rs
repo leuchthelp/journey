@@ -4,6 +4,11 @@ use anyhow::Result;
 use async_trait::async_trait;
 use futures::TryStreamExt;
 use inherent::inherent;
+use journey_db::{
+    entity::{ProviderDTO, ProviderKey, ProviderVariant, providers},
+    get_conn,
+    sea_orm::{EntityTrait, IntoActiveModel},
+};
 use rapidhash::RapidHashMap;
 use serde::Serialize;
 use specta::Type;
@@ -17,13 +22,9 @@ use crate::{
     jellyfin_provider::JellyfinProvider,
     provider::{NewProvider, Provider},
 };
-use journey_db::{
-    entity::{ProviderDTO, ProviderKey, ProviderVariant, providers},
-    get_conn,
-    sea_orm::{EntityTrait, IntoActiveModel},
-};
 
 #[derive(Debug, Error, Serialize, Type)]
+#[serde(tag = "error", content = "data")]
 pub enum ProviderManagerError {
     #[error(r#"ProviderVariant is "Unknown" & value is not Set on ActiveModel."#)]
     UnknownProviderError,

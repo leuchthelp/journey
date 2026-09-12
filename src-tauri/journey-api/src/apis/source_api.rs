@@ -1,13 +1,13 @@
 use anyhow::Result;
 use journey_db::entity::SourceDTO;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
 
 use crate::AppState;
 
-#[derive(Debug, Error, Serialize, Deserialize, Type)]
-#[specta(type = String)]
+#[derive(Debug, Error, Serialize, Type)]
+#[serde(tag = "error", content = "data")]
 pub enum SourceApiError {}
 
 type SourceResult<T> = Result<T, SourceApiError>;

@@ -3,9 +3,12 @@
     type IndexerKey,
     type ProviderDTO,
     type ProviderKey,
+    type ProviderVariant,
   } from "#lib/bindings.ts";
   import { strip } from "#lib/components/helpers.ts";
   import { API } from "#lib/proxy.ts";
+  import { Effect } from "effect";
+  import { passwordAuth } from "#lib/effects/auth.ts";
 
   const removeConnection = async () => {
     if (key == undefined) {
@@ -26,18 +29,13 @@
     psw = "";
   };
 
-  const authenticateProvider = async (
+  const authenticateProvider = (
     url: string,
+    type: ProviderVariant,
     uname: string,
     psw: string,
   ) => {
-    let response = await API.provider
-      .password_auth(url, "JellyfinProvider", uname, psw)
-      .then((response) => {
-        return strip(response);
-      });
-
-    key = response;
+    key = Effect.runSync(passwordAuth(url, type, uname, psw));
     uname = "";
     psw = "";
   };
@@ -98,9 +96,10 @@
   };
   let { key }: Props = $props();
 
+  let url = $state("");
+  let type: ProviderVariant = $state("JellyfinProvider");
   let uname = $state("");
   let psw = $state("");
-  let url = $state("");
 
   let provider = $derived(await getProvider(key));
 
@@ -126,7 +125,7 @@
       {/await}
     </div>
   {:else}
-    <form onsubmit={async () => await authenticateProvider(url, uname, psw)}>
+    <form onsubmit={() => authenticateProvider(url, type, uname, psw)}>
       <label for="url">Server Address</label>
       <input type="url" id="url" required bind:value={url} />
 

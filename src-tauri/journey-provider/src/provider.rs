@@ -4,6 +4,13 @@ use std::fmt::Debug;
 use anyhow::Result;
 use async_trait::async_trait;
 use dyn_clone::{DynClone, clone_trait_object};
+use journey_db::entity::providers::{self};
+use journey_db::entity::{ProviderKey, ProviderVariant};
+use journey_db::get_conn;
+use journey_db::sea_orm::EntityTrait;
+use journey_db::sea_query::OnConflict;
+use journey_keyring::Entry;
+use journey_utils::constants::PRODUCT_NAME;
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
@@ -13,15 +20,9 @@ use uuid::Uuid;
 
 use crate::indexer::Indexer;
 use crate::jellyfin::jellyfin_provider::JellyfinProviderError;
-use journey_db::entity::providers::{self};
-use journey_db::entity::{ProviderKey, ProviderVariant};
-use journey_db::get_conn;
-use journey_db::sea_orm::EntityTrait;
-use journey_db::sea_query::OnConflict;
-use journey_keyring::Entry;
-use journey_utils::constants::PRODUCT_NAME;
 
 #[derive(Debug, Error, Serialize, Type)]
+#[serde(tag = "error", content = "data")]
 pub enum ProviderError {
     #[error("Found more than one access token, removing all.")]
     TooManyCredentialsError,
@@ -36,9 +37,9 @@ pub enum ProviderError {
     #[error("Url has not been set yet, provide one first.")]
     MissingUrlError,
     #[error("Failed to parse given String to Uuid.")]
-    FailedUuidParseError,
+    FailedUuidParseError(String),
     #[error("Failed to authenticate with username & password.")]
-    FailedPasswordAuthError,
+    FailedPasswordAuthError(String),
     #[error("Failed to create keyring entry.")]
     FailedCreateEntryError(String),
     #[error("Failed to remove keyring entry. Credentials might leak.")]
