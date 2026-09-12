@@ -22,7 +22,7 @@ use crate::indexer::Indexer;
 use crate::jellyfin::jellyfin_provider::JellyfinProviderError;
 
 #[derive(Debug, Error, Serialize, Type)]
-#[serde(tag = "error", content = "data")]
+//#[serde(tag = "error", content = "data")]
 pub enum ProviderError {
     #[error("Found more than one access token, removing all.")]
     TooManyCredentialsError,

@@ -7,7 +7,7 @@ use thiserror::Error;
 use crate::AppState;
 
 #[derive(Debug, Error, Serialize, Type)]
-#[serde(tag = "error", content = "data")]
+//#[serde(tag = "error", content = "data")]
 pub enum MediaItemApiError {}
 
 type MediaItemApiResult<T> = Result<T, MediaItemApiError>;

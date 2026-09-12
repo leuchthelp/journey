@@ -8,37 +8,7 @@
   import { strip } from "#lib/components/helpers.ts";
   import { API } from "#lib/proxy.ts";
   import { Effect } from "effect";
-  import { passwordAuth } from "#lib/effects/auth.ts";
-
-  const removeConnection = async () => {
-    if (key == undefined) {
-      throw new Error(
-        "Key should be set if connection succeeded. Somehow it is not.",
-      );
-    }
-
-    let tmp = provider?.url;
-    if (typeof tmp === "string") url = tmp;
-
-    await API.provider.deregister(key).then((response) => {
-      return strip(response);
-    });
-
-    key = undefined;
-    uname = "";
-    psw = "";
-  };
-
-  const authenticateProvider = (
-    url: string,
-    type: ProviderVariant,
-    uname: string,
-    psw: string,
-  ) => {
-    key = Effect.runSync(passwordAuth(url, type, uname, psw));
-    uname = "";
-    psw = "";
-  };
+  import { passwordAuth, logOutOfProvider } from "#lib/effects/auth.ts";
 
   const getProvider = async (
     key?: ProviderKey,
@@ -78,7 +48,7 @@
 
     await API.provider
       .indexer_status(key, (incoming) => {
-        if (incoming.event === "progress") {
+        if (incoming.event === "Progress") {
           let data = incoming.data;
           if (data.item) msg = data.item;
           console.log(
@@ -114,7 +84,9 @@
     <div>Connected</div>
     <div>{key}</div>
     <div>{provider.url}</div>
-    <button onclick={async () => await removeConnection()}
+    <button
+      onclick={async () =>
+        (key = await Effect.runPromise(logOutOfProvider(key)))}
       >Remove Connection</button
     >
     <div>
@@ -125,15 +97,38 @@
       {/await}
     </div>
   {:else}
-    <form onsubmit={() => authenticateProvider(url, type, uname, psw)}>
+    <form
+      onsubmit={async () => {
+        const [newKey, newUname, newPsw] = await Effect.runPromise(
+          passwordAuth(url, type, uname, psw),
+        );
+
+        key = newKey;
+        uname = newUname;
+        psw = newPsw;
+      }}
+    >
       <label for="url">Server Address</label>
-      <input type="url" id="url" required bind:value={url} />
+      <input
+        type="url"
+        id="url"
+        required
+        bind:value={url}
+        placeholder="https://example.com"
+        pattern="https?://.*"
+      />
 
       <label for="uname">Username</label>
       <input type="text" id="uname" required bind:value={uname} />
 
       <label for="psw">Password</label>
-      <input type="password" id="psw" required bind:value={psw} />
+      <input
+        type="password"
+        id="psw"
+        required
+        bind:value={psw}
+        autocomplete="current-password"
+      />
 
       <button type="submit">Connect</button>
     </form>

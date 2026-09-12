@@ -23,7 +23,7 @@ use crate::{
 };
 
 #[derive(Debug, Error, Serialize, Type)]
-#[serde(tag = "error", content = "data")]
+//#[serde(tag = "error", content = "data")]
 pub enum JellyfinProviderError {
     #[error("Failed to retrieve Jellyfin API response entry.")]
     ApiEntryRetrievalError(Option<String>),

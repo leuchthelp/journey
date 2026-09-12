@@ -24,7 +24,7 @@ use crate::{
 };
 
 #[derive(Debug, Error, Serialize, Type)]
-#[serde(tag = "error", content = "data")]
+//#[serde(tag = "error", content = "data")]
 pub enum ProviderManagerError {
     #[error(r#"ProviderVariant is "Unknown" & value is not Set on ActiveModel."#)]
     UnknownProviderError,

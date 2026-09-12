@@ -51,7 +51,7 @@ pub enum IndexerMsg {
 }
 
 #[derive(Debug, Error, Serialize, Type)]
-#[serde(tag = "error", content = "data")]
+//#[serde(tag = "error", content = "data")]
 pub enum IndexerError {
     #[error("Failed to parse the given String to an Url: {0}")]
     FailedParseUrlError(String),
