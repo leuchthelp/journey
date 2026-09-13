@@ -7,7 +7,7 @@
   import { toAuthComponent } from "#lib/snippets/ToAuthComponent.svelte";
   // import Player from "#lib/components/Player/Player.svelte";
   import { API } from "#lib/proxy.ts";
-  import type { ProviderDTO, ProviderVariant } from "#lib/bindings.ts";
+  import type { ProviderDTO, ProviderAuthSchema } from "#lib/bindings.ts";
 
   function toggleVisible() {
     visible = !visible;
@@ -16,9 +16,9 @@
   let { children } = $props();
   let visible = $state(false);
 
-  let displayable: ProviderVariant[] = $state([]);
+  let displayable: ProviderAuthSchema[] = $state([]);
   function addComponent() {
-    displayable.push("JellyfinProvider");
+    displayable.push("Password");
   }
 
   let data: ProviderDTO[] = await API.provider
@@ -71,12 +71,14 @@
       <ProviderAccordion title={"Providers"}>
         <ProviderAccordion title={"Jellyfin"}>
           <button onclick={() => addComponent()}>Add Jellyfin Provider</button>
-          {#each displayable as type}
-            {@render toAuthComponent(type)}
+          {#each displayable as schema}
+            {@render toAuthComponent(schema, "JellyfinProvider")}
           {/each}
           {#each providers as provider}
             {#if provider.key}
-              {@render toAuthComponent(provider.type, provider.key)}
+              {#each provider.authSchema.supported as schema}
+                {@render toAuthComponent(schema, provider.type, provider.key)}
+              {/each}
             {:else}
               error
             {/if}

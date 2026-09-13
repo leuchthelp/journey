@@ -35,6 +35,38 @@ pub enum ProviderVariant {
     JellyfinProvider,
 }
 
+#[derive(
+    Default,
+    Display,
+    Debug,
+    Serialize,
+    Deserialize,
+    Type,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    EnumIter,
+    EnumString,
+    DeriveValueType,
+)]
+#[sea_orm(value_type = "String")]
+pub enum ProviderAuthSchema {
+    #[default]
+    Unknown,
+    Password,
+    OTP,
+    Oauth,
+}
+
+#[derive(
+    Default, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult, Type,
+)]
+pub struct AuthSchemaVec {
+    pub supported: Vec<ProviderAuthSchema>,
+}
+
 #[sea_orm::model]
 #[derive(Default, Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
 #[sea_orm(table_name = "providers")]
@@ -44,6 +76,7 @@ pub struct Model {
     #[sea_orm(unique)]
     pub user_id: Uuid,
     pub ty: ProviderVariant,
+    pub auth_schema: AuthSchemaVec,
     pub url: String,
     #[sea_orm(has_many, via = "jt_media_item_to_provider")]
     pub media_items: HasMany<super::media_items::Entity>,
@@ -66,9 +99,10 @@ pub struct ProviderKey {
 #[serde(rename_all = "camelCase")]
 pub struct ProviderDTO {
     pub authenticated: Option<bool>,
-    pub key: Option<ProviderKey>,
+    pub key: ProviderKey,
     #[serde(rename = "type")]
     pub ty: ProviderVariant,
+    pub auth_schema: AuthSchemaVec,
     pub url: Option<Url>,
     pub media_items: Option<Vec<MediaItemDTO>>,
     pub images: Option<Vec<ImageDTO>>,
@@ -84,11 +118,12 @@ impl Convertible<ModelEx> for ProviderDTO {
 
         Ok(ProviderDTO {
             authenticated: Some(false),
-            key: Some(ProviderKey {
+            key: ProviderKey {
                 user_id: item.user_id,
                 provider_id: item.provider_id,
-            }),
+            },
             ty: item.ty,
+            auth_schema: item.auth_schema,
             url: Some(Url::parse(&item.url)?),
             media_items: parents,
             images: images,

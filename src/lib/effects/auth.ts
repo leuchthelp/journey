@@ -8,8 +8,8 @@ const passwordAuth = (
   type: ProviderVariant,
   uname: string,
   psw: string,
-) => {
-  return Effect.gen(function* () {
+) =>
+  Effect.gen(function* () {
     const wrapped = pipe(
       API.provider.password_auth(url, type, uname, psw),
       wrapWithEffect,
@@ -29,10 +29,9 @@ const passwordAuth = (
       never
     >;
   });
-};
 
-const logOutOfProvider = (key?: ProviderKey) => {
-  return Effect.gen(function* () {
+const logOutOfProvider = (key?: ProviderKey) =>
+  Effect.gen(function* () {
     const checkedKey = yield* pipe(key, Effect.fromNullishOr, guaranteeNoError);
     const wrapped = pipe(checkedKey, API.provider.deregister, wrapWithEffect);
 
@@ -46,6 +45,5 @@ const logOutOfProvider = (key?: ProviderKey) => {
       },
     });
   });
-};
 
 export { passwordAuth, logOutOfProvider };

@@ -1,8 +1,8 @@
-import JellyfinAuth from "./JellyfinAuth.svelte";
-import { type ProviderVariant } from "#lib/bindings.ts";
+import PasswordAuth from "./PasswordAuth.svelte";
+import { type ProviderAuthSchema } from "../../../bindings.ts";
 import { type LegacyComponentType } from "svelte/legacy";
 
-export const providerAuthOptions = new Map<
-  ProviderVariant,
+export const supportedAuthSchema = new Map<
+  ProviderAuthSchema,
   LegacyComponentType
->([["JellyfinProvider", JellyfinAuth]]);
+>([["Password", PasswordAuth]]);

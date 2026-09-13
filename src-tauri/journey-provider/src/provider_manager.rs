@@ -36,11 +36,11 @@ pub enum ProviderManagerError {
     ProviderInUseError,
     #[error("Provider is not registered, can not unregister.")]
     DeregisterError,
-    #[error("Could not acquire database stream of provider values.")]
+    #[error("Could not acquire database stream of provider values: {0}")]
     FailedDbStreamError(String),
     #[error("Failed to index the given provider.")]
     FailedIndexingError,
-    #[error("Provider has not been authenticated yet")]
+    #[error("Provider has not been authenticated yet: {0}")]
     NotAuthenticatedError(String),
     #[error(transparent)]
     ProviderError(#[from] ProviderError),
@@ -89,6 +89,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
             .ty(provider.ty()?)
             .url(provider.url()?)
             .key(provider.key()?)
+            .auth_schema(provider.auth_schema()?)
             .build();
 
         Ok(provider_dto)
@@ -100,6 +101,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
             let new = ProviderDTO::builder()
                 .ty(provider.ty()?)
                 .key(provider.key()?)
+                .auth_schema(provider.auth_schema()?)
                 .build();
             providers.push(new);
         }
@@ -236,10 +238,6 @@ impl ProviderManagerFn for ProviderManager {}
 
 #[cfg(test)]
 mod provider_manager_test {
-    use crate::ProviderManagerFn;
-    use crate::jellyfin_provider::JellyfinProvider;
-    use crate::provider::{NewProvider, Provider};
-    use crate::provider_manager::ProviderManager;
     use journey_db::entity::ProviderVariant;
     use journey_db::entity::providers::{self};
     use journey_utils::constants::PRODUCT_NAME;
@@ -248,8 +246,12 @@ mod provider_manager_test {
     use tracing::warn;
     use url::Url;
 
+    use crate::ProviderManagerFn;
+    use crate::jellyfin_provider::JellyfinProvider;
+    use crate::provider::{NewProvider, Provider};
+    use crate::provider_manager::ProviderManager;
+
     #[tokio::test]
-    #[ignore]
     async fn hash_no_login_failure() {
         let params =
             providers::ActiveModelEx::new().set_url(Url::parse("http://smth.example.com").unwrap());
@@ -260,7 +262,6 @@ mod provider_manager_test {
     }
 
     #[tokio::test]
-    #[ignore]
     #[serial]
     async fn try_provider_manager_flow() {
         let env_map = get_env_local();

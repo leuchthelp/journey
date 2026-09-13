@@ -1,17 +1,16 @@
 import { Effect } from "effect";
 import type { TauRpcResult } from "../bindings.ts";
 
-const wrapWithEffect = <T, E>(promise: Promise<TauRpcResult<T, E>>) => {
-  return Effect.gen(function* () {
+const wrapWithEffect = <T, E>(promise: Promise<TauRpcResult<T, E>>) =>
+  Effect.gen(function* () {
     const result = yield* Effect.tryPromise(async () => await promise);
 
     if (result.status === "error") yield* Effect.fail(result.error);
     else return yield* Effect.succeed(result.data);
   });
-};
 
-const guaranteeNoError = <T, E>(effect: Effect.Effect<T, E, never>) => {
-  return Effect.matchEffect(effect, {
+const guaranteeNoError = <T, E>(effect: Effect.Effect<T, E, never>) =>
+  Effect.matchEffect(effect, {
     onFailure: (err) => {
       /* 
       This needs to call a custom Error handler at some point in the future.
@@ -30,6 +29,5 @@ const guaranteeNoError = <T, E>(effect: Effect.Effect<T, E, never>) => {
       return Effect.succeed(value);
     },
   });
-};
 
 export { wrapWithEffect, guaranteeNoError };

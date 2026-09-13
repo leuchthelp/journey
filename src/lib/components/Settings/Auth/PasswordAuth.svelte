@@ -1,31 +1,16 @@
 <script lang="ts">
   import {
-    type IndexerKey,
     type IndexerMsg,
-    type ProviderDTO,
     type ProviderKey,
     type ProviderVariant,
   } from "#lib/bindings.ts";
   import { Effect } from "effect";
   import { passwordAuth, logOutOfProvider } from "#lib/effects/auth.ts";
-  import { getProvider, indexerStatus } from "#lib/effects/provider.ts";
-
-  function setKey(provider: ProviderDTO | undefined): IndexerKey | undefined {
-    if (provider === undefined) {
-      return;
-    }
-
-    if (provider.key?.providerId === undefined) {
-      return;
-    }
-
-    let key: IndexerKey = {
-      providerId: provider.key?.providerId,
-      variant: provider.type,
-    };
-
-    return key;
-  }
+  import {
+    getProvider,
+    setIndexerKey,
+    indexerStatus,
+  } from "#lib/effects/provider.ts";
 
   const callback = (incoming: IndexerMsg) => {
     if (incoming.event === "Progress") {
@@ -43,17 +28,15 @@
   };
   let { type, key }: Props = $props();
 
-  let url: string = $state("");
-  let uname: string = $state("");
-  let psw: string = $state("");
+  let url = $state("");
+  let uname = $state("");
+  let psw = $state("");
+  let msg = $state("");
 
-  let provider: ProviderDTO | undefined = $derived(
-    await Effect.runPromise(getProvider(key)),
-  );
+  let provider = $derived(await Effect.runPromise(getProvider(key)));
 
-  let msg: String = $state("");
-  let indexer_key: IndexerKey | undefined = $derived(setKey(provider));
-  let indexer_status: Promise<boolean> = $derived(
+  let indexer_key = $derived(Effect.runSync(setIndexerKey(provider)));
+  let indexer_status = $derived(
     Effect.runPromise(indexerStatus(callback, indexer_key)),
   );
   $inspect(provider);

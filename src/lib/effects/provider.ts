@@ -1,10 +1,15 @@
 import { Effect, pipe } from "effect";
 import { guaranteeNoError, wrapWithEffect } from "#lib/effects/generic.ts";
-import type { IndexerKey, IndexerMsg, ProviderKey } from "../bindings.ts";
+import type {
+  IndexerKey,
+  IndexerMsg,
+  ProviderDTO,
+  ProviderKey,
+} from "../bindings.ts";
 import { API } from "../proxy.ts";
 
-const getProvider = (key?: ProviderKey) => {
-  return Effect.matchEffect(pipe(key, Effect.fromNullishOr), {
+const getProvider = (key?: ProviderKey) =>
+  Effect.matchEffect(pipe(key, Effect.fromNullishOr), {
     onFailure: () => {
       console.warn("No known provider yet, offering to create new one.");
       return Effect.succeed(undefined);
@@ -27,13 +32,27 @@ const getProvider = (key?: ProviderKey) => {
       });
     },
   });
-};
+
+const setIndexerKey = (provider?: ProviderDTO) =>
+  Effect.matchEffect(pipe(provider, Effect.fromNullishOr), {
+    onFailure: () => {
+      console.warn("No known provider yet, therefore no indexer.");
+      return Effect.succeed(undefined);
+    },
+    onSuccess: (checkedProvider) => {
+      const key: IndexerKey = {
+        providerId: checkedProvider.key.providerId,
+        variant: checkedProvider.type,
+      };
+      return Effect.succeed(key);
+    },
+  });
 
 const indexerStatus = (
   callback: (response: IndexerMsg) => void,
   key?: IndexerKey,
-) => {
-  return Effect.gen(function* () {
+) =>
+  Effect.gen(function* () {
     const checkedKey = yield* pipe(key, Effect.fromNullishOr, guaranteeNoError);
 
     const wrapped = pipe(
@@ -51,6 +70,5 @@ const indexerStatus = (
       },
     });
   });
-};
 
-export { getProvider, indexerStatus };
+export { getProvider, setIndexerKey, indexerStatus };

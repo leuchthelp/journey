@@ -8,7 +8,7 @@ use jellyfin_sdk_rs::{
     models::{AuthenticateUserByName, UserDto},
     required::{ClientInfo, DeviceInfo},
 };
-use journey_db::entity::providers;
+use journey_db::entity::providers::{self, AuthSchemaVec};
 use journey_utils::constants::{PRODUCT_NAME, PRODUCT_VERSION};
 use serde::Serialize;
 use specta::Type;
@@ -59,6 +59,11 @@ impl NewProvider for JellyfinProvider {
             ),
             languages: None,
         };
+
+        let mut model = model.clone();
+        model.auth_schema.set_if_not_equals(AuthSchemaVec {
+            supported: vec![providers::ProviderAuthSchema::Password],
+        });
 
         Box::new(JellyfinProvider {
             model: model,
@@ -202,7 +207,6 @@ mod variant_jellyfin {
     use journey_utils::get_env_local;
 
     #[test]
-    #[ignore]
     fn matching_name() {
         let model = providers::ActiveModelEx::new()
             .set_url(Url::parse("http://smth.example.com").unwrap())
@@ -215,7 +219,7 @@ mod variant_jellyfin {
     }
 
     #[tokio::test]
-    //#[ignore]
+    #[ignore]
     #[traced_test]
     #[serial]
     async fn try_auth_flow() {

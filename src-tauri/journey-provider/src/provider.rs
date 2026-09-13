@@ -4,7 +4,7 @@ use std::fmt::Debug;
 use anyhow::Result;
 use async_trait::async_trait;
 use dyn_clone::{DynClone, clone_trait_object};
-use journey_db::entity::providers::{self};
+use journey_db::entity::providers::{self, AuthSchemaVec};
 use journey_db::entity::{ProviderKey, ProviderVariant};
 use journey_db::get_conn;
 use journey_db::sea_orm::EntityTrait;
@@ -26,8 +26,8 @@ use crate::jellyfin::jellyfin_provider::JellyfinProviderError;
 pub enum ProviderError {
     #[error("Found more than one access token, removing all.")]
     TooManyCredentialsError,
-    #[error("Found no access token, nothing to remove.")]
-    NoCredentialsError(Option<String>),
+    #[error("Found no access token, nothing to remove: {0}")]
+    NoCredentialsError(String),
     #[error("ProviderVariant has not been set yet.")]
     MissingVariantError,
     #[error("server_id has not been set yet, try authenticating first.")]
@@ -36,23 +36,25 @@ pub enum ProviderError {
     MissingUserIdError,
     #[error("Url has not been set yet, provide one first.")]
     MissingUrlError,
-    #[error("Failed to parse given String to Uuid.")]
+    #[error("AuthSchema have not been set yet.")]
+    MissingAuthSchemaError,
+    #[error("Failed to parse given String to Uuid: {0}")]
     FailedUuidParseError(String),
-    #[error("Failed to authenticate with username & password.")]
+    #[error("Failed to authenticate with username & password: {0}")]
     FailedPasswordAuthError(String),
-    #[error("Failed to create keyring entry.")]
+    #[error("Failed to create keyring entry: {0}")]
     FailedCreateEntryError(String),
-    #[error("Failed to remove keyring entry. Credentials might leak.")]
+    #[error("Failed to remove keyring entry. Credentials might leak: {0}")]
     FailedRemoveEntryError(String),
-    #[error("Failed to save token to OS keyring.")]
+    #[error("Failed to save token to OS keyring: {0}")]
     SaveTokenError(String),
-    #[error("Failed to insert provider into database.")]
+    #[error("Failed to insert provider into database: {0}")]
     FailedDbInsertError(String),
-    #[error("Failed to delete provider from database. Might not exist.")]
+    #[error("Failed to delete provider from database. Might not exist: {0}")]
     FailedDbRemoveError(String),
-    #[error("Failed to convert sea-orm ActiveModel into Model.")]
+    #[error("Failed to convert sea-orm ActiveModel into Model: {0}")]
     FailedConvModelError(String),
-    #[error("Failed to parse the given String to an Url.")]
+    #[error("Failed to parse the given String to an Url: {0}")]
     FailedParseUrlError(String),
     #[error(transparent)]
     JellyfinProviderError(#[from] JellyfinProviderError),
@@ -105,6 +107,12 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
             _ => Err(ProviderError::MissingUrlError),
         }
     }
+    fn auth_schema(&self) -> ProviderResult<AuthSchemaVec> {
+        match self.get_model().auth_schema.try_as_ref() {
+            Some(schema) => Ok(schema.clone()),
+            _ => Err(ProviderError::MissingAuthSchemaError),
+        }
+    }
     fn save_token(&self, access_token: &String) -> ProviderResult<()> {
         let token_entry = match Entry::new(
             PRODUCT_NAME,
@@ -130,7 +138,7 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
 
         match entries_res {
             Ok(entries) => Ok(entries),
-            Err(err) => Err(ProviderError::NoCredentialsError(Some(err.to_string()))),
+            Err(err) => Err(ProviderError::NoCredentialsError(err.to_string())),
         }
     }
     fn remove_token(&self) -> ProviderResult<()> {
@@ -145,7 +153,7 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
 
         match entries.len() {
             len if len > 1 => Err(ProviderError::TooManyCredentialsError),
-            len if len < 1 => Err(ProviderError::NoCredentialsError(None)),
+            len if len < 1 => Err(ProviderError::NoCredentialsError("".to_string())),
             _ => Ok(()),
         }
     }
@@ -168,8 +176,7 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
         }
     }
     async fn add_to_db(&self) -> ProviderResult<()> {
-        let model = self.get_model().clone();
-        match providers::Entity::insert(model.clone())
+        match providers::Entity::insert(self.get_model().clone())
             .on_conflict(
                 OnConflict::column(providers::Column::UserId)
                     .do_nothing()
