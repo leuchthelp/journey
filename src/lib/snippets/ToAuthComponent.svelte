@@ -9,7 +9,7 @@
   <ProviderAccordionItem>
     {#if providerAuthOptions.has(type)}
       {@const SvelteComponent = providerAuthOptions.get(type)}
-      <SvelteComponent {key}></SvelteComponent>
+      <SvelteComponent {type} {key}></SvelteComponent>
     {/if}
   </ProviderAccordionItem>
 {/snippet}

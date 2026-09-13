@@ -1,7 +1,7 @@
 import type { ProviderVariant, ProviderKey } from "../bindings.ts";
 import { API } from "../proxy.ts";
 import { Effect, pipe } from "effect";
-import { wrapWithEffect, checkIfUndefined } from "./generic.ts";
+import { wrapWithEffect, guaranteeNoError } from "./generic.ts";
 
 const passwordAuth = (
   url: string,
@@ -10,8 +10,9 @@ const passwordAuth = (
   psw: string,
 ) => {
   return Effect.gen(function* () {
-    const wrapped = wrapWithEffect(
+    const wrapped = pipe(
       API.provider.password_auth(url, type, uname, psw),
+      wrapWithEffect,
     );
 
     return yield* Effect.matchEffect(wrapped, {
@@ -30,25 +31,20 @@ const passwordAuth = (
   });
 };
 
-const logOutOfProvider = (key: ProviderKey | undefined) => {
-  return Effect.matchEffect(checkIfUndefined(key), {
-    onFailure: (err) => {
-      console.log(err);
-      return Effect.succeed(key);
-    },
-    onSuccess: (value) => {
-      const wrapped = pipe(value, API.provider.deregister, wrapWithEffect);
+const logOutOfProvider = (key?: ProviderKey) => {
+  return Effect.gen(function* () {
+    const checkedKey = yield* pipe(key, Effect.fromNullishOr, guaranteeNoError);
+    const wrapped = pipe(checkedKey, API.provider.deregister, wrapWithEffect);
 
-      return Effect.matchEffect(wrapped, {
-        onFailure: (err) => {
-          console.error(err);
-          return Effect.succeed(value);
-        },
-        onSuccess: () => {
-          return Effect.succeed(undefined);
-        },
-      });
-    },
+    return yield* Effect.matchEffect(wrapped, {
+      onFailure: (err) => {
+        console.error(err);
+        return Effect.succeed(key);
+      },
+      onSuccess: () => {
+        return Effect.succeed(undefined);
+      },
+    });
   });
 };
 

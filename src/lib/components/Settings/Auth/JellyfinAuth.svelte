@@ -1,27 +1,14 @@
 <script lang="ts">
   import {
     type IndexerKey,
+    type IndexerMsg,
     type ProviderDTO,
     type ProviderKey,
     type ProviderVariant,
   } from "#lib/bindings.ts";
-  import { strip } from "#lib/components/helpers.ts";
-  import { API } from "#lib/proxy.ts";
   import { Effect } from "effect";
   import { passwordAuth, logOutOfProvider } from "#lib/effects/auth.ts";
-
-  const getProvider = async (
-    key?: ProviderKey,
-  ): Promise<ProviderDTO | undefined> => {
-    if (key == undefined) {
-      console.warn("No known provider yet, offering to create new one.");
-      return;
-    }
-
-    return API.provider.get_provider(key).then((response) => {
-      return strip(response);
-    });
-  };
+  import { getProvider, indexerStatus } from "#lib/effects/provider.ts";
 
   function setKey(provider: ProviderDTO | undefined): IndexerKey | undefined {
     if (provider === undefined) {
@@ -40,42 +27,35 @@
     return key;
   }
 
-  const indexerStatus = async (key?: IndexerKey) => {
-    if (key == undefined) {
-      console.warn("No known provider yet, offering to create new one.");
-      return;
+  const callback = (incoming: IndexerMsg) => {
+    if (incoming.event === "Progress") {
+      let data = incoming.data;
+      if (data.item) msg = data.item;
+      console.log(
+        `indexer status: ${data.item}, ${data.success}, ${data.alreadyExists}`,
+      );
     }
-
-    await API.provider
-      .indexer_status(key, (incoming) => {
-        if (incoming.event === "Progress") {
-          let data = incoming.data;
-          if (data.item) msg = data.item;
-          console.log(
-            `indexer status: ${data.item}, ${data.success}, ${data.alreadyExists}`,
-          );
-        }
-      })
-      .then((response) => {
-        return strip(response);
-      });
   };
 
   type Props = {
+    type: ProviderVariant;
     key?: ProviderKey;
   };
-  let { key }: Props = $props();
+  let { type, key }: Props = $props();
 
-  let url = $state("");
-  let type: ProviderVariant = $state("JellyfinProvider");
-  let uname = $state("");
-  let psw = $state("");
+  let url: string = $state("");
+  let uname: string = $state("");
+  let psw: string = $state("");
 
-  let provider = $derived(await getProvider(key));
+  let provider: ProviderDTO | undefined = $derived(
+    await Effect.runPromise(getProvider(key)),
+  );
 
-  let msg: String | undefined = $state(undefined);
+  let msg: String = $state("");
   let indexer_key: IndexerKey | undefined = $derived(setKey(provider));
-  let indexer_status = $derived(indexerStatus(indexer_key));
+  let indexer_status: Promise<boolean> = $derived(
+    Effect.runPromise(indexerStatus(callback, indexer_key)),
+  );
   $inspect(provider);
 </script>
 
@@ -93,7 +73,11 @@
       {#await indexer_status}
         <div>In progress: {msg}</div>
       {:then indexer_status}
-        <div>Finished Indexing {indexer_status}</div>
+        {#if indexer_status}
+          <div>Finished Indexing {indexer_status}</div>
+        {:else}
+          <div>Failed Indexing {indexer_status}</div>
+        {/if}
       {/await}
     </div>
   {:else}
