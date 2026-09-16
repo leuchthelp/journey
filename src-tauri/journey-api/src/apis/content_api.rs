@@ -12,7 +12,7 @@ pub enum ContentApiError {}
 
 type ContentApiResult<T> = Result<T, ContentApiError>;
 
-#[taurpc::procedures(path = "content")]
+#[taurpc::procedures(path = "Content")]
 pub trait ContentApi {
     async fn get_content() -> ContentApiResult<ContentDTO>;
 }

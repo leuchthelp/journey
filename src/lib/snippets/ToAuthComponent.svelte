@@ -14,7 +14,7 @@
   <ProviderAccordionItem>
     {#if supportedAuthSchema.has(schema)}
       {@const SvelteComponent = supportedAuthSchema.get(schema)}
-      <SvelteComponent {type} {key}></SvelteComponent>
+      <SvelteComponent {type} bind:key></SvelteComponent>
     {/if}
   </ProviderAccordionItem>
 {/snippet}

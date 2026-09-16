@@ -60,13 +60,6 @@ pub enum ProviderAuthSchema {
     Oauth,
 }
 
-#[derive(
-    Default, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult, Type,
-)]
-pub struct AuthSchemaVec {
-    pub supported: Vec<ProviderAuthSchema>,
-}
-
 #[sea_orm::model]
 #[derive(Default, Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
 #[sea_orm(table_name = "providers")]
@@ -76,7 +69,6 @@ pub struct Model {
     #[sea_orm(unique)]
     pub user_id: Uuid,
     pub ty: ProviderVariant,
-    pub auth_schema: AuthSchemaVec,
     pub url: String,
     #[sea_orm(has_many, via = "jt_media_item_to_provider")]
     pub media_items: HasMany<super::media_items::Entity>,
@@ -102,7 +94,7 @@ pub struct ProviderDTO {
     pub key: ProviderKey,
     #[serde(rename = "type")]
     pub ty: ProviderVariant,
-    pub auth_schema: AuthSchemaVec,
+    pub auth_schema: Vec<ProviderAuthSchema>,
     pub url: Option<Url>,
     pub media_items: Option<Vec<MediaItemDTO>>,
     pub images: Option<Vec<ImageDTO>>,
@@ -123,7 +115,7 @@ impl Convertible<ModelEx> for ProviderDTO {
                 provider_id: item.provider_id,
             },
             ty: item.ty,
-            auth_schema: item.auth_schema,
+            auth_schema: vec![],
             url: Some(Url::parse(&item.url)?),
             media_items: parents,
             images: images,

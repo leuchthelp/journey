@@ -5,8 +5,39 @@ import type {
   IndexerMsg,
   ProviderDTO,
   ProviderKey,
+  ProviderAuthSchema,
+  ProviderVariant,
 } from "../bindings.ts";
 import { API } from "../proxy.ts";
+
+const getSupportedProviderVariants = () =>
+  Effect.gen(function* () {
+    const wrapped = pipe(API.Provider.get_supported_variants, Effect.promise);
+
+    return yield* Effect.matchEffect(wrapped, {
+      onFailure: (err) => {
+        console.error(err);
+        return Effect.succeed([] as ProviderVariant[]);
+      },
+      onSuccess: (value) => Effect.succeed(value),
+    });
+  });
+
+const getSupportedAuthSchema = (variant: ProviderVariant) =>
+  Effect.gen(function* () {
+    const wrapped = pipe(
+      API.Provider.get_supported_auth_schema(variant),
+      wrapWithEffect,
+    );
+
+    return yield* Effect.matchEffect(wrapped, {
+      onFailure: (err) => {
+        console.error(err);
+        return Effect.succeed([] as ProviderAuthSchema[]);
+      },
+      onSuccess: (value) => Effect.succeed(value),
+    });
+  });
 
 const getProvider = (key?: ProviderKey) =>
   Effect.matchEffect(pipe(key, Effect.fromNullishOr), {
@@ -17,7 +48,7 @@ const getProvider = (key?: ProviderKey) =>
     onSuccess: (checkedKey) => {
       const wrapped = pipe(
         checkedKey,
-        API.provider.get_provider,
+        API.Provider.get_provider,
         wrapWithEffect,
       );
 
@@ -26,11 +57,22 @@ const getProvider = (key?: ProviderKey) =>
           console.error(err);
           return Effect.succeed(undefined);
         },
-        onSuccess: (value) => {
-          return Effect.succeed(value);
-        },
+        onSuccess: (value) => Effect.succeed(value),
       });
     },
+  });
+
+const getProviders = () =>
+  Effect.gen(function* () {
+    const wrapped = pipe(API.Provider.get_providers(), wrapWithEffect);
+
+    return yield* Effect.matchEffect(wrapped, {
+      onFailure: (err) => {
+        console.error(err);
+        return Effect.succeed([] as ProviderDTO[]);
+      },
+      onSuccess: (value) => Effect.succeed(value),
+    });
   });
 
 const setIndexerKey = (provider?: ProviderDTO) =>
@@ -56,7 +98,7 @@ const indexerStatus = (
     const checkedKey = yield* pipe(key, Effect.fromNullishOr, guaranteeNoError);
 
     const wrapped = pipe(
-      API.provider.indexer_status(checkedKey, callback),
+      API.Provider.indexer_status(checkedKey, callback),
       wrapWithEffect,
     );
 
@@ -65,10 +107,15 @@ const indexerStatus = (
         console.error(err);
         return Effect.succeed(false);
       },
-      onSuccess: () => {
-        return Effect.succeed(true);
-      },
+      onSuccess: () => Effect.succeed(true),
     });
   });
 
-export { getProvider, setIndexerKey, indexerStatus };
+export {
+  getSupportedProviderVariants,
+  getSupportedAuthSchema,
+  getProvider,
+  getProviders,
+  setIndexerKey,
+  indexerStatus,
+};

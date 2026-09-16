@@ -4,7 +4,7 @@ use std::fmt::Debug;
 use anyhow::Result;
 use async_trait::async_trait;
 use dyn_clone::{DynClone, clone_trait_object};
-use journey_db::entity::providers::{self, AuthSchemaVec};
+use journey_db::entity::providers::{self, ProviderAuthSchema};
 use journey_db::entity::{ProviderKey, ProviderVariant};
 use journey_db::get_conn;
 use journey_db::sea_orm::EntityTrait;
@@ -24,6 +24,8 @@ use crate::jellyfin::jellyfin_provider::JellyfinProviderError;
 #[derive(Debug, Error, Serialize, Type)]
 //#[serde(tag = "error", content = "data")]
 pub enum ProviderError {
+    #[error("Error throw if a given auth function is not implemented.")]
+    NotImplError,
     #[error("Found more than one access token, removing all.")]
     TooManyCredentialsError,
     #[error("Found no access token, nothing to remove: {0}")]
@@ -73,8 +75,9 @@ pub trait NewProvider {
 #[async_trait]
 pub trait RequiredForProvider {
     fn get_model(&self) -> &providers::ActiveModelEx;
-    fn invalidate(&mut self) -> ProviderResult<()>;
     fn get_indexer(&self) -> ProviderResult<Box<dyn Indexer + Send + Sync>>;
+    fn get_auth_schema(&self) -> Vec<ProviderAuthSchema>;
+    fn invalidate(&mut self) -> ProviderResult<()>;
     async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<String>;
 }
 
@@ -105,12 +108,6 @@ pub trait Provider: RequiredForProvider + DynClone + Debug {
                 Err(err) => return Err(ProviderError::FailedParseUrlError(err.to_string())),
             }),
             _ => Err(ProviderError::MissingUrlError),
-        }
-    }
-    fn auth_schema(&self) -> ProviderResult<AuthSchemaVec> {
-        match self.get_model().auth_schema.try_as_ref() {
-            Some(schema) => Ok(schema.clone()),
-            _ => Err(ProviderError::MissingAuthSchemaError),
         }
     }
     fn save_token(&self, access_token: &String) -> ProviderResult<()> {

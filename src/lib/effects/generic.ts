@@ -5,7 +5,7 @@ const wrapWithEffect = <T, E>(promise: Promise<TauRpcResult<T, E>>) =>
   Effect.gen(function* () {
     const result = yield* Effect.tryPromise(async () => await promise);
 
-    if (result.status === "error") yield* Effect.fail(result.error);
+    if (result.status === "error") return yield* Effect.fail(result.error);
     else return yield* Effect.succeed(result.data);
   });
 
@@ -25,9 +25,7 @@ const guaranteeNoError = <T, E>(effect: Effect.Effect<T, E, never>) =>
       alert(err);
       return Effect.die(effect);
     },
-    onSuccess: (value) => {
-      return Effect.succeed(value);
-    },
+    onSuccess: (value) => Effect.succeed(value),
   });
 
 export { wrapWithEffect, guaranteeNoError };

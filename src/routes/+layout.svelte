@@ -4,40 +4,49 @@
   import * as Playbar from "#lib/components/Playbar/index.ts";
   import ProviderAccordion from "#lib/components/Settings/Provider/ProviderAccordion.svelte";
   import Settings from "#lib/components/Settings/Settings.svelte";
-  import { toAuthComponent } from "#lib/snippets/ToAuthComponent.svelte";
   // import Player from "#lib/components/Player/Player.svelte";
-  import { API } from "#lib/proxy.ts";
-  import type { ProviderDTO, ProviderAuthSchema } from "#lib/bindings.ts";
+  import { SvelteMap } from "svelte/reactivity";
+  import type { ProviderKey, ProviderVariant } from "#lib/bindings.ts";
+  import { Effect } from "effect";
+  import {
+    getProviders,
+    getSupportedProviderVariants,
+  } from "#lib/effects/provider.ts";
+  import ProviderAccordionBody from "#lib/components/Settings/Provider/ProviderAccordionBody.svelte";
 
-  function toggleVisible() {
+  const toggleVisible = () => {
     visible = !visible;
-  }
+  };
+
+  const addVariant = (type: ProviderVariant, key?: ProviderKey) => {
+    let wrapped = $state(key);
+
+    knownVariants.getOrInsert(type, [wrapped]).push(wrapped);
+  };
 
   let { children } = $props();
   let visible = $state(false);
 
-  let displayable: ProviderAuthSchema[] = $state([]);
-  function addComponent() {
-    displayable.push("Password");
-  }
+  let supportedVariants = $state(
+    await Effect.runPromise(getSupportedProviderVariants()),
+  );
 
-  let data: ProviderDTO[] = await API.provider
-    .get_providers()
-    .then((result) => {
-      if (result.status == "ok") {
-        return result.data;
-      } else {
-        return [];
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-      return [];
-    });
+  let providers = $state(await Effect.runPromise(getProviders()));
+  let knownVariants = $derived.by(() => {
+    let map = new SvelteMap<ProviderVariant, (ProviderKey | undefined)[]>();
 
-  let providers = $state(data);
+    for (var provider of providers) {
+      let wrapped = $state(provider.key);
 
+      map.getOrInsert(provider.type, [wrapped]).push(wrapped);
+    }
+
+    return map;
+  });
+
+  $inspect(supportedVariants);
   $inspect(providers);
+  $inspect(knownVariants);
 </script>
 
 <main
@@ -69,21 +78,19 @@
   {#if visible}
     <Settings>
       <ProviderAccordion title={"Providers"}>
-        <ProviderAccordion title={"Jellyfin"}>
-          <button onclick={() => addComponent()}>Add Jellyfin Provider</button>
-          {#each displayable as schema}
-            {@render toAuthComponent(schema, "JellyfinProvider")}
-          {/each}
-          {#each providers as provider}
-            {#if provider.key}
-              {#each provider.authSchema.supported as schema}
-                {@render toAuthComponent(schema, provider.type, provider.key)}
-              {/each}
-            {:else}
-              error
-            {/if}
-          {/each}
-        </ProviderAccordion>
+        {#each supportedVariants as variant}
+          {#if variant !== "Unknown"}
+            <button onclick={() => addVariant(variant)}
+              >Add new {variant}</button
+            >
+          {/if}
+        {/each}
+        {#each knownVariants as [variant, knownKeys] (variant)}
+          {#if variant !== "Unknown"}
+            <ProviderAccordionBody {variant} bind:knownKeys {addVariant}
+            ></ProviderAccordionBody>
+          {/if}
+        {/each}
       </ProviderAccordion>
     </Settings>
   {/if}

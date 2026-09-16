@@ -8,7 +8,7 @@ use jellyfin_sdk_rs::{
     models::{AuthenticateUserByName, UserDto},
     required::{ClientInfo, DeviceInfo},
 };
-use journey_db::entity::providers::{self, AuthSchemaVec};
+use journey_db::entity::providers::{self, ProviderAuthSchema};
 use journey_utils::constants::{PRODUCT_NAME, PRODUCT_VERSION};
 use serde::Serialize;
 use specta::Type;
@@ -31,7 +31,7 @@ pub enum JellyfinProviderError {
     FailedBuildConfigError(String),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct JellyfinProvider {
     model: providers::ActiveModelEx,
     config: Option<Configuration>,
@@ -60,11 +60,6 @@ impl NewProvider for JellyfinProvider {
             languages: None,
         };
 
-        let mut model = model.clone();
-        model.auth_schema.set_if_not_equals(AuthSchemaVec {
-            supported: vec![providers::ProviderAuthSchema::Password],
-        });
-
         Box::new(JellyfinProvider {
             model: model,
             config: None,
@@ -80,16 +75,19 @@ impl RequiredForProvider for JellyfinProvider {
     pub fn get_model(&self) -> &providers::ActiveModelEx {
         &self.model
     }
-    pub fn invalidate(&mut self) -> ProviderResult<()> {
-        self.model = providers::ActiveModelEx::default();
-        self.config = None;
-        Ok(())
-    }
     pub fn get_indexer(&self) -> ProviderResult<Box<dyn Indexer + Send + Sync>> {
         Ok(JellyfinIndexer::new(
             self.get_model().clone(),
             Some(self.get_config()?.clone()),
         ))
+    }
+    pub fn get_auth_schema(&self) -> Vec<ProviderAuthSchema> {
+        vec![ProviderAuthSchema::Password]
+    }
+    pub fn invalidate(&mut self) -> ProviderResult<()> {
+        self.model = providers::ActiveModelEx::default();
+        self.config = None;
+        Ok(())
     }
     pub async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<String> {
         let client_config = match configure()

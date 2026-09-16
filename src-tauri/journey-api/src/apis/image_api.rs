@@ -12,7 +12,7 @@ pub enum ImageApiError {}
 
 type ImageApiResult<T> = Result<T, ImageApiError>;
 
-#[taurpc::procedures(path = "image")]
+#[taurpc::procedures(path = "Image")]
 pub trait ImageApi {
     async fn get_images() -> ImageApiResult<ImageDTO>;
 }

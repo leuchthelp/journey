@@ -1,5 +1,7 @@
 use anyhow::Result;
-use journey_db::entity::{ProviderDTO, ProviderKey, ProviderVariant};
+use journey_db::entity::{
+    ProviderDTO, ProviderKey, ProviderVariant, providers::ProviderAuthSchema,
+};
 use journey_provider::{
     IndexerKey, IndexerManagerError, IndexerMsg, ProviderError, ProviderManagerError,
     ProviderManagerFn,
@@ -26,8 +28,12 @@ pub enum ProviderApiError {
 
 type ProviderApiResult<T> = Result<T, ProviderApiError>;
 
-#[taurpc::procedures(path = "provider")]
+#[taurpc::procedures(path = "Provider")]
 pub trait ProviderApi {
+    async fn get_supported_variants() -> Vec<ProviderVariant>;
+    async fn get_supported_auth_schema(
+        variant: ProviderVariant,
+    ) -> ProviderApiResult<Vec<ProviderAuthSchema>>;
     async fn get_providers() -> ProviderApiResult<Vec<ProviderDTO>>;
     async fn get_provider(key: ProviderKey) -> ProviderApiResult<ProviderDTO>;
     async fn password_auth(
@@ -50,6 +56,17 @@ pub struct ProviderApiImpl {
 
 #[taurpc::resolvers]
 impl ProviderApi for ProviderApiImpl {
+    async fn get_supported_variants(self) -> Vec<ProviderVariant> {
+        let lock = self.state.read().await;
+        lock.provider_manager.get_supported_variants()
+    }
+    async fn get_supported_auth_schema(
+        self,
+        variant: ProviderVariant,
+    ) -> ProviderApiResult<Vec<ProviderAuthSchema>> {
+        let lock = self.state.read().await;
+        Ok(lock.provider_manager.get_supported_auth_schema(variant)?)
+    }
     async fn get_providers(self) -> ProviderApiResult<Vec<ProviderDTO>> {
         let lock = self.state.read().await;
         let providers = lock.provider_manager.get_providers()?;

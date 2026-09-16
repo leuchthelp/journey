@@ -11,7 +11,7 @@ const passwordAuth = (
 ) =>
   Effect.gen(function* () {
     const wrapped = pipe(
-      API.provider.password_auth(url, type, uname, psw),
+      API.Provider.password_auth(url, type, uname, psw),
       wrapWithEffect,
     );
 
@@ -20,9 +20,7 @@ const passwordAuth = (
         console.error(err);
         return Effect.succeed([undefined, uname, psw]);
       },
-      onSuccess: (value) => {
-        return Effect.succeed([value, "", ""]);
-      },
+      onSuccess: (value) => Effect.succeed([value, "", ""]),
     }) as Effect.Effect<
       [ProviderKey | undefined, string, string],
       never,
@@ -33,16 +31,14 @@ const passwordAuth = (
 const logOutOfProvider = (key?: ProviderKey) =>
   Effect.gen(function* () {
     const checkedKey = yield* pipe(key, Effect.fromNullishOr, guaranteeNoError);
-    const wrapped = pipe(checkedKey, API.provider.deregister, wrapWithEffect);
+    const wrapped = pipe(checkedKey, API.Provider.deregister, wrapWithEffect);
 
     return yield* Effect.matchEffect(wrapped, {
       onFailure: (err) => {
         console.error(err);
         return Effect.succeed(key);
       },
-      onSuccess: () => {
-        return Effect.succeed(undefined);
-      },
+      onSuccess: () => Effect.succeed(undefined),
     });
   });
 

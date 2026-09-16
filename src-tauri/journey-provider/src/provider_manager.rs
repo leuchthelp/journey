@@ -5,9 +5,12 @@ use async_trait::async_trait;
 use futures::TryStreamExt;
 use inherent::inherent;
 use journey_db::{
-    entity::{ProviderDTO, ProviderKey, ProviderVariant, providers},
+    entity::{
+        ProviderDTO, ProviderKey, ProviderVariant,
+        providers::{self, ProviderAuthSchema},
+    },
     get_conn,
-    sea_orm::{EntityTrait, IntoActiveModel},
+    sea_orm::{EntityTrait, IntoActiveModel, Iterable},
 };
 use rapidhash::RapidHashMap;
 use serde::Serialize;
@@ -89,7 +92,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
             .ty(provider.ty()?)
             .url(provider.url()?)
             .key(provider.key()?)
-            .auth_schema(provider.auth_schema()?)
+            .auth_schema(provider.get_auth_schema())
             .build();
 
         Ok(provider_dto)
@@ -101,7 +104,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
             let new = ProviderDTO::builder()
                 .ty(provider.ty()?)
                 .key(provider.key()?)
-                .auth_schema(provider.auth_schema()?)
+                .auth_schema(provider.get_auth_schema())
                 .build();
             providers.push(new);
         }
@@ -110,23 +113,33 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
     fn get_indexers(&self) -> ProviderManagerResult<Vec<Box<dyn Indexer + Send + Sync>>> {
         let mut indexers = vec![];
         for provider in self.get_variants_values() {
-            let indexer = match provider.authenticated() {
+            match provider.authenticated() {
                 Ok(true) => {
                     info!(
                         "Beginning indexing on provider: {} for: {}",
                         provider.ty()?,
                         provider.url()?
                     );
-                    Ok(provider.get_indexer()?)
+                    Ok(indexers.push(provider.get_indexer()?))
                 }
-                Ok(_) => Err(ProviderManagerError::NotAuthenticatedError("".into())),
+                Ok(_) => Ok(()),
                 Err(err) => Err(ProviderManagerError::NotAuthenticatedError(err.to_string())),
             }?;
-
-            indexers.push(indexer);
         }
 
         Ok(indexers)
+    }
+    fn get_supported_variants(&self) -> Vec<ProviderVariant> {
+        ProviderVariant::iter().collect()
+    }
+    fn get_supported_auth_schema(
+        &self,
+        variant: ProviderVariant,
+    ) -> ProviderManagerResult<Vec<ProviderAuthSchema>> {
+        match variant {
+            ProviderVariant::JellyfinProvider => Ok(JellyfinProvider::default().get_auth_schema()),
+            ProviderVariant::Unknown => Err(ProviderManagerError::UnknownProviderError),
+        }
     }
     fn start_indexing(&mut self) -> ProviderManagerResult<()> {
         let indexers = self.get_indexers()?;

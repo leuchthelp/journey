@@ -12,7 +12,7 @@ pub enum MediaItemApiError {}
 
 type MediaItemApiResult<T> = Result<T, MediaItemApiError>;
 
-#[taurpc::procedures(path = "mediaItem")]
+#[taurpc::procedures(path = "MediaItem")]
 pub trait MediaItemApi {
     async fn get_media_items() -> MediaItemApiResult<MediaItemDTO>;
 }

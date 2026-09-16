@@ -26,7 +26,7 @@
     type: ProviderVariant;
     key?: ProviderKey;
   };
-  let { type, key }: Props = $props();
+  let { type, key = $bindable() }: Props = $props();
 
   let url = $state("");
   let uname = $state("");
