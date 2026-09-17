@@ -2,8 +2,7 @@
   import ProviderAccordion from "#lib/components/Settings/Provider/ProviderAccordion.svelte";
   import { Effect } from "effect";
   import { getSupportedAuthSchema } from "#lib/effects/provider.ts";
-  import ProviderAccordionItem from "#lib/components/Settings/Provider/ProviderAccordionItem.svelte";
-  import { supportedAuthSchema } from "../Auth";
+  import { authSchemaComponents } from "../Auth";
   import type { ProviderVariant, ProviderKey } from "#lib/bindings.ts";
 
   type Props = {
@@ -19,13 +18,11 @@
     {#each knownKeys as _, i}
       {#await Effect.runPromise(getSupportedAuthSchema(variant)) then supportedSchema}
         {#each supportedSchema as schema}
-          <ProviderAccordionItem>
-            {#if supportedAuthSchema.has(schema)}
-              {@const SvelteComponent = supportedAuthSchema.get(schema)}
-              <SvelteComponent {variant} bind:key={knownKeys[i]}
-              ></SvelteComponent>
-            {/if}
-          </ProviderAccordionItem>
+          {#if authSchemaComponents.has(schema)}
+            {@const SvelteComponent = authSchemaComponents.get(schema)}
+            <SvelteComponent {variant} bind:key={knownKeys[i]}
+            ></SvelteComponent>
+          {/if}
         {/each}
       {/await}
     {/each}
