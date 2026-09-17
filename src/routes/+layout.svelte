@@ -18,35 +18,40 @@
     visible = !visible;
   };
 
-  const addVariant = (type: ProviderVariant, key?: ProviderKey) => {
-    let wrapped = $state(key);
+  const addVariant = (variant: ProviderVariant) => {
+    let wrapped = $state([]);
+    knownVariants.getOrInsert(variant, wrapped);
+    shownVariants = shownVariants.filter((value) => value !== variant);
+  };
 
-    knownVariants.getOrInsert(type, [wrapped]).push(wrapped);
+  const filterSupported = (
+    supported: ProviderVariant[],
+    already_known: ProviderVariant[],
+  ) => {
+    return supported.filter((value) => !already_known.includes(value));
   };
 
   let { children } = $props();
   let visible = $state(false);
-
-  let supportedVariants = $state(
-    await Effect.runPromise(getSupportedProviderVariants()),
-  );
 
   let providers = $state(await Effect.runPromise(getProviders()));
   let knownVariants = $derived.by(() => {
     let map = new SvelteMap<ProviderVariant, (ProviderKey | undefined)[]>();
 
     for (var provider of providers) {
-      let wrapped = $state(provider.key);
-
-      map.getOrInsert(provider.type, [wrapped]).push(wrapped);
+      let wrapped = $state([provider.key]);
+      map.getOrInsert(provider.type, wrapped);
     }
 
     return map;
   });
 
-  $inspect(supportedVariants);
-  $inspect(providers);
-  $inspect(knownVariants);
+  let supportedVariants = $state(
+    await Effect.runPromise(getSupportedProviderVariants()),
+  );
+  let shownVariants = $derived(
+    filterSupported(supportedVariants, [...knownVariants.keys()]),
+  );
 </script>
 
 <main
@@ -77,17 +82,25 @@
   </Navbar.Root>
   {#if visible}
     <Settings>
+      <p>Stuff is {JSON.stringify(Array.from(knownVariants))}</p>
       <ProviderAccordion title={"Providers"}>
-        {#each supportedVariants as variant}
+        {#each shownVariants as variant}
           {#if variant !== "Unknown"}
             <button onclick={() => addVariant(variant)}
               >Add new {variant}</button
             >
           {/if}
         {/each}
-        {#each knownVariants as [variant, knownKeys] (variant)}
+        {#each knownVariants.keys() as variant (variant)}
           {#if variant !== "Unknown"}
-            <ProviderAccordionBody {variant} bind:knownKeys {addVariant}
+            <ProviderAccordionBody
+              {variant}
+              bind:knownKeys={
+                () => knownVariants.get(variant),
+                (value) => {
+                  if (value !== undefined) knownVariants.set(variant, value);
+                }
+              }
             ></ProviderAccordionBody>
           {/if}
         {/each}

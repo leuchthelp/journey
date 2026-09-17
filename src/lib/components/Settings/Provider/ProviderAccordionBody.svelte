@@ -8,25 +8,26 @@
 
   type Props = {
     variant: ProviderVariant;
-    knownKeys: (ProviderKey | undefined)[];
-    addVariant: (type: ProviderVariant, provider?: ProviderKey) => void;
+    knownKeys: (ProviderKey | undefined)[] | undefined;
   };
-  let { variant, knownKeys = $bindable(), addVariant }: Props = $props();
+  let { variant, knownKeys = $bindable() }: Props = $props();
 </script>
 
 <ProviderAccordion title={variant}>
-  <button onclick={() => addVariant(variant)}>Add new {variant}</button>
-  {#each knownKeys as _, i}
-    {#await Effect.runPromise(getSupportedAuthSchema(variant)) then supportedSchema}
-      {#each supportedSchema as schema}
-        <ProviderAccordionItem>
-          {#if supportedAuthSchema.has(schema)}
-            {@const SvelteComponent = supportedAuthSchema.get(schema)}
-            <SvelteComponent {variant} bind:key={knownKeys[i]}
-            ></SvelteComponent>
-          {/if}
-        </ProviderAccordionItem>
-      {/each}
-    {/await}
-  {/each}
+  {#if knownKeys !== undefined}
+    <button onclick={() => knownKeys.push(undefined)}>Add new {variant}</button>
+    {#each knownKeys as _, i}
+      {#await Effect.runPromise(getSupportedAuthSchema(variant)) then supportedSchema}
+        {#each supportedSchema as schema}
+          <ProviderAccordionItem>
+            {#if supportedAuthSchema.has(schema)}
+              {@const SvelteComponent = supportedAuthSchema.get(schema)}
+              <SvelteComponent {variant} bind:key={knownKeys[i]}
+              ></SvelteComponent>
+            {/if}
+          </ProviderAccordionItem>
+        {/each}
+      {/await}
+    {/each}
+  {/if}
 </ProviderAccordion>

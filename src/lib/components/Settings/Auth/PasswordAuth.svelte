@@ -16,17 +16,14 @@
     if (incoming.event === "Progress") {
       let data = incoming.data;
       if (data.item) msg = data.item;
-      console.log(
-        `indexer status: ${data.item}, ${data.success}, ${data.alreadyExists}`,
-      );
     }
   };
 
   type Props = {
-    type: ProviderVariant;
+    variant: ProviderVariant;
     key?: ProviderKey;
   };
-  let { type, key = $bindable() }: Props = $props();
+  let { variant, key = $bindable() }: Props = $props();
 
   let url = $state("");
   let uname = $state("");
@@ -39,7 +36,6 @@
   let indexer_status = $derived(
     Effect.runPromise(indexerStatus(callback, indexer_key)),
   );
-  $inspect(provider);
 </script>
 
 <div class="">
@@ -67,7 +63,7 @@
     <form
       onsubmit={async () => {
         const [newKey, newUname, newPsw] = await Effect.runPromise(
-          passwordAuth(url, type, uname, psw),
+          passwordAuth(url, variant, uname, psw),
         );
 
         key = newKey;
