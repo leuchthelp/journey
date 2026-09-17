@@ -20,9 +20,9 @@
     "npm:clsx@^2.1.1": "2.1.1",
     "npm:effect@4.0.0-rc.113": "4.0.0-rc.113",
     "npm:lru-cache@^11.5.2": "11.5.2",
-    "npm:prettier-plugin-svelte@^4.1.1": "4.1.1_prettier@3.9.6_svelte@5.57.0",
-    "npm:prettier-plugin-tailwindcss@~0.8.1": "0.8.1_prettier@3.9.6_prettier-plugin-svelte@4.1.1_svelte@5.57.0",
-    "npm:prettier@^3.9.6": "3.9.6",
+    "npm:prettier-plugin-svelte@^4.1.1": "4.1.1_prettier@3.9.7_svelte@5.57.0",
+    "npm:prettier-plugin-tailwindcss@~0.8.1": "0.8.1_prettier@3.9.7_prettier-plugin-svelte@4.1.1__prettier@3.9.7__svelte@5.57.0",
+    "npm:prettier@^3.9.7": "3.9.7",
     "npm:svelte-check@^4.7.6": "4.7.6_svelte@5.57.0_typescript@6.0.3",
     "npm:svelte@^5.57.0": "5.57.0",
     "npm:tailwind-merge@^3.7.0": "3.7.0",
@@ -999,14 +999,14 @@
         "source-map-js"
       ]
     },
-    "prettier-plugin-svelte@4.1.1_prettier@3.9.6_svelte@5.57.0": {
+    "prettier-plugin-svelte@4.1.1_prettier@3.9.7_svelte@5.57.0": {
       "integrity": "sha512-wXvbXMjSvb4C9ENWTHXyd+ihakKCsJ6rJhLP6/8HFNj4GkZr48jqL9PoKsl2sk7SyCZRTnJ7O2TTowUpOxP/KA==",
       "dependencies": [
         "prettier",
         "svelte"
       ]
     },
-    "prettier-plugin-tailwindcss@0.8.1_prettier@3.9.6_prettier-plugin-svelte@4.1.1_svelte@5.57.0": {
+    "prettier-plugin-tailwindcss@0.8.1_prettier@3.9.7_prettier-plugin-svelte@4.1.1__prettier@3.9.7__svelte@5.57.0": {
       "integrity": "sha512-iaFMYqDsE4ffdDkn5qup0j5f2aCEBFZrdrZnvu9QKTlWx/iGPeQ4HHu7b7fCPMxeo9nwQBiOAh2nSypdFYWJkw==",
       "dependencies": [
         "prettier",
@@ -1016,8 +1016,8 @@
         "prettier-plugin-svelte"
       ]
     },
-    "prettier@3.9.6": {
-      "integrity": "sha512-OpN0zzVdiaiAhxpuuj5efpIS4sY9j7bY6uR5mnj5yPzGkdkjNKSJeUThPb60Jw29QuAZgA4o+/iB49kFiaBX6g==",
+    "prettier@3.9.7": {
+      "integrity": "sha512-T3mF5P7HFzZVLDQuCUNtJj6WK1pcpLMweMNUVwGb01bLNkH9AkKxtZvmInw8K6bnn2O3d6/5RHl6zSHiBAD0Og==",
       "bin": true
     },
     "readdirp@4.1.2": {
@@ -1299,7 +1299,7 @@
         "npm:lru-cache@^11.5.2",
         "npm:prettier-plugin-svelte@^4.1.1",
         "npm:prettier-plugin-tailwindcss@~0.8.1",
-        "npm:prettier@^3.9.6",
+        "npm:prettier@^3.9.7",
         "npm:svelte-check@^4.7.6",
         "npm:svelte@^5.57.0",
         "npm:tailwind-merge@^3.7.0",
