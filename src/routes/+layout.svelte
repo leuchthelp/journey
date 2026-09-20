@@ -5,23 +5,17 @@
   import ProviderAccordion from "#lib/components/Settings/Provider/ProviderAccordion.svelte";
   import Settings from "#lib/components/Settings/Settings.svelte";
   // import Player from "#lib/components/Player/Player.svelte";
-  import { SvelteMap } from "svelte/reactivity";
-  import type { ProviderKey, ProviderVariant } from "#lib/bindings.ts";
+  import type { ProviderVariant } from "#lib/bindings.ts";
   import { Effect } from "effect";
   import {
     getProviders,
     getSupportedProviderVariants,
   } from "#lib/effects/provider.ts";
   import ProviderAccordionBody from "#lib/components/Settings/Provider/ProviderAccordionBody.svelte";
+  import { VariantManager } from "#lib/VariantManager.svelte.ts";
 
   const toggleVisible = () => {
     visible = !visible;
-  };
-
-  const addVariant = (variant: ProviderVariant) => {
-    let wrapped = $state([]);
-    knownVariants.getOrInsert(variant, wrapped);
-    shownVariants = shownVariants.filter((value) => value !== variant);
   };
 
   const filterSupported = (
@@ -35,23 +29,17 @@
   let visible = $state(false);
 
   let providers = $state(await Effect.runPromise(getProviders()));
-  let knownVariants = $derived.by(() => {
-    let map = new SvelteMap<ProviderVariant, (ProviderKey | undefined)[]>();
-
-    for (var provider of providers) {
-      let wrapped = $state([provider.key]);
-      map.getOrInsert(provider.type, wrapped);
-    }
-
-    return map;
-  });
+  let variantManager = new VariantManager(providers);
 
   let supportedVariants = $state(
     await Effect.runPromise(getSupportedProviderVariants()),
   );
   let shownVariants = $derived(
-    filterSupported(supportedVariants, [...knownVariants.keys()]),
+    filterSupported(supportedVariants, variantManager.knownVariants),
   );
+
+  $inspect(shownVariants)
+  $inspect(variantManager)
 </script>
 
 <main
@@ -82,27 +70,17 @@
   </Navbar.Root>
   {#if visible}
     <Settings>
-      <p>Stuff is {JSON.stringify(Array.from(knownVariants))}</p>
+      <p>Stuff is {JSON.stringify(variantManager.all)}</p>
       <ProviderAccordion title={"Providers"}>
         {#each shownVariants as variant}
           {#if variant !== "Unknown"}
-            <button onclick={() => addVariant(variant)}
+            <button onclick={() => variantManager.add(variant)}
               >Add new {variant}</button
             >
           {/if}
         {/each}
-        {#each knownVariants.keys() as variant (variant)}
-          {#if variant !== "Unknown"}
-            <ProviderAccordionBody
-              {variant}
-              bind:knownKeys={
-                () => knownVariants.get(variant),
-                (value) => {
-                  if (value !== undefined) knownVariants.set(variant, value);
-                }
-              }
-            ></ProviderAccordionBody>
-          {/if}
+        {#each variantManager.all as proxy (proxy.name)}
+          <ProviderAccordionBody {proxy}></ProviderAccordionBody>
         {/each}
       </ProviderAccordion>
     </Settings>

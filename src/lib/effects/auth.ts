@@ -18,11 +18,11 @@ const passwordAuth = (
     return yield* Effect.matchEffect(wrapped, {
       onFailure: (err) => {
         console.error(err);
-        return Effect.succeed([undefined, uname, psw]);
+        return Effect.succeed([undefined, url, uname, psw]);
       },
-      onSuccess: (value) => Effect.succeed([value, "", ""]),
+      onSuccess: (value) => Effect.succeed([value, url, "", ""]),
     }) as Effect.Effect<
-      [ProviderKey | undefined, string, string],
+      [ProviderKey | undefined, string, string, string],
       never,
       never
     >;

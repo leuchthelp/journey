@@ -20,10 +20,11 @@
   };
 
   type Props = {
-    variant: ProviderVariant;
     key?: ProviderKey;
+    variant: ProviderVariant;
+    onKeyChange: (value: ProviderKey | undefined) => void;
   };
-  let { variant, key = $bindable() }: Props = $props();
+  let { key, variant, onKeyChange }: Props = $props();
 
   let url = $state("");
   let uname = $state("");
@@ -41,12 +42,12 @@
 <div class="">
   {#if provider?.authenticated}
     <div>Connected</div>
-    <div>{key}</div>
-    <div>{provider.url}</div>
+    <div>{url}</div>
     <button
-      onclick={async () =>
-        (key = await Effect.runPromise(logOutOfProvider(key)))}
-      >Remove Connection</button
+      onclick={async () => {
+        const newKey = await Effect.runPromise(logOutOfProvider(key));
+        onKeyChange(newKey);
+      }}>Remove Connection</button
     >
     <div>
       {#await indexer_status}
@@ -62,11 +63,12 @@
   {:else}
     <form
       onsubmit={async () => {
-        const [newKey, newUname, newPsw] = await Effect.runPromise(
+        const [newKey, newUrl, newUname, newPsw] = await Effect.runPromise(
           passwordAuth(url, variant, uname, psw),
         );
 
-        key = newKey;
+        onKeyChange(newKey);
+        url = newUrl;
         uname = newUname;
         psw = newPsw;
       }}
