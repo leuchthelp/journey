@@ -1,45 +1,29 @@
 <script lang="ts">
   import "../app.css";
+  import type { LayoutProps } from "./$types";
   import * as Navbar from "#lib/components/Navbar/index.ts";
   import * as Playbar from "#lib/components/Playbar/index.ts";
-  import ProviderAccordion from "#lib/components/Settings/Provider/ProviderAccordion.svelte";
+  import * as ProviderAccordion from "#lib/components/Settings/Provider/index.ts";
   import Settings from "#lib/components/Settings/Settings.svelte";
   // import Player from "#lib/components/Player/Player.svelte";
-  import type { ProviderVariant } from "#lib/bindings.ts";
-  import { Effect } from "effect";
-  import {
-    getProviders,
-    getSupportedProviderVariants,
-  } from "#lib/effects/provider.ts";
-  import ProviderAccordionBody from "#lib/components/Settings/Provider/ProviderAccordionBody.svelte";
   import { VariantManager } from "#lib/VariantManager.svelte.ts";
 
   const toggleVisible = () => {
     visible = !visible;
   };
 
-  const filterSupported = (
-    supported: ProviderVariant[],
-    already_known: ProviderVariant[],
-  ) => {
-    return supported.filter((value) => !already_known.includes(value));
-  };
-
-  let { children } = $props();
+  let { data, children }: LayoutProps = $props();
   let visible = $state(false);
 
-  let providers = $state(await Effect.runPromise(getProviders()));
-  let variantManager = new VariantManager(providers);
+  let providers = $derived(await data.providerReq);
+  let variantManager = $derived(new VariantManager(providers));
 
-  let supportedVariants = $state(
-    await Effect.runPromise(getSupportedProviderVariants()),
-  );
+  let supportedVariants = $derived(await data.supportedVariantReq);
   let shownVariants = $derived(
-    filterSupported(supportedVariants, variantManager.knownVariants),
+    supportedVariants.filter((value) =>
+      variantManager.knownVariants.includes(value),
+    ),
   );
-
-  $inspect(shownVariants)
-  $inspect(variantManager)
 </script>
 
 <main
@@ -70,8 +54,7 @@
   </Navbar.Root>
   {#if visible}
     <Settings>
-      <p>Stuff is {JSON.stringify(variantManager.all)}</p>
-      <ProviderAccordion title={"Providers"}>
+      <ProviderAccordion.Root title={"Providers"}>
         {#each shownVariants as variant}
           {#if variant !== "Unknown"}
             <button onclick={() => variantManager.add(variant)}
@@ -80,9 +63,9 @@
           {/if}
         {/each}
         {#each variantManager.all as proxy (proxy.name)}
-          <ProviderAccordionBody {proxy}></ProviderAccordionBody>
+          <ProviderAccordion.Body {proxy} />
         {/each}
-      </ProviderAccordion>
+      </ProviderAccordion.Root>
     </Settings>
   {/if}
 </div>

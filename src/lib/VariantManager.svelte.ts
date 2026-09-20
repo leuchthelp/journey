@@ -27,11 +27,11 @@ export class VariantManager {
   }
 
   get all() {
-    return [...this.#variants.values()];
+    return this.#variants.values();
   }
 
   get knownVariants() {
-    return this.all.map((value) => value.name);
+    return [...this.#variants.values().map((value) => value.name)];
   }
 
   get(name: ProviderVariant) {

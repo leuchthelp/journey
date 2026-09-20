@@ -1,8 +1,8 @@
 <script lang="ts">
-  import ProviderAccordion from "#lib/components/Settings/Provider/ProviderAccordion.svelte";
   import { Effect } from "effect";
+  import * as ProviderAccordion from "#lib/components/Settings/Provider/index.ts";
   import { getSupportedAuthSchema } from "#lib/effects/provider.ts";
-  import { authSchemaComponents } from "../Auth";
+  import { authSchemaComponents } from "../Auth/index.ts";
   import type { VariantProxy } from "#lib/VariantManager.svelte.ts";
   import type { ProviderKey } from "#lib/bindings.ts";
 
@@ -12,20 +12,20 @@
   let { proxy }: Props = $props();
 </script>
 
-<ProviderAccordion title={proxy.name}>
+<ProviderAccordion.Root title={proxy.name}>
   <button onclick={() => proxy.addKey()}>Add new {proxy.name}</button>
-  {#each proxy.keys as key, i}
+  {#each proxy.keys as key, i (key)}
     {#await Effect.runPromise(getSupportedAuthSchema(proxy.name)) then supportedSchema}
       {#each supportedSchema as schema}
         {#if authSchemaComponents.has(schema)}
-          {@const SvelteComponent = authSchemaComponents.get(schema)}
-          <SvelteComponent
+          {@const AuthComponent = authSchemaComponents.get(schema)}
+          <AuthComponent
             {key}
             variant={proxy.name}
             onKeyChange={(v: ProviderKey) => proxy.setKey(i, v)}
-          ></SvelteComponent>
+          ></AuthComponent>
         {/if}
       {/each}
     {/await}
   {/each}
-</ProviderAccordion>
+</ProviderAccordion.Root>
