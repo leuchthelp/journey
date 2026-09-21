@@ -18,9 +18,8 @@
   let providers = $derived(await data.providerReq);
   let variantManager = $derived(new VariantManager(providers));
 
-  let supportedVariants = $derived(await data.supportedVariantReq);
   let shownVariants = $derived(
-    supportedVariants.filter((value) =>
+    (await data.supportedVariantReq).filter((value) =>
       variantManager.knownVariants.includes(value),
     ),
   );

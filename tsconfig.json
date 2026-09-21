@@ -6,6 +6,8 @@
     "useDefineForClassFields": true,
     "module": "Preserve",
     "moduleDetection": "force",
+    "allowJs": true,
+    "checkJs": true,
 
     /* Bundler mode */
     "moduleResolution": "bundler",

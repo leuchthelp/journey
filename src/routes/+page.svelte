@@ -4,6 +4,8 @@
   import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();
+
+  $inspect(data.providerReq);
 </script>
 
 <div class="flex gap-3">

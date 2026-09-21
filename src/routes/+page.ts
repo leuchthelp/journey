@@ -1,17 +1,5 @@
 import { type MediaItemDTO } from "#lib/bindings.ts";
 import type { PageLoad } from "./$types";
-// import { itemCache } from "$lib/components/MediaItems/ItemCache.ts";
-// import type { MediaItem } from "$lib/db/relations.ts";
-
-// function toArrayClean<X>(xs: Iterable<X | undefined>): X[] {
-//   const res: X[] = [];
-
-//   for (const entry of xs) {
-//     if (entry) res.push(entry);
-//   }
-
-//   return res;
-// }
 
 export const load: PageLoad = async ({ parent, depends }) => {
   await parent();
@@ -31,6 +19,6 @@ export const load: PageLoad = async ({ parent, depends }) => {
   // }
   const tmp: MediaItemDTO[] = [];
   return {
-    post: tmp,
+    providerReq: tmp,
   };
 };
