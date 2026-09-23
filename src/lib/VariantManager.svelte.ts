@@ -2,11 +2,9 @@ import { SvelteMap } from "svelte/reactivity";
 import type { ProviderKey, ProviderVariant, ProviderDTO } from "./bindings.ts";
 
 export class VariantProxy {
-  name: ProviderVariant;
   keys = $state<(ProviderKey | undefined)[]>([]);
 
-  constructor(name: ProviderVariant, keys: (ProviderKey | undefined)[] = []) {
-    this.name = name;
+  constructor(keys: (ProviderKey | undefined)[] = []) {
     this.keys = keys;
   }
 
@@ -27,25 +25,18 @@ export class VariantManager {
   }
 
   get all() {
-    return this.#variants.values();
+    return this.#variants;
   }
 
   get knownVariants() {
-    return [...this.#variants.values().map((value) => value.name)];
+    return [...this.#variants.keys()];
   }
 
-  get(name: ProviderVariant) {
-    return this.#variants.get(name);
+  get(variant: ProviderVariant) {
+    return this.#variants.get(variant);
   }
 
-  add(name: ProviderVariant, key?: ProviderKey) {
-    let variant = this.#variants.get(name);
-
-    if (!variant) {
-      variant = new VariantProxy(name, [key]);
-      this.#variants.set(name, variant);
-    } else if (key !== undefined) {
-      variant.addKey(key);
-    }
+  add(variant: ProviderVariant, key?: ProviderKey) {
+    this.#variants.getOrInsert(variant, new VariantProxy([key]));
   }
 }

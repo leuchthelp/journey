@@ -15,12 +15,11 @@
   let { data, children }: LayoutProps = $props();
   let visible = $state(false);
 
-  let providers = $derived(await data.providerReq);
-  let variantManager = $derived(new VariantManager(providers));
+  let variantManager = $derived(new VariantManager(await data.providerReq));
 
   let shownVariants = $derived(
-    (await data.supportedVariantReq).filter((value) =>
-      variantManager.knownVariants.includes(value),
+    (await data.supportedVariantReq).filter(
+      (value) => !variantManager.knownVariants.includes(value),
     ),
   );
 </script>
@@ -61,8 +60,8 @@
             >
           {/if}
         {/each}
-        {#each variantManager.all as proxy (proxy.name)}
-          <ProviderAccordion.Body {proxy} />
+        {#each variantManager.all as [variant, proxy] (variant)}
+          <ProviderAccordion.Body {variant} {proxy} />
         {/each}
       </ProviderAccordion.Root>
     </Settings>

@@ -20,8 +20,8 @@
   };
 
   type Props = {
-    key?: ProviderKey;
     variant: ProviderVariant;
+    key?: ProviderKey;
     onKeyChange: (value: ProviderKey | undefined) => void;
   };
   let { key, variant, onKeyChange }: Props = $props();

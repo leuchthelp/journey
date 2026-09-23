@@ -4,24 +4,25 @@
   import { getSupportedAuthSchema } from "#lib/effects/provider.ts";
   import { authSchemaComponents } from "../Auth/index.ts";
   import type { VariantProxy } from "#lib/VariantManager.svelte.ts";
-  import type { ProviderKey } from "#lib/bindings.ts";
+  import type { ProviderKey, ProviderVariant } from "#lib/bindings.ts";
 
   type Props = {
+    variant: ProviderVariant;
     proxy: VariantProxy;
   };
-  let { proxy }: Props = $props();
+  let { variant, proxy }: Props = $props();
 </script>
 
-<ProviderAccordion.Root title={proxy.name}>
-  <button onclick={() => proxy.addKey()}>Add new {proxy.name}</button>
-  {#each proxy.keys as key, i (key)}
-    {#await Effect.runPromise(getSupportedAuthSchema(proxy.name)) then supportedSchema}
+<ProviderAccordion.Root title={variant}>
+  <button onclick={() => proxy.addKey()}>Add new {variant}</button>
+  {#each proxy.keys as key, i (i)}
+    {#await Effect.runPromise(getSupportedAuthSchema(variant)) then supportedSchema}
       {#each supportedSchema as schema}
         {#if authSchemaComponents.has(schema)}
           {@const AuthComponent = authSchemaComponents.get(schema)}
           <AuthComponent
+            {variant}
             {key}
-            variant={proxy.name}
             onKeyChange={(v: ProviderKey) => proxy.setKey(i, v)}
           ></AuthComponent>
         {/if}
