@@ -58,11 +58,7 @@ impl RequiredForIndexer for JellyfinIndexer {
     fn get_model(&self) -> &providers::ActiveModelEx {
         &self.model
     }
-    async fn index(
-        &self,
-        conn: &DatabaseConnection,
-        comm: UnboundedSender<IndexerMsg>,
-    ) -> IndexerResult<Vec<Option<IndexerError>>> {
+    async fn index(&self, conn: &DatabaseConnection, comm: UnboundedSender<IndexerMsg>) {
         let user_id = self.user_id()?.to_string();
         let mut final_res: Vec<Option<IndexerError>> = vec![];
 

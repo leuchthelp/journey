@@ -14,6 +14,8 @@ pub use provider_manager::ProviderManagerResult;
 
 mod indexer;
 mod indexer_manager;
+mod indexer_runner;
+mod progress_tracker;
 
 pub use indexer::IndexerMsg;
 

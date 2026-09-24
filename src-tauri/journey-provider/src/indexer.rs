@@ -48,6 +48,9 @@ pub enum IndexerMsg {
     Finished {
         time: Timestamp,
     },
+    Failure {
+        reason: String,
+    },
 }
 
 #[derive(Debug, Error, Serialize, Type)]
@@ -91,11 +94,7 @@ pub trait NewIndexer {
 #[async_trait]
 pub trait RequiredForIndexer {
     fn get_model(&self) -> &providers::ActiveModelEx;
-    async fn index(
-        &self,
-        conn: &DatabaseConnection,
-        comm: UnboundedSender<IndexerMsg>,
-    ) -> IndexerResult<Vec<Option<IndexerError>>>;
+    async fn index(&self, conn: &DatabaseConnection, comm: UnboundedSender<IndexerMsg>);
 }
 
 #[async_trait]
