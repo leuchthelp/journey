@@ -12,6 +12,7 @@ reqwest = { workspace = true }
 chrono = { workspace = true }
 url = { workspace = true }
 jiff = { workspace = true }
+kameo = { workspace = true }
 similar = { workspace = true }
 rapidhash = { workspace = true }
 bon = { workspace = true }
