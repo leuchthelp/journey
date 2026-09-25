@@ -14,7 +14,6 @@ use thiserror::Error;
 use crate::AppState;
 
 #[derive(Debug, Error, Serialize, Type)]
-//#[serde(tag = "error", content = "data")]
 pub enum ProviderApiError {
     #[error("Failed to send msg via channel: {0}")]
     FailedChannelSendError(String),
@@ -114,19 +113,6 @@ impl ProviderApi for ProviderApiImpl {
                 Err(err) => Err(ProviderApiError::FailedChannelSendError(err.to_string())),
             }?;
         }
-
-        let indexer_task = self
-            .state
-            .write()
-            .await
-            .provider_manager
-            .get_indexer_manager()
-            .consume_task(&key)?;
-
-        let _res = match indexer_task.await {
-            Ok(res) => res,
-            Err(err) => Err(IndexerManagerError::FailedTaskError(err.to_string())),
-        }?;
 
         Ok(())
     }

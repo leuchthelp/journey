@@ -29,10 +29,9 @@ use crate::{
 };
 
 #[derive(Debug, Error, Serialize, Type)]
-//#[serde(tag = "error", content = "data")]
 pub enum JellyfinIndexerError {
-    #[error("Failed to retrieve Jellyfin API response entry.")]
-    ApiEntryRetrievalError(Option<String>),
+    #[error("Failed to retrieve Jellyfin API response entry: {0}")]
+    ApiEntryRetrievalError(String),
 }
 
 #[derive(Debug, Clone)]
@@ -58,20 +57,21 @@ impl RequiredForIndexer for JellyfinIndexer {
     fn get_model(&self) -> &providers::ActiveModelEx {
         &self.model
     }
-    async fn index(&self, conn: &DatabaseConnection, comm: UnboundedSender<IndexerMsg>) {
+    async fn index(
+        &self,
+        conn: &DatabaseConnection,
+        comm: UnboundedSender<IndexerMsg>,
+    ) -> IndexerResult<()> {
         let user_id = self.user_id()?.to_string();
-        let mut final_res: Vec<Option<IndexerError>> = vec![];
 
         {
             let txn = match conn.begin().await {
                 Ok(txn) => Ok(txn),
                 Err(err) => Err(IndexerError::FailedTransactionError(err.to_string())),
             }?;
-            let mut res = self
-                .index_by_type(&txn, &comm, &user_id, vec![BaseItemKind::MusicArtist])
+            self.index_by_type(&txn, &comm, &user_id, vec![BaseItemKind::MusicArtist])
                 .await?;
 
-            final_res.append(&mut res);
             match txn.commit().await {
                 Ok(()) => Ok(()),
                 Err(err) => Err(JourneyDbError::FailedTransactionError(err.to_string())),
@@ -83,11 +83,9 @@ impl RequiredForIndexer for JellyfinIndexer {
                 Ok(txn) => Ok(txn),
                 Err(err) => Err(JourneyDbError::FailedTransactionError(err.to_string())),
             }?;
-            let mut res = self
-                .index_by_type(&txn, &comm, &user_id, vec![BaseItemKind::MusicAlbum])
+            self.index_by_type(&txn, &comm, &user_id, vec![BaseItemKind::MusicAlbum])
                 .await?;
 
-            final_res.append(&mut res);
             match txn.commit().await {
                 Ok(()) => Ok(()),
                 Err(err) => Err(JourneyDbError::FailedTransactionError(err.to_string())),
@@ -99,18 +97,16 @@ impl RequiredForIndexer for JellyfinIndexer {
                 Ok(txn) => Ok(txn),
                 Err(err) => Err(JourneyDbError::FailedTransactionError(err.to_string())),
             }?;
-            let mut res = self
-                .index_by_type(&txn, &comm, &user_id, vec![BaseItemKind::Audio])
+            self.index_by_type(&txn, &comm, &user_id, vec![BaseItemKind::Audio])
                 .await?;
 
-            final_res.append(&mut res);
             match txn.commit().await {
                 Ok(()) => Ok(()),
                 Err(err) => Err(JourneyDbError::FailedTransactionError(err.to_string())),
             }?;
         }
 
-        Ok(final_res)
+        Ok(())
     }
 }
 
@@ -120,13 +116,13 @@ impl JellyfinIndexer {
     fn get_config(&self) -> IndexerResult<&Configuration> {
         match &self.config {
             Some(config) => Ok(config),
-            None => Err(JellyfinIndexerError::ApiEntryRetrievalError(None).into()),
+            None => Err(JellyfinIndexerError::ApiEntryRetrievalError("".to_string()).into()),
         }
     }
     fn check_entry<T>(&self, entry: Option<T>) -> IndexerResult<T> {
         match entry {
             Some(entry) => Ok(entry),
-            _ => Err(JellyfinIndexerError::ApiEntryRetrievalError(None).into()),
+            _ => Err(JellyfinIndexerError::ApiEntryRetrievalError("".to_string()).into()),
         }
     }
     fn match_item_type(&self, kind: BaseItemKind) -> IndexerResult<media_items::MediaItemType> {
@@ -163,21 +159,22 @@ impl JellyfinIndexer {
         comm: &UnboundedSender<IndexerMsg>,
         user_id: &str,
         kind: Vec<BaseItemKind>,
-    ) -> IndexerResult<Vec<Option<IndexerError>>> {
+    ) -> IndexerResult<()> {
         let items = self.get_items(user_id, kind).await?;
 
         let tasks = items
             .iter()
             .map(|item| self.assemble_media_item(txn, comm, item));
 
-        Ok(try_join_all(tasks).await?)
+        try_join_all(tasks).await?;
+        Ok(())
     }
     async fn assemble_media_item(
         &self,
         txn: &DatabaseTransaction,
         comm: &UnboundedSender<IndexerMsg>,
         item: &BaseItemDto,
-    ) -> IndexerResult<Option<IndexerError>> {
+    ) -> IndexerResult<()> {
         let source_id = self.check_entry(item.id)?;
         let task_images_metadata = self.get_images(source_id);
 
@@ -185,21 +182,20 @@ impl JellyfinIndexer {
         let ty = self.match_item_type(self.check_entry(item.r#type)?)?;
         let music_brainz_id = self.get_music_brainz_id(item, ty)?;
 
-        let res = self
-            .index_media_item(
-                txn,
-                comm,
-                music_brainz_id,
-                weak_id,
-                source_id,
-                ty,
-                self.get_content(item)?,
-                self.get_parent_source_ids(item),
-                task_images_metadata.await?,
-            )
-            .await?;
+        self.index_media_item(
+            txn,
+            comm,
+            music_brainz_id,
+            weak_id,
+            source_id,
+            ty,
+            self.get_content(item)?,
+            self.get_parent_source_ids(item),
+            task_images_metadata.await?,
+        )
+        .await?;
 
-        Ok(res)
+        Ok(())
     }
     fn get_music_brainz_id(
         &self,
@@ -315,9 +311,9 @@ impl JellyfinIndexer {
         let images_req =
             match get_item_image_infos(self.get_config()?, &source_id.to_string()).await {
                 Ok(images) => Ok(images),
-                Err(err) => Err(JellyfinIndexerError::ApiEntryRetrievalError(Some(
+                Err(err) => Err(JellyfinIndexerError::ApiEntryRetrievalError(
                     err.to_string(),
-                ))),
+                )),
             }?;
 
         let base_url = self.url()?;

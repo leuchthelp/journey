@@ -12,7 +12,7 @@ use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use uuid::Uuid;
 
 use crate::{
-    indexer::{Indexer, IndexerError, IndexerMsg},
+    indexer::{Indexer, IndexerError, IndexerMsg, IndexerResult},
     indexer_runner::{IndexRunner, IndexRunnerError},
 };
 
@@ -86,15 +86,17 @@ impl RequiredForIndexerManager for IndexerManager {
 
         let index_background_op = async |indexer: Box<dyn Indexer + Send + Sync>,
                                          comm: UnboundedSender<IndexerMsg>|
-               -> IndexerManagerResult<()> {
+               -> IndexerResult<()> {
             let conn = get_conn().await?;
-            Ok(indexer.index(&conn, comm).await)
+
+            indexer.index(&conn, comm).await?;
+            Ok(())
         };
 
         let key = indexer.key()?;
-        let task = tokio::spawn(index_background_op(indexer, comm));
+        let task = tokio::spawn(index_background_op(indexer, comm.clone()));
 
-        match self.runner.task_comm.send(task) {
+        match self.runner.task_comm.send((task, comm)) {
             Ok(_) => Ok(()),
             Err(err) => Err(IndexRunnerError::FailedRegisterTaskError(err.to_string())),
         }?;

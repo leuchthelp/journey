@@ -15,16 +15,17 @@ pub type ProgressTrackerResult<T> = Result<T, ProgressTrackerError>;
 
 #[derive(Debug, Actor)]
 pub struct ProgressTracker {
-    pub comm: broadcast::Sender<usize>,
-    pub in_progress: usize,
+    pub comm: broadcast::Sender<i32>,
+    pub _recv: broadcast::Receiver<i32>,
+    pub in_progress: i32,
 }
 
 pub struct IncProgress {
-    pub amount: usize,
+    pub amount: i32,
 }
 
 pub struct DecProgress {
-    pub amount: usize,
+    pub amount: i32,
 }
 
 pub struct ProgressRecv;
@@ -62,7 +63,7 @@ impl Message<DecProgress> for ProgressTracker {
 }
 
 impl Message<ProgressRecv> for ProgressTracker {
-    type Reply = broadcast::Receiver<usize>;
+    type Reply = broadcast::Receiver<i32>;
 
     async fn handle(&mut self, _: ProgressRecv, _: &mut Context<Self, Self::Reply>) -> Self::Reply {
         self.comm.subscribe()

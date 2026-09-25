@@ -28,6 +28,7 @@ use tracing::warn;
 use url::Url;
 use uuid::Uuid;
 
+use crate::indexer_runner::IndexRunnerError;
 use crate::{
     helpers::check_exists, indexer_manager::IndexerKey,
     jellyfin::jellyfin_indexer::JellyfinIndexerError,
@@ -49,17 +50,17 @@ pub enum IndexerMsg {
         time: Timestamp,
     },
     Failure {
-        reason: String,
+        reason: IndexerError,
+    },
+    FullTaskFailure {
+        reason: IndexerError,
     },
 }
 
 #[derive(Debug, Error, Serialize, Type)]
-//#[serde(tag = "error", content = "data")]
 pub enum IndexerError {
     #[error("Failed to parse the given String to an Url: {0}")]
     FailedParseUrlError(String),
-    #[error("Failed to retrieve Jellyfin API response entry.")]
-    ApiEntryRetrievalError(Option<String>),
     #[error("Failed to insert into database: {0}")]
     FailedDbInsertError(String),
     #[error("Failed to send update message over channel: {0}")]
@@ -76,6 +77,8 @@ pub enum IndexerError {
     MissingUserIdError,
     #[error("Url has not been set yet, provide one first.")]
     MissingUrlError,
+    #[error(transparent)]
+    IndexRunnerrError(#[from] IndexRunnerError),
     #[error(transparent)]
     JellyfinIndexerError(#[from] JellyfinIndexerError),
     #[error(transparent)]
@@ -94,7 +97,11 @@ pub trait NewIndexer {
 #[async_trait]
 pub trait RequiredForIndexer {
     fn get_model(&self) -> &providers::ActiveModelEx;
-    async fn index(&self, conn: &DatabaseConnection, comm: UnboundedSender<IndexerMsg>);
+    async fn index(
+        &self,
+        conn: &DatabaseConnection,
+        comm: UnboundedSender<IndexerMsg>,
+    ) -> IndexerResult<()>;
 }
 
 #[async_trait]

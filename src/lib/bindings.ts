@@ -25,14 +25,16 @@ export type ImageDTO = {
 
 export type ImageType = "Unknown" | "Primary" | "Art" | "Backdrop" | "Banner" | "Logo" | "Thumb" | "Disc" | "Box" | "Screenshot" | "Menu" | "Chapter" | "BoxRear" | "Profile";
 
-export type IndexerError = ({ FailedParseUrlError: string }) & { ApiEntryRetrievalError?: never; FailedDbInsertError?: never; FailedMsgSendError?: never; FailedTransactionError?: never; JellyfinIndexerError?: never; JourneyDbError?: never } | ({ ApiEntryRetrievalError: string | null }) & { FailedDbInsertError?: never; FailedMsgSendError?: never; FailedParseUrlError?: never; FailedTransactionError?: never; JellyfinIndexerError?: never; JourneyDbError?: never } | ({ FailedDbInsertError: string }) & { ApiEntryRetrievalError?: never; FailedMsgSendError?: never; FailedParseUrlError?: never; FailedTransactionError?: never; JellyfinIndexerError?: never; JourneyDbError?: never } | ({ FailedMsgSendError: string }) & { ApiEntryRetrievalError?: never; FailedDbInsertError?: never; FailedParseUrlError?: never; FailedTransactionError?: never; JellyfinIndexerError?: never; JourneyDbError?: never } | ({ FailedTransactionError: string }) & { ApiEntryRetrievalError?: never; FailedDbInsertError?: never; FailedMsgSendError?: never; FailedParseUrlError?: never; JellyfinIndexerError?: never; JourneyDbError?: never } | "MissingVariantError" | "MissingServerIdError" | "MissingUserIdError" | "MissingUrlError" | ({ JellyfinIndexerError: JellyfinIndexerError }) & { ApiEntryRetrievalError?: never; FailedDbInsertError?: never; FailedMsgSendError?: never; FailedParseUrlError?: never; FailedTransactionError?: never; JourneyDbError?: never } | ({ JourneyDbError: JourneyDbError }) & { ApiEntryRetrievalError?: never; FailedDbInsertError?: never; FailedMsgSendError?: never; FailedParseUrlError?: never; FailedTransactionError?: never; JellyfinIndexerError?: never };
+export type IndexRunnerError = ({ FailedRegisterTaskError: string }) & { FailedTaskError?: never; ProgressTrackerError?: never } | ({ FailedTaskError: string }) & { FailedRegisterTaskError?: never; ProgressTrackerError?: never } | ({ ProgressTrackerError: ProgressTrackerError }) & { FailedRegisterTaskError?: never; FailedTaskError?: never };
+
+export type IndexerError = ({ FailedParseUrlError: string }) & { FailedDbInsertError?: never; FailedMsgSendError?: never; FailedTransactionError?: never; IndexRunnerrError?: never; JellyfinIndexerError?: never; JourneyDbError?: never } | ({ FailedDbInsertError: string }) & { FailedMsgSendError?: never; FailedParseUrlError?: never; FailedTransactionError?: never; IndexRunnerrError?: never; JellyfinIndexerError?: never; JourneyDbError?: never } | ({ FailedMsgSendError: string }) & { FailedDbInsertError?: never; FailedParseUrlError?: never; FailedTransactionError?: never; IndexRunnerrError?: never; JellyfinIndexerError?: never; JourneyDbError?: never } | ({ FailedTransactionError: string }) & { FailedDbInsertError?: never; FailedMsgSendError?: never; FailedParseUrlError?: never; IndexRunnerrError?: never; JellyfinIndexerError?: never; JourneyDbError?: never } | "MissingVariantError" | "MissingServerIdError" | "MissingUserIdError" | "MissingUrlError" | ({ IndexRunnerrError: IndexRunnerError }) & { FailedDbInsertError?: never; FailedMsgSendError?: never; FailedParseUrlError?: never; FailedTransactionError?: never; JellyfinIndexerError?: never; JourneyDbError?: never } | ({ JellyfinIndexerError: JellyfinIndexerError }) & { FailedDbInsertError?: never; FailedMsgSendError?: never; FailedParseUrlError?: never; FailedTransactionError?: never; IndexRunnerrError?: never; JourneyDbError?: never } | ({ JourneyDbError: JourneyDbError }) & { FailedDbInsertError?: never; FailedMsgSendError?: never; FailedParseUrlError?: never; FailedTransactionError?: never; IndexRunnerrError?: never; JellyfinIndexerError?: never };
 
 export type IndexerKey = {
 	variant: ProviderVariant,
 	providerId: string,
 };
 
-export type IndexerManagerError = ({ FailedTransactionError: string }) & { FailedTaskError?: never; IndexerError?: never; JourneyDbError?: never; NoSuchCommError?: never; NoSuchTaskError?: never } | ({ FailedTaskError: string }) & { FailedTransactionError?: never; IndexerError?: never; JourneyDbError?: never; NoSuchCommError?: never; NoSuchTaskError?: never } | ({ NoSuchCommError: string }) & { FailedTaskError?: never; FailedTransactionError?: never; IndexerError?: never; JourneyDbError?: never; NoSuchTaskError?: never } | ({ NoSuchTaskError: string }) & { FailedTaskError?: never; FailedTransactionError?: never; IndexerError?: never; JourneyDbError?: never; NoSuchCommError?: never } | ({ IndexerError: IndexerError }) & { FailedTaskError?: never; FailedTransactionError?: never; JourneyDbError?: never; NoSuchCommError?: never; NoSuchTaskError?: never } | ({ JourneyDbError: JourneyDbError }) & { FailedTaskError?: never; FailedTransactionError?: never; IndexerError?: never; NoSuchCommError?: never; NoSuchTaskError?: never };
+export type IndexerManagerError = ({ FailedTransactionError: string }) & { FailedActorSendError?: never; FailedTaskError?: never; IndexRunnerError?: never; IndexerError?: never; JourneyDbError?: never; NoSuchCommError?: never; NoSuchTaskError?: never } | ({ FailedTaskError: string }) & { FailedActorSendError?: never; FailedTransactionError?: never; IndexRunnerError?: never; IndexerError?: never; JourneyDbError?: never; NoSuchCommError?: never; NoSuchTaskError?: never } | ({ FailedActorSendError: string }) & { FailedTaskError?: never; FailedTransactionError?: never; IndexRunnerError?: never; IndexerError?: never; JourneyDbError?: never; NoSuchCommError?: never; NoSuchTaskError?: never } | ({ NoSuchCommError: string }) & { FailedActorSendError?: never; FailedTaskError?: never; FailedTransactionError?: never; IndexRunnerError?: never; IndexerError?: never; JourneyDbError?: never; NoSuchTaskError?: never } | ({ NoSuchTaskError: string }) & { FailedActorSendError?: never; FailedTaskError?: never; FailedTransactionError?: never; IndexRunnerError?: never; IndexerError?: never; JourneyDbError?: never; NoSuchCommError?: never } | ({ IndexerError: IndexerError }) & { FailedActorSendError?: never; FailedTaskError?: never; FailedTransactionError?: never; IndexRunnerError?: never; JourneyDbError?: never; NoSuchCommError?: never; NoSuchTaskError?: never } | ({ IndexRunnerError: IndexRunnerError }) & { FailedActorSendError?: never; FailedTaskError?: never; FailedTransactionError?: never; IndexerError?: never; JourneyDbError?: never; NoSuchCommError?: never; NoSuchTaskError?: never } | ({ JourneyDbError: JourneyDbError }) & { FailedActorSendError?: never; FailedTaskError?: never; FailedTransactionError?: never; IndexRunnerError?: never; IndexerError?: never; NoSuchCommError?: never; NoSuchTaskError?: never };
 
 export type IndexerMsg = { event: "Started"; data: {
 	total: number,
@@ -43,9 +45,13 @@ export type IndexerMsg = { event: "Started"; data: {
 	alreadyExists: boolean,
 } } | { event: "Finished"; data: {
 	time: string,
+} } | { event: "Failure"; data: {
+	reason: IndexerError,
+} } | { event: "FullTaskFailure"; data: {
+	reason: IndexerError,
 } };
 
-export type JellyfinIndexerError = { ApiEntryRetrievalError: string | null };
+export type JellyfinIndexerError = { ApiEntryRetrievalError: string };
 
 export type JellyfinProviderError = ({ ApiEntryRetrievalError: string | null }) & { FailedBuildConfigError?: never } | ({ FailedBuildConfigError: string }) & { ApiEntryRetrievalError?: never };
 
@@ -67,6 +73,8 @@ export type MediaItemDTO = {
 };
 
 export type MediaItemType = "Unknown" | "Audio" | "Playlist" | "Artist" | "Album" | "Genre";
+
+export type ProgressTrackerError = { FailedCommSendError: string };
 
 export type ProviderApiError = ({ FailedChannelSendError: string }) & { IndexerManagerError?: never; ProviderError?: never; ProviderManagerError?: never } | ({ ProviderManagerError: ProviderManagerError }) & { FailedChannelSendError?: never; IndexerManagerError?: never; ProviderError?: never } | ({ ProviderError: ProviderError }) & { FailedChannelSendError?: never; IndexerManagerError?: never; ProviderManagerError?: never } | ({ IndexerManagerError: IndexerManagerError }) & { FailedChannelSendError?: never; ProviderError?: never; ProviderManagerError?: never };
 
