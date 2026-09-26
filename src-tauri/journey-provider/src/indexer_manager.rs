@@ -14,7 +14,7 @@ use uuid::Uuid;
 
 use crate::{
     indexer::{Indexer, IndexerError, IndexerMsg},
-    indexer_runner::{IndexRunner, IndexRunnerError, IndexRunnerResult, NewTask},
+    indexer_runner::{IndexerRunner, IndexerRunnerError, IndexerRunnerResult, NewTask},
 };
 
 #[derive(Debug, Error, Serialize, Type)]
@@ -26,7 +26,7 @@ pub enum IndexerManagerError {
     #[error(transparent)]
     IndexerError(#[from] IndexerError),
     #[error(transparent)]
-    IndexRunnerError(#[from] IndexRunnerError),
+    IndexerRunnerError(#[from] IndexerRunnerError),
 }
 
 pub type IndexerManagerResult<T> = Result<T, IndexerManagerError>;
@@ -63,14 +63,14 @@ pub trait RequiredForIndexerManager {
 
 #[derive(Debug)]
 pub struct IndexerManager {
-    runner: ActorRef<IndexRunner>,
+    runner: ActorRef<IndexerRunner>,
     comms: RapidHashMap<IndexerKey, UnboundedReceiver<IndexerMsg>>,
 }
 
 impl Default for IndexerManager {
     fn default() -> Self {
         IndexerManager {
-            runner: IndexRunner::spawn_default(),
+            runner: IndexerRunner::spawn_default(),
             comms: RapidHashMap::default(),
         }
     }
@@ -88,7 +88,7 @@ impl RequiredForIndexerManager for IndexerManager {
 
         let index_background_op = async |indexer: Box<dyn Indexer + Send + Sync>,
                                          comm: UnboundedSender<IndexerMsg>|
-               -> IndexRunnerResult<()> {
+               -> IndexerRunnerResult<()> {
             let conn = get_conn().await?;
 
             indexer.index(&conn, comm).await?;
@@ -100,7 +100,7 @@ impl RequiredForIndexerManager for IndexerManager {
 
         match self.runner.tell(NewTask { task, comm }).await {
             Ok(_) => Ok(()),
-            Err(err) => Err(IndexRunnerError::FailedRegisterTaskError(err.to_string())),
+            Err(err) => Err(IndexerRunnerError::FailedRegisterTaskError(err.to_string())),
         }?;
 
         self.comms.insert(key, recv);

@@ -28,7 +28,7 @@ use tracing::warn;
 use url::Url;
 use uuid::Uuid;
 
-use crate::indexer_runner::IndexRunnerError;
+use crate::indexer_runner::IndexerRunnerError;
 use crate::{
     helpers::check_exists, indexer_manager::IndexerKey,
     jellyfin::jellyfin_indexer::JellyfinIndexerError,
@@ -50,10 +50,10 @@ pub enum IndexerMsg {
         time: Timestamp,
     },
     Failure {
-        reason: IndexRunnerError,
+        reason: IndexerRunnerError,
     },
     FullTaskFailure {
-        reason: IndexRunnerError,
+        reason: IndexerRunnerError,
     },
 }
 
