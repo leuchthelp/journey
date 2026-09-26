@@ -7,9 +7,20 @@
   import Settings from "#lib/components/Settings/Settings.svelte";
   // import Player from "#lib/components/Player/Player.svelte";
   import { VariantManager } from "#lib/VariantManager.svelte.ts";
+  import { Effect } from "effect";
+  import { getIndexerProgress } from "#lib/effects/provider.ts";
+  import type { ProgressTrackerMsg } from "#lib/bindings.ts";
 
   const toggleVisible = () => {
     visible = !visible;
+  };
+
+  const progressCallback = (response: ProgressTrackerMsg) => {
+    switch (response.event) {
+      case "Progress":
+        progressMessage = `Currently indexing: ${response.data} providers.`;
+        break;
+    }
   };
 
   let { data, children }: LayoutProps = $props();
@@ -22,6 +33,13 @@
       (value) => !variantManager.knownVariants.includes(value),
     ),
   );
+
+  let progressMessage = $state("");
+  let indexerProgress = $state(
+    Effect.runPromise(getIndexerProgress(progressCallback)),
+  );
+
+  $inspect(indexerProgress);
 </script>
 
 <main
@@ -53,6 +71,12 @@
   {#if visible}
     <Settings>
       <ProviderAccordion.Root title={"Providers"}>
+        {#await indexerProgress then progress}
+          {#if progress}
+            <div>{progressMessage}</div>
+          {/if}
+        {/await}
+
         {#each shownVariants as variant}
           {#if variant !== "Unknown"}
             <button onclick={() => variantManager.add(variant)}

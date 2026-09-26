@@ -7,6 +7,7 @@ import type {
   ProviderKey,
   ProviderAuthSchema,
   ProviderVariant,
+  ProgressTrackerMsg,
 } from "../bindings.ts";
 import { API } from "../proxy.ts";
 
@@ -111,6 +112,25 @@ const indexerStatus = (
     });
   });
 
+const getIndexerProgress = (
+  callback: (response: ProgressTrackerMsg) => void,
+  smth = 0,
+) =>
+  Effect.gen(function* () {
+    const wrapped = pipe(
+      API.Provider.indexer_progress(smth, callback),
+      wrapWithEffect,
+    );
+
+    return yield* Effect.matchEffect(wrapped, {
+      onFailure: (err) => {
+        console.error(err);
+        return Effect.succeed(false);
+      },
+      onSuccess: () => Effect.succeed(true),
+    });
+  });
+
 export {
   getSupportedProviderVariants,
   getSupportedAuthSchema,
@@ -118,4 +138,5 @@ export {
   getProviders,
   setIndexerKey,
   indexerStatus,
+  getIndexerProgress,
 };

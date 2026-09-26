@@ -5,14 +5,17 @@ use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
 use tokio::{
-    sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
+    sync::{
+        broadcast,
+        mpsc::{self, UnboundedReceiver, UnboundedSender},
+    },
     task::JoinHandle,
 };
 
 use crate::{
-    IndexerMsg,
-    indexer::IndexerError,
-    progress_tracker::{DecProgress, IncProgress, ProgressTracker, ProgressTrackerError},
+    IndexerMsg, indexer::IndexerError, progress_tracker::{
+        DecProgress, IncProgress, ProgressRecv, ProgressTracker, ProgressTrackerError, ProgressTrackerMsg,
+    },
 };
 
 #[derive(Debug, Error, Serialize, Type)]
@@ -123,6 +126,19 @@ impl Message<NewTask> for IndexerRunner {
         match self.progress.tell(IncProgress { amount: 1 }).await {
             Ok(_) => Ok(()),
             Err(err) => Err(ProgressTrackerError::FailedCommSendError(err.to_string()).into()),
+        }
+    }
+}
+
+pub struct GetProgress;
+
+impl Message<GetProgress> for IndexerRunner {
+    type Reply = IndexerRunnerResult<broadcast::Receiver<ProgressTrackerMsg>>;
+
+    async fn handle(&mut self, _: GetProgress, _: &mut Context<Self, Self::Reply>) -> Self::Reply {
+        match self.progress.ask(ProgressRecv).await {
+            Ok(recv) => Ok(recv),
+            Err(err) => Err(ProgressTrackerError::FailedCommAskError(err.to_string()).into()),
         }
     }
 }

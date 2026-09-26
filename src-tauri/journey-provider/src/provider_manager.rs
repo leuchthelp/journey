@@ -63,7 +63,8 @@ pub trait RequiredForProviderManager {
         key: &ProviderKey,
     ) -> ProviderManagerResult<&Box<dyn Provider + Send + Sync>>;
     fn get_variants_values(&self) -> Values<'_, ProviderKey, Box<dyn Provider + Send + Sync>>;
-    fn get_indexer_manager(&mut self) -> &mut IndexerManager;
+    fn get_mut_indexer_manager(&mut self) -> &mut IndexerManager;
+    fn get_indexer_manager(&self) -> &IndexerManager;
     fn provider_exists(&self, key: &ProviderKey) -> ProviderManagerResult<bool>;
     fn register(&mut self, provider: Box<dyn Provider + Send + Sync>) -> ProviderManagerResult<()>;
     async fn deregister(&mut self, key: &ProviderKey) -> ProviderManagerResult<()>;
@@ -142,7 +143,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
     }
     async fn start_indexing(&mut self) -> ProviderManagerResult<()> {
         let indexers = self.get_indexers()?;
-        let indexer_manager = self.get_indexer_manager();
+        let indexer_manager = self.get_mut_indexer_manager();
 
         for indexer in indexers {
             indexer_manager.register(indexer).await?;
@@ -221,8 +222,11 @@ impl RequiredForProviderManager for ProviderManager {
     pub fn get_variants_values(&self) -> Values<'_, ProviderKey, Box<dyn Provider + Send + Sync>> {
         self.variants.values()
     }
-    pub fn get_indexer_manager(&mut self) -> &mut IndexerManager {
+    pub fn get_mut_indexer_manager(&mut self) -> &mut IndexerManager {
         &mut self.indexer_manager
+    }
+    pub fn get_indexer_manager(&self) -> &IndexerManager {
+        &self.indexer_manager
     }
     pub fn provider_exists(&self, key: &ProviderKey) -> ProviderManagerResult<bool> {
         Ok(self.variants.contains_key(key))

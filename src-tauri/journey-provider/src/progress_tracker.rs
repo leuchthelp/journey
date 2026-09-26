@@ -9,21 +9,31 @@ use tokio::sync::broadcast;
 pub enum ProgressTrackerError {
     #[error("Failed to send message to broadcast channel: {0}")]
     FailedCommSendError(String),
+    #[error("Failed to ask progress tracker: {0}")]
+    FailedCommAskError(String),
 }
 
 pub type ProgressTrackerResult<T> = Result<T, ProgressTrackerError>;
 
+#[derive(Debug, Clone, Serialize, Type)]
+#[serde(rename_all_fields = "camelCase", tag = "event", content = "data")]
+pub enum ProgressTrackerMsg {
+    Progress { amount: i32 },
+}
+
 #[derive(Debug, Actor)]
 pub struct ProgressTracker {
-    comm: broadcast::Sender<i32>,
-    _recv: broadcast::Receiver<i32>,
+    comm: broadcast::Sender<ProgressTrackerMsg>,
+    _recv: broadcast::Receiver<ProgressTrackerMsg>,
     in_progress: i32,
 }
 
 impl Default for ProgressTracker {
     fn default() -> Self {
-        let (comm, _recv): (broadcast::Sender<i32>, broadcast::Receiver<i32>) =
-            broadcast::channel(20);
+        let (comm, _recv): (
+            broadcast::Sender<ProgressTrackerMsg>,
+            broadcast::Receiver<ProgressTrackerMsg>,
+        ) = broadcast::channel(20);
 
         ProgressTracker {
             comm,
@@ -46,7 +56,9 @@ impl Message<IncProgress> for ProgressTracker {
         _: &mut Context<Self, Self::Reply>,
     ) -> Self::Reply {
         self.in_progress += msg.amount;
-        match self.comm.send(self.in_progress) {
+        match self.comm.send(ProgressTrackerMsg::Progress {
+            amount: self.in_progress,
+        }) {
             Ok(_) => Ok(()),
             Err(err) => Err(ProgressTrackerError::FailedCommSendError(err.to_string())),
         }
@@ -66,7 +78,9 @@ impl Message<DecProgress> for ProgressTracker {
         _: &mut Context<Self, Self::Reply>,
     ) -> Self::Reply {
         self.in_progress -= msg.amount;
-        match self.comm.send(self.in_progress) {
+        match self.comm.send(ProgressTrackerMsg::Progress {
+            amount: self.in_progress,
+        }) {
             Ok(_) => Ok(()),
             Err(err) => Err(ProgressTrackerError::FailedCommSendError(err.to_string())),
         }
@@ -76,7 +90,7 @@ impl Message<DecProgress> for ProgressTracker {
 pub struct ProgressRecv;
 
 impl Message<ProgressRecv> for ProgressTracker {
-    type Reply = broadcast::Receiver<i32>;
+    type Reply = broadcast::Receiver<ProgressTrackerMsg>;
 
     async fn handle(&mut self, _: ProgressRecv, _: &mut Context<Self, Self::Reply>) -> Self::Reply {
         self.comm.subscribe()

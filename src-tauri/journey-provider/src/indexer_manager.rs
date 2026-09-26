@@ -51,6 +51,7 @@ impl Display for IndexerKey {
 
 #[async_trait]
 pub trait RequiredForIndexerManager {
+    fn get_runner(&self) -> &ActorRef<IndexerRunner>;
     async fn register(
         &mut self,
         indexer: Box<dyn Indexer + Send + Sync>,
@@ -79,6 +80,9 @@ impl Default for IndexerManager {
 #[async_trait]
 #[inherent]
 impl RequiredForIndexerManager for IndexerManager {
+    pub fn get_runner(&self) -> &ActorRef<IndexerRunner> {
+        &self.runner
+    }
     pub async fn register(
         &mut self,
         indexer: Box<dyn Indexer + Send + Sync>,

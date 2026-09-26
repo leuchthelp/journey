@@ -25,8 +25,6 @@ export type ImageDTO = {
 
 export type ImageType = "Unknown" | "Primary" | "Art" | "Backdrop" | "Banner" | "Logo" | "Thumb" | "Disc" | "Box" | "Screenshot" | "Menu" | "Chapter" | "BoxRear" | "Profile";
 
-export type IndexRunnerError = ({ FailedRegisterTaskError: string }) & { FailedTaskError?: never; IndexerError?: never; JourneyDbError?: never; KilledRunnerError?: never; ProgressTrackerError?: never } | ({ FailedTaskError: string }) & { FailedRegisterTaskError?: never; IndexerError?: never; JourneyDbError?: never; KilledRunnerError?: never; ProgressTrackerError?: never } | ({ KilledRunnerError: string }) & { FailedRegisterTaskError?: never; FailedTaskError?: never; IndexerError?: never; JourneyDbError?: never; ProgressTrackerError?: never } | ({ IndexerError: IndexerError }) & { FailedRegisterTaskError?: never; FailedTaskError?: never; JourneyDbError?: never; KilledRunnerError?: never; ProgressTrackerError?: never } | ({ ProgressTrackerError: ProgressTrackerError }) & { FailedRegisterTaskError?: never; FailedTaskError?: never; IndexerError?: never; JourneyDbError?: never; KilledRunnerError?: never } | ({ JourneyDbError: JourneyDbError }) & { FailedRegisterTaskError?: never; FailedTaskError?: never; IndexerError?: never; KilledRunnerError?: never; ProgressTrackerError?: never };
-
 export type IndexerError = ({ FailedParseUrlError: string }) & { FailedMsgSendError?: never; FailedTransactionError?: never; JellyfinIndexerError?: never; JourneyDbError?: never } | ({ FailedMsgSendError: string }) & { FailedParseUrlError?: never; FailedTransactionError?: never; JellyfinIndexerError?: never; JourneyDbError?: never } | ({ FailedTransactionError: string }) & { FailedMsgSendError?: never; FailedParseUrlError?: never; JellyfinIndexerError?: never; JourneyDbError?: never } | "MissingVariantError" | "MissingServerIdError" | "MissingUrlError" | ({ JellyfinIndexerError: JellyfinIndexerError }) & { FailedMsgSendError?: never; FailedParseUrlError?: never; FailedTransactionError?: never; JourneyDbError?: never } | ({ JourneyDbError: JourneyDbError }) & { FailedMsgSendError?: never; FailedParseUrlError?: never; FailedTransactionError?: never; JellyfinIndexerError?: never };
 
 export type IndexerKey = {
@@ -34,7 +32,7 @@ export type IndexerKey = {
 	providerId: string,
 };
 
-export type IndexerManagerError = ({ NoSuchCommError: string }) & { IndexRunnerError?: never; IndexerError?: never; NoSuchTaskError?: never } | ({ NoSuchTaskError: string }) & { IndexRunnerError?: never; IndexerError?: never; NoSuchCommError?: never } | ({ IndexerError: IndexerError }) & { IndexRunnerError?: never; NoSuchCommError?: never; NoSuchTaskError?: never } | ({ IndexRunnerError: IndexRunnerError }) & { IndexerError?: never; NoSuchCommError?: never; NoSuchTaskError?: never };
+export type IndexerManagerError = ({ NoSuchCommError: string }) & { IndexerError?: never; IndexerRunnerError?: never; NoSuchTaskError?: never } | ({ NoSuchTaskError: string }) & { IndexerError?: never; IndexerRunnerError?: never; NoSuchCommError?: never } | ({ IndexerError: IndexerError }) & { IndexerRunnerError?: never; NoSuchCommError?: never; NoSuchTaskError?: never } | ({ IndexerRunnerError: IndexerRunnerError }) & { IndexerError?: never; NoSuchCommError?: never; NoSuchTaskError?: never };
 
 export type IndexerMsg = { event: "Started"; data: {
 	total: number,
@@ -46,10 +44,12 @@ export type IndexerMsg = { event: "Started"; data: {
 } } | { event: "Finished"; data: {
 	time: string,
 } } | { event: "Failure"; data: {
-	reason: IndexRunnerError,
+	reason: IndexerRunnerError,
 } } | { event: "FullTaskFailure"; data: {
-	reason: IndexRunnerError,
+	reason: IndexerRunnerError,
 } };
+
+export type IndexerRunnerError = ({ FailedRegisterTaskError: string }) & { FailedTaskError?: never; IndexerError?: never; JourneyDbError?: never; KilledRunnerError?: never; ProgressTrackerError?: never } | ({ FailedTaskError: string }) & { FailedRegisterTaskError?: never; IndexerError?: never; JourneyDbError?: never; KilledRunnerError?: never; ProgressTrackerError?: never } | ({ KilledRunnerError: string }) & { FailedRegisterTaskError?: never; FailedTaskError?: never; IndexerError?: never; JourneyDbError?: never; ProgressTrackerError?: never } | ({ IndexerError: IndexerError }) & { FailedRegisterTaskError?: never; FailedTaskError?: never; JourneyDbError?: never; KilledRunnerError?: never; ProgressTrackerError?: never } | ({ ProgressTrackerError: ProgressTrackerError }) & { FailedRegisterTaskError?: never; FailedTaskError?: never; IndexerError?: never; JourneyDbError?: never; KilledRunnerError?: never } | ({ JourneyDbError: JourneyDbError }) & { FailedRegisterTaskError?: never; FailedTaskError?: never; IndexerError?: never; KilledRunnerError?: never; ProgressTrackerError?: never };
 
 export type JellyfinIndexerError = { ApiEntryRetrievalError: string };
 
@@ -74,9 +74,13 @@ export type MediaItemDTO = {
 
 export type MediaItemType = "Unknown" | "Audio" | "Playlist" | "Artist" | "Album" | "Genre";
 
-export type ProgressTrackerError = { FailedCommSendError: string };
+export type ProgressTrackerError = ({ FailedCommSendError: string }) & { FailedCommAskError?: never } | ({ FailedCommAskError: string }) & { FailedCommSendError?: never };
 
-export type ProviderApiError = ({ FailedChannelSendError: string }) & { IndexerManagerError?: never; ProviderError?: never; ProviderManagerError?: never } | ({ ProviderManagerError: ProviderManagerError }) & { FailedChannelSendError?: never; IndexerManagerError?: never; ProviderError?: never } | ({ ProviderError: ProviderError }) & { FailedChannelSendError?: never; IndexerManagerError?: never; ProviderManagerError?: never } | ({ IndexerManagerError: IndexerManagerError }) & { FailedChannelSendError?: never; ProviderError?: never; ProviderManagerError?: never };
+export type ProgressTrackerMsg = { event: "Progress"; data: {
+	amount: number,
+} };
+
+export type ProviderApiError = ({ FailedChannelSendError: string }) & { IndexerManagerError?: never; ProgressTrackerError?: never; ProviderError?: never; ProviderManagerError?: never } | ({ ProviderManagerError: ProviderManagerError }) & { FailedChannelSendError?: never; IndexerManagerError?: never; ProgressTrackerError?: never; ProviderError?: never } | ({ ProviderError: ProviderError }) & { FailedChannelSendError?: never; IndexerManagerError?: never; ProgressTrackerError?: never; ProviderManagerError?: never } | ({ IndexerManagerError: IndexerManagerError }) & { FailedChannelSendError?: never; ProgressTrackerError?: never; ProviderError?: never; ProviderManagerError?: never } | ({ ProgressTrackerError: ProgressTrackerError }) & { FailedChannelSendError?: never; IndexerManagerError?: never; ProviderError?: never; ProviderManagerError?: never };
 
 export type ProviderAuthSchema = "Unknown" | "Password" | "OTP" | "Oauth";
 
@@ -113,9 +117,9 @@ export type SourceDTO = {
 	parent: MediaItemDTO | null,
 	providerId: string,
 };
-const ARGS_MAP = {"Content":{"get_content":[]},"Image":{"get_images":[]},"MediaItem":{"get_media_items":[]},"Provider":{"deregister":["key"],"get_provider":["key"],"get_providers":[],"get_supported_auth_schema":["variant"],"get_supported_variants":[],"indexer_status":["key","on_event"],"password_auth":["url","ty","uname","psw"]},"Source":{"get_source":[]}};
+const ARGS_MAP = {"Content":{"get_content":[]},"Image":{"get_images":[]},"MediaItem":{"get_media_items":[]},"Provider":{"deregister":["key"],"get_provider":["key"],"get_providers":[],"get_supported_auth_schema":["variant"],"get_supported_variants":[],"indexer_progress":["smth","on_event"],"indexer_status":["key","on_event"],"password_auth":["url","ty","uname","psw"]},"Source":{"get_source":[]}};
 
-const RESULT_MAP = {"Content":{"get_content":true},"Image":{"get_images":true},"MediaItem":{"get_media_items":true},"Provider":{"deregister":true,"get_provider":true,"get_providers":true,"get_supported_auth_schema":true,"get_supported_variants":false,"indexer_status":true,"password_auth":true},"Source":{"get_source":true}};
+const RESULT_MAP = {"Content":{"get_content":true},"Image":{"get_images":true},"MediaItem":{"get_media_items":true},"Provider":{"deregister":true,"get_provider":true,"get_providers":true,"get_supported_auth_schema":true,"get_supported_variants":false,"indexer_progress":true,"indexer_status":true,"password_auth":true},"Source":{"get_source":true}};
 
 export type Router = {
 	Content: {
@@ -133,6 +137,7 @@ export type Router = {
 		get_providers: () => Promise<TauRpcResult<ProviderDTO[], ProviderApiError>>,
 		get_supported_auth_schema: (variant: ProviderVariant) => Promise<TauRpcResult<ProviderAuthSchema[], ProviderApiError>>,
 		get_supported_variants: () => Promise<ProviderVariant[]>,
+		indexer_progress: (smth: number, onEvent: (response: ProgressTrackerMsg) => void) => Promise<TauRpcResult<null, ProviderApiError>>,
 		indexer_status: (key: IndexerKey, onEvent: (response: IndexerMsg) => void) => Promise<TauRpcResult<null, ProviderApiError>>,
 		password_auth: (url: string, ty: ProviderVariant, uname: string, psw: string) => Promise<TauRpcResult<ProviderKey, ProviderApiError>>,
 	},
