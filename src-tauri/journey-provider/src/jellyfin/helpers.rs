@@ -1,11 +1,12 @@
-use uuid::Uuid;
-
-use crate::jellyfin::jellyfin_indexer::JellyfinIndexerError;
+use anyhow::Result;
 use jellyfin_sdk_rs::{
     self as sdk,
     apis::configuration::Configuration,
     models::{self, BaseItemDtoQueryResult},
 };
+use uuid::Uuid;
+
+use crate::jellyfin::jellyfin_indexer::JellyfinIndexerError;
 
 #[bon::builder]
 pub async fn get_items_request(
@@ -193,8 +194,8 @@ pub async fn get_items_request(
     .await
     {
         Ok(response) => Ok(response),
-        Err(err) => Err(JellyfinIndexerError::ApiEntryRetrievalError(Some(
+        Err(err) => Err(JellyfinIndexerError::ApiEntryRetrievalError(
             err.to_string(),
-        ))),
+        )),
     }
 }

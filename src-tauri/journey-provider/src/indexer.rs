@@ -28,6 +28,7 @@ use tracing::warn;
 use url::Url;
 use uuid::Uuid;
 
+use crate::indexer_runner::IndexerRunnerError;
 use crate::{
     helpers::check_exists, indexer_manager::IndexerKey,
     jellyfin::jellyfin_indexer::JellyfinIndexerError,
@@ -48,17 +49,18 @@ pub enum IndexerMsg {
     Finished {
         time: Timestamp,
     },
+    Failure {
+        reason: IndexerRunnerError,
+    },
+    FullTaskFailure {
+        reason: IndexerRunnerError,
+    },
 }
 
 #[derive(Debug, Error, Serialize, Type)]
-//#[serde(tag = "error", content = "data")]
 pub enum IndexerError {
     #[error("Failed to parse the given String to an Url: {0}")]
     FailedParseUrlError(String),
-    #[error("Failed to retrieve Jellyfin API response entry.")]
-    ApiEntryRetrievalError(Option<String>),
-    #[error("Failed to insert into database: {0}")]
-    FailedDbInsertError(String),
     #[error("Failed to send update message over channel: {0}")]
     FailedMsgSendError(String),
     #[error("Failed to run transaction: {0}")]
@@ -69,8 +71,6 @@ pub enum IndexerError {
     MissingVariantError,
     #[error("server_id has not been set yet, try authenticating first.")]
     MissingServerIdError,
-    #[error("user_id has not been set yet, try authenticating first.")]
-    MissingUserIdError,
     #[error("Url has not been set yet, provide one first.")]
     MissingUrlError,
     #[error(transparent)]
@@ -95,7 +95,7 @@ pub trait RequiredForIndexer {
         &self,
         conn: &DatabaseConnection,
         comm: UnboundedSender<IndexerMsg>,
-    ) -> IndexerResult<Vec<Option<IndexerError>>>;
+    ) -> IndexerResult<()>;
 }
 
 #[async_trait]
