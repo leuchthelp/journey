@@ -4,6 +4,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use inherent::inherent;
 use journey_db::{entity::ProviderVariant, get_conn};
+use kameo::prelude::*;
 use rapidhash::RapidHashMap;
 use serde::Serialize;
 use specta::Type;
@@ -12,18 +13,12 @@ use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use uuid::Uuid;
 
 use crate::{
-    indexer::{Indexer, IndexerError, IndexerMsg, IndexerResult},
-    indexer_runner::{IndexRunner, IndexRunnerError},
+    indexer::{Indexer, IndexerError, IndexerMsg},
+    indexer_runner::{IndexRunner, IndexRunnerError, IndexRunnerResult, NewTask},
 };
 
 #[derive(Debug, Error, Serialize, Type)]
 pub enum IndexerManagerError {
-    #[error("Failed to run transaction: {0}")]
-    FailedTransactionError(String),
-    #[error("Failed to run indexer task: {0}")]
-    FailedTaskError(String),
-    #[error("Failed to send message to actor: {0}")]
-    FailedActorSendError(String),
     #[error("Message channel for {0} does not exist.")]
     NoSuchCommError(String),
     #[error("Task for {0} does not exist.")]
@@ -32,8 +27,6 @@ pub enum IndexerManagerError {
     IndexerError(#[from] IndexerError),
     #[error(transparent)]
     IndexRunnerError(#[from] IndexRunnerError),
-    #[error(transparent)]
-    JourneyDbError(#[from] journey_db::JourneyDbError),
 }
 
 pub type IndexerManagerResult<T> = Result<T, IndexerManagerError>;
@@ -58,26 +51,35 @@ impl Display for IndexerKey {
 
 #[async_trait]
 pub trait RequiredForIndexerManager {
-    fn register(&mut self, indexer: Box<dyn Indexer + Send + Sync>) -> IndexerManagerResult<()>;
+    async fn register(
+        &mut self,
+        indexer: Box<dyn Indexer + Send + Sync>,
+    ) -> IndexerManagerResult<()>;
     fn consume_status(
         &mut self,
         key: &IndexerKey,
     ) -> IndexerManagerResult<UnboundedReceiver<IndexerMsg>>;
 }
 
-#[async_trait]
-pub trait IndexerManagerFn: RequiredForIndexerManager {}
-
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct IndexerManager {
-    runner: IndexRunner,
+    runner: ActorRef<IndexRunner>,
     comms: RapidHashMap<IndexerKey, UnboundedReceiver<IndexerMsg>>,
+}
+
+impl Default for IndexerManager {
+    fn default() -> Self {
+        IndexerManager {
+            runner: IndexRunner::spawn_default(),
+            comms: RapidHashMap::default(),
+        }
+    }
 }
 
 #[async_trait]
 #[inherent]
 impl RequiredForIndexerManager for IndexerManager {
-    pub fn register(
+    pub async fn register(
         &mut self,
         indexer: Box<dyn Indexer + Send + Sync>,
     ) -> IndexerManagerResult<()> {
@@ -86,7 +88,7 @@ impl RequiredForIndexerManager for IndexerManager {
 
         let index_background_op = async |indexer: Box<dyn Indexer + Send + Sync>,
                                          comm: UnboundedSender<IndexerMsg>|
-               -> IndexerResult<()> {
+               -> IndexRunnerResult<()> {
             let conn = get_conn().await?;
 
             indexer.index(&conn, comm).await?;
@@ -96,7 +98,7 @@ impl RequiredForIndexerManager for IndexerManager {
         let key = indexer.key()?;
         let task = tokio::spawn(index_background_op(indexer, comm.clone()));
 
-        match self.runner.task_comm.send((task, comm)) {
+        match self.runner.tell(NewTask { task, comm }).await {
             Ok(_) => Ok(()),
             Err(err) => Err(IndexRunnerError::FailedRegisterTaskError(err.to_string())),
         }?;
@@ -114,5 +116,3 @@ impl RequiredForIndexerManager for IndexerManager {
         }
     }
 }
-
-impl IndexerManagerFn for IndexerManager {}

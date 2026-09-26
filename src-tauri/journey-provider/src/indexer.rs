@@ -50,10 +50,10 @@ pub enum IndexerMsg {
         time: Timestamp,
     },
     Failure {
-        reason: IndexerError,
+        reason: IndexRunnerError,
     },
     FullTaskFailure {
-        reason: IndexerError,
+        reason: IndexRunnerError,
     },
 }
 
@@ -61,8 +61,6 @@ pub enum IndexerMsg {
 pub enum IndexerError {
     #[error("Failed to parse the given String to an Url: {0}")]
     FailedParseUrlError(String),
-    #[error("Failed to insert into database: {0}")]
-    FailedDbInsertError(String),
     #[error("Failed to send update message over channel: {0}")]
     FailedMsgSendError(String),
     #[error("Failed to run transaction: {0}")]
@@ -73,12 +71,8 @@ pub enum IndexerError {
     MissingVariantError,
     #[error("server_id has not been set yet, try authenticating first.")]
     MissingServerIdError,
-    #[error("user_id has not been set yet, try authenticating first.")]
-    MissingUserIdError,
     #[error("Url has not been set yet, provide one first.")]
     MissingUrlError,
-    #[error(transparent)]
-    IndexRunnerrError(#[from] IndexRunnerError),
     #[error(transparent)]
     JellyfinIndexerError(#[from] JellyfinIndexerError),
     #[error(transparent)]

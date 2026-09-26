@@ -140,12 +140,12 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
             ProviderVariant::Unknown => Err(ProviderManagerError::UnknownProviderError),
         }
     }
-    fn start_indexing(&mut self) -> ProviderManagerResult<()> {
+    async fn start_indexing(&mut self) -> ProviderManagerResult<()> {
         let indexers = self.get_indexers()?;
         let indexer_manager = self.get_indexer_manager();
 
         for indexer in indexers {
-            indexer_manager.register(indexer)?;
+            indexer_manager.register(indexer).await?;
         }
 
         Ok(())
@@ -163,7 +163,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
             self.register(new_provider)?;
         }
 
-        self.start_indexing()?;
+        self.start_indexing().await?;
         Ok(())
     }
     async fn password_auth(
@@ -181,7 +181,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
 
         let key = provider.key()?;
         self.register(provider)?;
-        self.start_indexing()?;
+        self.start_indexing().await?;
         Ok(key)
     }
     async fn validate_provider(

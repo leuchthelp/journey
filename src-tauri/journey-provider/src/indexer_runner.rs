@@ -1,20 +1,17 @@
 use anyhow::Result;
+use journey_db::JourneyDbError;
 use kameo::{Actor, message::Message, prelude::*};
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
 use tokio::{
-    sync::{
-        broadcast,
-        mpsc::{self, UnboundedReceiver, UnboundedSender},
-    },
+    sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
     task::JoinHandle,
 };
-use tracing::warn;
 
 use crate::{
     IndexerMsg,
-    indexer::IndexerResult,
+    indexer::IndexerError,
     progress_tracker::{DecProgress, IncProgress, ProgressTracker, ProgressTrackerError},
 };
 
@@ -24,8 +21,14 @@ pub enum IndexRunnerError {
     FailedRegisterTaskError(String),
     #[error("Failed to run indexer task: {0}")]
     FailedTaskError(String),
+    #[error("Accidentally killed the runner. This should never happen: {0}")]
+    KilledRunnerError(String),
+    #[error(transparent)]
+    IndexerError(#[from] IndexerError),
     #[error(transparent)]
     ProgressTrackerError(#[from] ProgressTrackerError),
+    #[error(transparent)]
+    JourneyDbError(#[from] JourneyDbError),
 }
 
 pub type IndexRunnerResult<T> = Result<T, IndexRunnerError>;
@@ -36,97 +39,76 @@ pub type IndexRunnerResult<T> = Result<T, IndexRunnerError>;
     send to the frontend via an IndexerMsg::Failure().
 */
 async fn runner_task(
-    mut recv: UnboundedReceiver<(JoinHandle<IndexerResult<()>>, UnboundedSender<IndexerMsg>)>,
+    mut recv: UnboundedReceiver<(
+        JoinHandle<IndexRunnerResult<()>>,
+        UnboundedSender<IndexerMsg>,
+    )>,
     progress_comm: ActorRef<ProgressTracker>,
 ) -> IndexRunnerResult<()> {
     while let Some((task, indexer_comm)) = recv.recv().await {
         let res = match task.await {
-            Ok(res) => Some(res),
-            Err(err) => {
-                match indexer_comm.send(IndexerMsg::FullTaskFailure {
-                    reason: IndexRunnerError::FailedTaskError(err.to_string()).into(),
-                }) {
-                    Ok(_) => (),
-                    Err(err) => {
-                        warn!("failed to send failure in to frontend: {}", err.to_string())
-                    }
-                };
-                None
-            }
+            Ok(res) => res,
+            Err(err) => match indexer_comm.send(IndexerMsg::FullTaskFailure {
+                reason: IndexRunnerError::FailedTaskError(err.to_string()),
+            }) {
+                Ok(_) => Ok(()),
+                Err(err) => Err(ProgressTrackerError::FailedCommSendError(err.to_string()).into()),
+            },
         };
 
-        if let Some(res) = res {
-            match res {
-                Ok(_) => match progress_comm.tell(DecProgress { amount: 1 }).await {
-                    Ok(_) => Ok(()),
-                    Err(err) => Err(ProgressTrackerError::FailedCommSendError(err.to_string())),
-                }?,
-                Err(err) => match indexer_comm.send(IndexerMsg::FullTaskFailure { reason: err }) {
-                    Ok(_) => (),
-                    Err(err) => warn!("failed to send failure in to frontend: {}", err.to_string()),
-                },
-            }
+        match res {
+            Ok(_) => match progress_comm.tell(DecProgress { amount: 1 }).await {
+                Ok(_) => Ok(()),
+                Err(err) => Err(ProgressTrackerError::FailedCommSendError(err.to_string())),
+            }?,
+            Err(err) => match indexer_comm.send(IndexerMsg::FullTaskFailure { reason: err }) {
+                Ok(_) => Ok(()),
+                Err(err) => Err(IndexRunnerError::KilledRunnerError(err.to_string())),
+            }?,
         }
     }
 
     Ok(())
 }
 
-#[derive(Debug)]
+#[derive(Debug, Actor)]
 pub struct IndexRunner {
-    runner: JoinHandle<IndexRunnerResult<()>>,
-    pub task_comm: UnboundedSender<(JoinHandle<IndexerResult<()>>, UnboundedSender<IndexerMsg>)>,
-    pub progress: ActorRef<ProgressTracker>,
+    _runner: JoinHandle<IndexRunnerResult<()>>,
+    task_comm: UnboundedSender<(
+        JoinHandle<IndexRunnerResult<()>>,
+        UnboundedSender<IndexerMsg>,
+    )>,
+    progress: ActorRef<ProgressTracker>,
 }
 
 impl Default for IndexRunner {
     fn default() -> Self {
         let (task_comm, task_recv): (
-            UnboundedSender<(JoinHandle<IndexerResult<()>>, UnboundedSender<IndexerMsg>)>,
-            UnboundedReceiver<(JoinHandle<IndexerResult<()>>, UnboundedSender<IndexerMsg>)>,
+            UnboundedSender<(
+                JoinHandle<IndexRunnerResult<()>>,
+                UnboundedSender<IndexerMsg>,
+            )>,
+            UnboundedReceiver<(
+                JoinHandle<IndexRunnerResult<()>>,
+                UnboundedSender<IndexerMsg>,
+            )>,
         ) = mpsc::unbounded_channel();
 
-        let (progress_comm, progress_recv): (broadcast::Sender<i32>, broadcast::Receiver<i32>) =
-            broadcast::channel(20);
+        let progress = ProgressTracker::spawn_default();
 
-        let progress = ProgressTracker::spawn(ProgressTracker {
-            comm: progress_comm,
-            _recv: progress_recv,
-            in_progress: 0,
-        });
-
-        let runner = tokio::spawn(runner_task(task_recv, progress.clone()));
+        let _runner = tokio::spawn(runner_task(task_recv, progress.clone()));
 
         IndexRunner {
-            runner: runner,
+            _runner,
             task_comm,
-            progress: progress,
+            progress,
         }
     }
 }
 
-impl Actor for IndexRunner {
-    type Args = ();
-    type Error = IndexRunnerError;
-
-    async fn on_start(_: Self::Args, _: ActorRef<Self>) -> IndexRunnerResult<Self> {
-        Ok(IndexRunner::default())
-    }
-
-    async fn on_stop(
-        &mut self,
-        actor_ref: WeakActorRef<Self>,
-        _: ActorStopReason,
-    ) -> IndexRunnerResult<()> {
-        self.runner.abort();
-        actor_ref.kill();
-        Ok(())
-    }
-}
-
 pub struct NewTask {
-    task: JoinHandle<IndexerResult<()>>,
-    comm: UnboundedSender<IndexerMsg>,
+    pub task: JoinHandle<IndexRunnerResult<()>>,
+    pub comm: UnboundedSender<IndexerMsg>,
 }
 
 impl Message<NewTask> for IndexRunner {

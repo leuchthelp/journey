@@ -23,7 +23,6 @@ use crate::{
 };
 
 #[derive(Debug, Error, Serialize, Type)]
-//#[serde(tag = "error", content = "data")]
 pub enum JellyfinProviderError {
     #[error("Failed to retrieve Jellyfin API response entry.")]
     ApiEntryRetrievalError(Option<String>),
@@ -261,7 +260,7 @@ mod variant_jellyfin {
         let key = indexer.key().unwrap();
 
         let mut indexer_manager = IndexerManager::default();
-        indexer_manager.register(indexer).unwrap();
+        indexer_manager.register(indexer).await.unwrap();
 
         let mut comm = indexer_manager.consume_status(&key).unwrap();
 
