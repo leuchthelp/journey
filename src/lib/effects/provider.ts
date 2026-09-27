@@ -112,13 +112,10 @@ const indexerStatus = (
     });
   });
 
-const getIndexerProgress = (
-  callback: (response: ProgressTrackerMsg) => void,
-  smth = 0,
-) =>
+const getIndexerProgress = (callback: (response: ProgressTrackerMsg) => void) =>
   Effect.gen(function* () {
     const wrapped = pipe(
-      API.Provider.indexer_progress(smth, callback),
+      API.Provider.indexer_progress(callback),
       wrapWithEffect,
     );
 

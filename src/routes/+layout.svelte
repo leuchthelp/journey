@@ -18,7 +18,7 @@
   const progressCallback = (response: ProgressTrackerMsg) => {
     switch (response.event) {
       case "Progress":
-        progressMessage = `Currently indexing: ${response.data} providers.`;
+        progressMessage = `Currently indexing: ${response.data.amount} providers.`;
         break;
     }
   };
@@ -40,6 +40,7 @@
   );
 
   $inspect(indexerProgress);
+  $inspect(progressMessage);
 </script>
 
 <main

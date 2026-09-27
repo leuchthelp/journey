@@ -3,18 +3,19 @@ use journey_db::JourneyDbError;
 use kameo::{Actor, message::Message, prelude::*};
 use serde::Serialize;
 use specta::Type;
+use tauri::ipc::Channel;
 use thiserror::Error;
 use tokio::{
-    sync::{
-        broadcast,
-        mpsc::{self, UnboundedReceiver, UnboundedSender},
-    },
+    sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
     task::JoinHandle,
 };
 
 use crate::{
-    IndexerMsg, indexer::IndexerError, progress_tracker::{
-        DecProgress, IncProgress, ProgressRecv, ProgressTracker, ProgressTrackerError, ProgressTrackerMsg,
+    IndexerMsg,
+    indexer::IndexerError,
+    progress_tracker::{
+        DecProgress, IncProgress, ProgressRecv, ProgressTracker, ProgressTrackerError,
+        ProgressTrackerMsg,
     },
 };
 
@@ -24,6 +25,8 @@ pub enum IndexerRunnerError {
     FailedRegisterTaskError(String),
     #[error("Failed to run indexer task: {0}")]
     FailedTaskError(String),
+    #[error("Failed to send msg via channel: {0}")]
+    FailedChannelSendError(String),
     #[error("Accidentally killed the runner. This should never happen: {0}")]
     KilledRunnerError(String),
     #[error(transparent)]
@@ -82,6 +85,7 @@ pub struct IndexerRunner {
         UnboundedSender<IndexerMsg>,
     )>,
     progress: ActorRef<ProgressTracker>,
+    ui_callback_tasks: Vec<JoinHandle<IndexerRunnerResult<()>>>,
 }
 
 impl Default for IndexerRunner {
@@ -105,6 +109,7 @@ impl Default for IndexerRunner {
             _runner,
             task_comm,
             progress,
+            ui_callback_tasks: vec![],
         }
     }
 }
@@ -130,15 +135,43 @@ impl Message<NewTask> for IndexerRunner {
     }
 }
 
-pub struct GetProgress;
+pub struct GetProgress {
+    pub callback: Channel<ProgressTrackerMsg>,
+}
 
 impl Message<GetProgress> for IndexerRunner {
-    type Reply = IndexerRunnerResult<broadcast::Receiver<ProgressTrackerMsg>>;
+    type Reply = IndexerRunnerResult<()>;
 
-    async fn handle(&mut self, _: GetProgress, _: &mut Context<Self, Self::Reply>) -> Self::Reply {
-        match self.progress.ask(ProgressRecv).await {
-            Ok(recv) => Ok(recv),
-            Err(err) => Err(ProgressTrackerError::FailedCommAskError(err.to_string()).into()),
-        }
+    async fn handle(
+        &mut self,
+        msg: GetProgress,
+        _: &mut Context<Self, Self::Reply>,
+    ) -> Self::Reply {
+        let on_event = msg.callback;
+
+        let recv = match self.progress.ask(ProgressRecv).await {
+            Ok(recv) => recv,
+            Err(err) => {
+                return Err(ProgressTrackerError::FailedCommAskError(err.to_string()).into());
+            }
+        };
+
+        let op = async |mut recv: tokio::sync::broadcast::Receiver<ProgressTrackerMsg>,
+                        on_event: Channel<ProgressTrackerMsg>|
+               -> IndexerRunnerResult<()> {
+            while let Ok(msg) = recv.recv().await {
+                match on_event.send(msg) {
+                    Ok(_) => Ok(()),
+                    Err(err) => Err(IndexerRunnerError::FailedChannelSendError(err.to_string())),
+                }?;
+            }
+
+            Ok(())
+        };
+
+        self.ui_callback_tasks
+            .push(tokio::spawn(op(recv, on_event)));
+
+        Ok(())
     }
 }

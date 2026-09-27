@@ -48,7 +48,7 @@ pub trait ProviderApi {
         key: IndexerKey,
         on_event: Channel<IndexerMsg>,
     ) -> ProviderApiResult<()>;
-    async fn indexer_progress(smth: i32, on_event: Channel<ProgressTrackerMsg>) -> ProviderApiResult<()>;
+    async fn indexer_progress(on_event: Channel<ProgressTrackerMsg>) -> ProviderApiResult<()>;
 }
 
 #[derive(Clone, Debug)]
@@ -121,32 +121,20 @@ impl ProviderApi for ProviderApiImpl {
     }
     async fn indexer_progress(
         self,
-        _: i32,
         on_event: Channel<ProgressTrackerMsg>,
     ) -> ProviderApiResult<()> {
-        let mut recv = match self
+        match self
             .state
             .read()
             .await
             .provider_manager
             .get_indexer_manager()
             .get_runner()
-            .ask(GetProgress{})
+            .ask(GetProgress { callback: on_event })
             .await
         {
-            Ok(recv) => recv,
-            Err(err) => {
-                return Err(ProgressTrackerError::FailedCommAskError(err.to_string()).into());
-            }
-        };
-
-        while let Ok(msg) = recv.recv().await {
-            match on_event.send(msg) {
-                Ok(_) => Ok(()),
-                Err(err) => Err(ProviderApiError::FailedChannelSendError(err.to_string())),
-            }?;
+            Ok(_) => Ok(()),
+            Err(err) => Err(ProgressTrackerError::FailedCommAskError(err.to_string()).into()),
         }
-
-        Ok(())
     }
 }

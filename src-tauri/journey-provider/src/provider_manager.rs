@@ -289,6 +289,7 @@ mod provider_manager_test {
         let url = env_map.var("TEST_JELLYFIN_URL").unwrap();
 
         let mut provider_manager = ProviderManager::default();
+
         let key = provider_manager
             .password_auth(
                 url,
