@@ -92,7 +92,6 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
             .ty(provider.ty()?)
             .url(provider.url()?)
             .key(provider.key()?)
-            .auth_schema(provider.get_auth_schema())
             .build();
 
         Ok(provider_dto)
@@ -102,9 +101,9 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
 
         for provider in self.get_variants_values() {
             let new = ProviderDTO::builder()
+                .authenticated(provider.authenticated()?)
                 .ty(provider.ty()?)
                 .key(provider.key()?)
-                .auth_schema(provider.get_auth_schema())
                 .build();
             providers.push(new);
         }

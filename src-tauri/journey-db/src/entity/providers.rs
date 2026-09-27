@@ -90,11 +90,10 @@ pub struct ProviderKey {
 #[derive(Debug, Builder)]
 #[serde(rename_all = "camelCase")]
 pub struct ProviderDTO {
-    pub authenticated: Option<bool>,
+    pub authenticated: bool,
     pub key: ProviderKey,
     #[serde(rename = "type")]
     pub ty: ProviderVariant,
-    pub auth_schema: Vec<ProviderAuthSchema>,
     pub url: Option<Url>,
     pub media_items: Option<Vec<MediaItemDTO>>,
     pub images: Option<Vec<ImageDTO>>,
@@ -109,13 +108,12 @@ impl Convertible<ModelEx> for ProviderDTO {
         let images = ImageDTO::to_dto_vec(item.images)?;
 
         Ok(ProviderDTO {
-            authenticated: Some(false),
+            authenticated: false,
             key: ProviderKey {
                 user_id: item.user_id,
                 provider_id: item.provider_id,
             },
             ty: item.ty,
-            auth_schema: vec![],
             url: Some(Url::parse(&item.url)?),
             media_items: parents,
             images: images,
