@@ -9,8 +9,10 @@
   type Props = {
     variant: ProviderVariant;
     proxy: VariantProxy;
+    incProgress: () => void;
+    decProgress: () => void;
   };
-  let { variant, proxy }: Props = $props();
+  let { variant, proxy, incProgress, decProgress }: Props = $props();
 </script>
 
 <ProviderAccordion.Root title={variant}>
@@ -24,6 +26,8 @@
             {variant}
             {key}
             onKeyChange={(v: ProviderKey) => proxy.setKey(i, v)}
+            {incProgress}
+            {decProgress}
           ></AuthComponent>
         {/if}
       {/each}

@@ -15,15 +15,10 @@ pub use provider_manager::ProviderManagerResult;
 mod indexer;
 mod indexer_manager;
 mod indexer_runner;
-mod progress_tracker;
 
 pub use indexer::IndexerMsg;
 
 pub use indexer_manager::IndexerKey;
 pub use indexer_manager::IndexerManagerError;
-pub use indexer_runner::GetProgress;
-
-pub use progress_tracker::ProgressTrackerError;
-pub use progress_tracker::ProgressTrackerMsg;
 
 mod helpers;

@@ -13,9 +13,17 @@
   } from "#lib/effects/provider.ts";
 
   const callback = (incoming: IndexerMsg) => {
-    if (incoming.event === "Progress") {
-      let data = incoming.data;
-      if (data.item) msg = data.item;
+    switch (incoming.event) {
+      case "Started":
+        incProgress();
+        break;
+      case "Progress":
+        let data = incoming.data;
+        if (data.item) msg = data.item;
+        break;
+      case "Finished":
+        decProgress();
+        break;
     }
   };
 
@@ -23,8 +31,10 @@
     variant: ProviderVariant;
     key?: ProviderKey;
     onKeyChange: (value: ProviderKey | undefined) => void;
+    incProgress: () => void;
+    decProgress: () => void;
   };
-  let { key, variant, onKeyChange }: Props = $props();
+  let { key, variant, onKeyChange, incProgress, decProgress }: Props = $props();
 
   let url = $state("");
   let uname = $state("");

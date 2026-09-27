@@ -3,8 +3,8 @@ use journey_db::entity::{
     ProviderDTO, ProviderKey, ProviderVariant, providers::ProviderAuthSchema,
 };
 use journey_provider::{
-    GetProgress, IndexerKey, IndexerManagerError, IndexerMsg, ProgressTrackerError,
-    ProgressTrackerMsg, ProviderError, ProviderManagerError, ProviderManagerFn,
+    IndexerKey, IndexerManagerError, IndexerMsg, ProviderError, ProviderManagerError,
+    ProviderManagerFn,
 };
 use serde::Serialize;
 use specta::Type;
@@ -23,8 +23,6 @@ pub enum ProviderApiError {
     ProviderError(#[from] ProviderError),
     #[error(transparent)]
     IndexerManagerError(#[from] IndexerManagerError),
-    #[error(transparent)]
-    ProgressTrackerError(#[from] ProgressTrackerError),
 }
 
 type ProviderApiResult<T> = Result<T, ProviderApiError>;
@@ -48,7 +46,6 @@ pub trait ProviderApi {
         key: IndexerKey,
         on_event: Channel<IndexerMsg>,
     ) -> ProviderApiResult<()>;
-    async fn indexer_progress(on_event: Channel<ProgressTrackerMsg>) -> ProviderApiResult<()>;
 }
 
 #[derive(Clone, Debug)]
@@ -118,23 +115,5 @@ impl ProviderApi for ProviderApiImpl {
         }
 
         Ok(())
-    }
-    async fn indexer_progress(
-        self,
-        on_event: Channel<ProgressTrackerMsg>,
-    ) -> ProviderApiResult<()> {
-        match self
-            .state
-            .read()
-            .await
-            .provider_manager
-            .get_indexer_manager()
-            .get_runner()
-            .ask(GetProgress { callback: on_event })
-            .await
-        {
-            Ok(_) => Ok(()),
-            Err(err) => Err(ProgressTrackerError::FailedCommAskError(err.to_string()).into()),
-        }
     }
 }

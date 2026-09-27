@@ -19,6 +19,7 @@ export class VariantProxy {
 
 export class VariantManager {
   #variants = new SvelteMap<ProviderVariant, VariantProxy>();
+  #inProgress = $state(0);
 
   constructor(providers: Iterable<ProviderDTO> = []) {
     for (const { type, key } of providers) this.add(type, key);
@@ -32,11 +33,23 @@ export class VariantManager {
     return [...this.#variants.keys()];
   }
 
+  get progress() {
+    return this.#inProgress;
+  }
+
   get(variant: ProviderVariant) {
     return this.#variants.get(variant);
   }
 
   add(variant: ProviderVariant, key?: ProviderKey) {
     this.#variants.getOrInsert(variant, new VariantProxy([key]));
+  }
+
+  incProgress() {
+    this.#inProgress += 1;
+  }
+
+  decProgress() {
+    this.#inProgress -= 1;
   }
 }

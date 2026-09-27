@@ -7,7 +7,6 @@ edition = "2024"
 workspace = true
 
 [dependencies]
-tauri = { workspace = true }
 tauri-plugin-os = { workspace = true }
 reqwest = { workspace = true }
 chrono = { workspace = true }

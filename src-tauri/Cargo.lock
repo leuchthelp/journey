@@ -2760,7 +2760,6 @@ dependencies = [
  "serial_test",
  "similar",
  "specta",
- "tauri",
  "tauri-plugin-os",
  "taurpc",
  "test-log",

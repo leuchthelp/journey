@@ -148,7 +148,6 @@ export type IndexerRunnerError =
       IndexerError?: never;
       JourneyDbError?: never;
       KilledRunnerError?: never;
-      ProgressTrackerError?: never;
     })
   | ({ FailedTaskError: string } & {
       FailedChannelSendError?: never;
@@ -156,7 +155,6 @@ export type IndexerRunnerError =
       IndexerError?: never;
       JourneyDbError?: never;
       KilledRunnerError?: never;
-      ProgressTrackerError?: never;
     })
   | ({ FailedChannelSendError: string } & {
       FailedRegisterTaskError?: never;
@@ -164,7 +162,6 @@ export type IndexerRunnerError =
       IndexerError?: never;
       JourneyDbError?: never;
       KilledRunnerError?: never;
-      ProgressTrackerError?: never;
     })
   | ({ KilledRunnerError: string } & {
       FailedChannelSendError?: never;
@@ -172,21 +169,11 @@ export type IndexerRunnerError =
       FailedTaskError?: never;
       IndexerError?: never;
       JourneyDbError?: never;
-      ProgressTrackerError?: never;
     })
   | ({ IndexerError: IndexerError } & {
       FailedChannelSendError?: never;
       FailedRegisterTaskError?: never;
       FailedTaskError?: never;
-      JourneyDbError?: never;
-      KilledRunnerError?: never;
-      ProgressTrackerError?: never;
-    })
-  | ({ ProgressTrackerError: ProgressTrackerError } & {
-      FailedChannelSendError?: never;
-      FailedRegisterTaskError?: never;
-      FailedTaskError?: never;
-      IndexerError?: never;
       JourneyDbError?: never;
       KilledRunnerError?: never;
     })
@@ -196,7 +183,6 @@ export type IndexerRunnerError =
       FailedTaskError?: never;
       IndexerError?: never;
       KilledRunnerError?: never;
-      ProgressTrackerError?: never;
     });
 
 export type JellyfinIndexerError = { ApiEntryRetrievalError: string };
@@ -247,45 +233,24 @@ export type MediaItemDTO = {
 export type MediaItemType =
   "Unknown" | "Audio" | "Playlist" | "Artist" | "Album" | "Genre";
 
-export type ProgressTrackerError =
-  | ({ FailedCommSendError: string } & { FailedCommAskError?: never })
-  | ({ FailedCommAskError: string } & { FailedCommSendError?: never });
-
-export type ProgressTrackerMsg = {
-  event: "Progress";
-  data: {
-    amount: number;
-  };
-};
-
 export type ProviderApiError =
   | ({ FailedChannelSendError: string } & {
       IndexerManagerError?: never;
-      ProgressTrackerError?: never;
       ProviderError?: never;
       ProviderManagerError?: never;
     })
   | ({ ProviderManagerError: ProviderManagerError } & {
       FailedChannelSendError?: never;
       IndexerManagerError?: never;
-      ProgressTrackerError?: never;
       ProviderError?: never;
     })
   | ({ ProviderError: ProviderError } & {
       FailedChannelSendError?: never;
       IndexerManagerError?: never;
-      ProgressTrackerError?: never;
       ProviderManagerError?: never;
     })
   | ({ IndexerManagerError: IndexerManagerError } & {
       FailedChannelSendError?: never;
-      ProgressTrackerError?: never;
-      ProviderError?: never;
-      ProviderManagerError?: never;
-    })
-  | ({ ProgressTrackerError: ProgressTrackerError } & {
-      FailedChannelSendError?: never;
-      IndexerManagerError?: never;
       ProviderError?: never;
       ProviderManagerError?: never;
     });
@@ -546,7 +511,6 @@ const ARGS_MAP = {
     get_providers: [],
     get_supported_auth_schema: ["variant"],
     get_supported_variants: [],
-    indexer_progress: ["on_event"],
     indexer_status: ["key", "on_event"],
     password_auth: ["url", "ty", "uname", "psw"],
   },
@@ -563,7 +527,6 @@ const RESULT_MAP = {
     get_providers: true,
     get_supported_auth_schema: true,
     get_supported_variants: false,
-    indexer_progress: true,
     indexer_status: true,
     password_auth: true,
   },
@@ -594,9 +557,6 @@ export type Router = {
       variant: ProviderVariant,
     ) => Promise<TauRpcResult<ProviderAuthSchema[], ProviderApiError>>;
     get_supported_variants: () => Promise<ProviderVariant[]>;
-    indexer_progress: (
-      onEvent: (response: ProgressTrackerMsg) => void,
-    ) => Promise<TauRpcResult<null, ProviderApiError>>;
     indexer_status: (
       key: IndexerKey,
       onEvent: (response: IndexerMsg) => void,
