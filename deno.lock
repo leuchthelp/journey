@@ -3,16 +3,16 @@
   "specifiers": {
     "jsr:@deno/installer-shell-setup@*": "0.3.4",
     "npm:@lucide/svelte@^1.48.0": "1.48.0_svelte@5.57.1",
-    "npm:@sveltejs/adapter-static@^4.0.0-next.4": "4.0.0-next.4_@sveltejs+kit@3.0.0-next.29_@sveltejs+vite-plugin-svelte@7.3.1_svelte@5.57.1_typescript@6.0.3_vite@8.3.1",
+    "npm:@sveltejs/adapter-static@^4.0.0-next.4": "4.0.0-next.4_@sveltejs+kit@3.0.0-next.30_@sveltejs+vite-plugin-svelte@7.3.1_svelte@5.57.1_typescript@6.0.3_vite@8.3.1",
     "npm:@sveltejs/enhanced-img@^1.0.0-next.5": "1.0.0-next.5_@sveltejs+vite-plugin-svelte@7.3.1_svelte@5.57.1_vite@8.3.1_@types+node@26.2.0",
-    "npm:@sveltejs/kit@^3.0.0-next.29": "3.0.0-next.29_@sveltejs+vite-plugin-svelte@7.3.1_svelte@5.57.1_typescript@6.0.3_vite@8.3.1",
+    "npm:@sveltejs/kit@^3.0.0-next.30": "3.0.0-next.30_@sveltejs+vite-plugin-svelte@7.3.1_svelte@5.57.1_typescript@6.0.3_vite@8.3.1",
     "npm:@sveltejs/vite-plugin-svelte@^7.3.1": "7.3.1_svelte@5.57.1_vite@8.3.1_@types+node@26.2.0",
     "npm:@tailwindcss/vite@^4.3.3": "4.3.3_vite@8.3.1_@types+node@26.2.0",
     "npm:@tauri-apps/api@^2.12.0": "2.12.0",
     "npm:@tauri-apps/cli@^2.12.0": "2.12.0",
     "npm:@tauri-apps/plugin-fs@~2.5.2": "2.5.2",
-    "npm:@tauri-apps/plugin-os@^2.3.2": "2.3.2",
-    "npm:@tauri-apps/plugin-window-state@^2.4.1": "2.4.1",
+    "npm:@tauri-apps/plugin-os@^2.4.0": "2.4.0",
+    "npm:@tauri-apps/plugin-window-state@^2.5.0": "2.5.0",
     "npm:@types/node@26.2.0": "26.2.0",
     "npm:@videojs/core@^10.0.0-rc.4": "10.0.0-rc.4_@videojs+element@10.0.0-rc.4_react@19.3.0",
     "npm:@videojs/html@^10.0.0-rc.4": "10.0.0-rc.4_react@19.3.0",
@@ -363,7 +363,7 @@
         "acorn"
       ]
     },
-    "@sveltejs/adapter-static@4.0.0-next.4_@sveltejs+kit@3.0.0-next.29_@sveltejs+vite-plugin-svelte@7.3.1_svelte@5.57.1_typescript@6.0.3_vite@8.3.1": {
+    "@sveltejs/adapter-static@4.0.0-next.4_@sveltejs+kit@3.0.0-next.30_@sveltejs+vite-plugin-svelte@7.3.1_svelte@5.57.1_typescript@6.0.3_vite@8.3.1": {
       "integrity": "sha512-LpHOHYLQctyUASoxlR+m2NYZ9PgQQEpo7Ij8FVs5arLmnGZ3FmFi6RFs5SBk05hzLhmzsUkVcmw8vn7FmWzVJg==",
       "dependencies": [
         "@sveltejs/kit"
@@ -382,8 +382,8 @@
         "zimmerframe"
       ]
     },
-    "@sveltejs/kit@3.0.0-next.29_@sveltejs+vite-plugin-svelte@7.3.1_svelte@5.57.1_typescript@6.0.3_vite@8.3.1": {
-      "integrity": "sha512-KU7O9qC0ZIJgdw1XK/PmShndkXp1Tnk60HJJbNx35bFKtax/v5wC7BYnP476fGmb2GBiDdhAV+/9PCX0uwmejQ==",
+    "@sveltejs/kit@3.0.0-next.30_@sveltejs+vite-plugin-svelte@7.3.1_svelte@5.57.1_typescript@6.0.3_vite@8.3.1": {
+      "integrity": "sha512-hMLBXZc6lFXG27JnCcjuT9UCnF0GOE+yHZIP3cRhQUhkXP67ClXWuoeBNEdPJ8jxSXXTG30bdaQPMTEnnFMuFw==",
       "dependencies": [
         "@rolldown/pluginutils",
         "@standard-schema/spec",
@@ -595,14 +595,14 @@
         "@tauri-apps/api"
       ]
     },
-    "@tauri-apps/plugin-os@2.3.2": {
-      "integrity": "sha512-n+nXWeuSeF9wcEsSPmRnBEGrRgOy6jjkSU+UVCOV8YUGKb2erhDOxis7IqRXiRVHhY8XMKks00BJ0OAdkpf6+A==",
+    "@tauri-apps/plugin-os@2.4.0": {
+      "integrity": "sha512-XFQjntNNI3Vlqdy4WUGwiXX8DByzKVvoemAcUVkBm9NJPGmoDtII5i+vfuAzWaJfOE5cUJJLUDqXBnd4reSAIA==",
       "dependencies": [
         "@tauri-apps/api"
       ]
     },
-    "@tauri-apps/plugin-window-state@2.4.1": {
-      "integrity": "sha512-OuvdrzyY8Q5Dbzpj+GcrnV1iCeoZbcFdzMjanZMMcAEUNy/6PH5pxZPXpaZLOR7whlzXiuzx0L9EKZbH7zpdRw==",
+    "@tauri-apps/plugin-window-state@2.5.0": {
+      "integrity": "sha512-ySI/32fpC1ZTslIZ00/wf9HujyDnkG3OPL16uuLjG53y1hTgjIJ9G2VPuOL1IV8GVr3xeF6lnr6h2T73HuGXow==",
       "dependencies": [
         "@tauri-apps/api"
       ]
@@ -1284,14 +1284,14 @@
         "npm:@lucide/svelte@^1.48.0",
         "npm:@sveltejs/adapter-static@^4.0.0-next.4",
         "npm:@sveltejs/enhanced-img@^1.0.0-next.5",
-        "npm:@sveltejs/kit@^3.0.0-next.29",
+        "npm:@sveltejs/kit@^3.0.0-next.30",
         "npm:@sveltejs/vite-plugin-svelte@^7.3.1",
         "npm:@tailwindcss/vite@^4.3.3",
         "npm:@tauri-apps/api@^2.12.0",
         "npm:@tauri-apps/cli@^2.12.0",
         "npm:@tauri-apps/plugin-fs@~2.5.2",
-        "npm:@tauri-apps/plugin-os@^2.3.2",
-        "npm:@tauri-apps/plugin-window-state@^2.4.1",
+        "npm:@tauri-apps/plugin-os@^2.4.0",
+        "npm:@tauri-apps/plugin-window-state@^2.5.0",
         "npm:@types/node@26.2.0",
         "npm:@videojs/core@^10.0.0-rc.4",
         "npm:@videojs/html@^10.0.0-rc.4",
