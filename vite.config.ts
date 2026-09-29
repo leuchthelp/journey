@@ -22,7 +22,7 @@ export default defineConfig(() => ({
       alias: { $lib: "src/lib" },
 
       adapter: adapter({
-        fallback: "index.html",
+        fallback: "200.html",
       }),
     }),
   ],
