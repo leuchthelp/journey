@@ -5,13 +5,15 @@
 
   let { data }: PageProps = $props();
 
-  $inspect(data.providerReq);
+  $inspect(data.mediaItemsReq);
 </script>
 
 <div class="flex gap-3">
-  {#each data.post as item}
-    {#if itemCache.set(item.uuid, item)}
-      <ItemComponent {item}></ItemComponent>
-    {/if}
-  {/each}
+  {#await data.mediaItemsReq then mediaItems}
+    {#each mediaItems as item}
+      {#if itemCache.set(item.uuid, item)}
+        <ItemComponent {item}></ItemComponent>
+      {/if}
+    {/each}
+  {/await}
 </div>

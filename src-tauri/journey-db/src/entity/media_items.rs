@@ -1,5 +1,3 @@
-use crate::db::Convertible;
-use crate::entity::{ContentDTO, ImageDTO, ProviderDTO, SourceDTO};
 use anyhow::Result;
 use inherent::inherent;
 use sea_orm::entity::prelude::*;
@@ -7,6 +5,9 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 use strum_macros::{Display, EnumString};
 use uuid::Uuid;
+
+use crate::db::{ConversionResult, Convertible};
+use crate::entity::{ContentDTO, ImageDTO, ProviderDTO, SourceDTO};
 
 #[derive(
     Display,
@@ -89,7 +90,7 @@ pub struct MediaItemDTO {
 impl Convertible<ModelEx> for MediaItemDTO {
     type DTO = MediaItemDTO;
 
-    pub fn from_model(item: ModelEx) -> Result<Self> {
+    pub fn from_model(item: ModelEx) -> ConversionResult<Self> {
         let sources = SourceDTO::to_dto_vec(item.sources)?;
         let content = ContentDTO::to_dto_vec(item.content)?;
         let providers = ProviderDTO::to_dto_vec(item.providers)?;

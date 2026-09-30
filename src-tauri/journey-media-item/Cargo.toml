@@ -1,0 +1,17 @@
+[package]
+name = "journey-media-item"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+futures = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+inherent = { workspace = true }
+async-trait = { workspace = true }
+journey-db = { workspace = true }
+serde = { workspace = true }
+specta = { workspace = true }
+
+[lints]
+workspace = true

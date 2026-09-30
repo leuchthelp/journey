@@ -1,5 +1,5 @@
 use crate::{
-    db::Convertible,
+    db::{ConversionError, ConversionResult, Convertible},
     entity::{MediaItemDTO, ProviderDTO},
 };
 use anyhow::Result;
@@ -79,7 +79,7 @@ pub struct ImageDTO {
 impl Convertible<ModelEx> for ImageDTO {
     type DTO = ImageDTO;
 
-    pub fn from_model(item: ModelEx) -> Result<Self> {
+    pub fn from_model(item: ModelEx) -> ConversionResult<Self> {
         let provider = match item.provider.into_option() {
             Some(provider) => Some(ProviderDTO::from_model(provider)?),
             None => None,
@@ -87,8 +87,13 @@ impl Convertible<ModelEx> for ImageDTO {
 
         let media_items = MediaItemDTO::to_dto_vec(item.media_items)?;
 
+        let url = match Url::parse(&item.url) {
+            Ok(url) => url,
+            Err(err) => return Err(ConversionError::FailedParseUrlError(err.to_string())),
+        };
+
         Ok(ImageDTO {
-            url: Url::parse(&item.url)?,
+            url: url,
             provider_id: item.provider_id,
             provider: provider,
             ty: item.ty,

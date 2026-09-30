@@ -13,6 +13,8 @@ export type ContentDTO = {
 
 export type ContentType = "Unknown" | "Album" | "Artists" | "Container" | "ReleaseDate";
 
+export type ConversionError = ({ FailedItemRetrievalError: string }) & { FailedParseUrlError?: never } | ({ FailedParseUrlError: string }) & { FailedItemRetrievalError?: never };
+
 export type ImageApiError = never;
 
 export type ImageDTO = {
@@ -57,7 +59,7 @@ export type JellyfinProviderError = ({ ApiEntryRetrievalError: string | null }) 
 
 export type JourneyDbError = ({ ConnectionError: string }) & { FailedTransactionError?: never; RecordNotFound?: never; Unknown?: never } | ({ RecordNotFound: string }) & { ConnectionError?: never; FailedTransactionError?: never; Unknown?: never } | ({ FailedTransactionError: string }) & { ConnectionError?: never; RecordNotFound?: never; Unknown?: never } | ({ Unknown: string }) & { ConnectionError?: never; FailedTransactionError?: never; RecordNotFound?: never };
 
-export type MediaItemApiError = never;
+export type MediaItemApiError = { MediaItemManagerError: MediaItemManagerError };
 
 export type MediaItemDTO = {
 	uuid: string,
@@ -71,6 +73,8 @@ export type MediaItemDTO = {
 	children: MediaItemDTO[] | null,
 	parents: MediaItemDTO[] | null,
 };
+
+export type MediaItemManagerError = ({ FailedItemRetrievalError: string }) & { ConversionError?: never; JourneyDbError?: never } | ({ JourneyDbError: JourneyDbError }) & { ConversionError?: never; FailedItemRetrievalError?: never } | ({ ConversionError: ConversionError }) & { FailedItemRetrievalError?: never; JourneyDbError?: never };
 
 export type MediaItemType = "Unknown" | "Audio" | "Playlist" | "Artist" | "Album" | "Genre";
 
@@ -110,7 +114,7 @@ export type SourceDTO = {
 	parent: MediaItemDTO | null,
 	providerId: string,
 };
-const ARGS_MAP = {"Content":{"get_content":[]},"Image":{"get_images":[]},"MediaItem":{"get_media_items":[]},"Provider":{"deregister":["key"],"get_provider":["key"],"get_providers":[],"get_supported_auth_schema":["variant"],"get_supported_variants":[],"indexer_status":["key","on_event"],"password_auth":["url","ty","uname","psw"]},"Source":{"get_source":[]}};
+const ARGS_MAP = {"Content":{"get_content":[]},"Image":{"get_images":[]},"MediaItem":{"get_media_items":["ty","amount"]},"Provider":{"deregister":["key"],"get_provider":["key"],"get_providers":[],"get_supported_auth_schema":["variant"],"get_supported_variants":[],"indexer_status":["key","on_event"],"password_auth":["url","ty","uname","psw"]},"Source":{"get_source":[]}};
 
 const RESULT_MAP = {"Content":{"get_content":true},"Image":{"get_images":true},"MediaItem":{"get_media_items":true},"Provider":{"deregister":true,"get_provider":true,"get_providers":true,"get_supported_auth_schema":true,"get_supported_variants":false,"indexer_status":true,"password_auth":true},"Source":{"get_source":true}};
 
@@ -122,7 +126,7 @@ export type Router = {
 		get_images: () => Promise<TauRpcResult<ImageDTO, ImageApiError>>,
 	},
 	MediaItem: {
-		get_media_items: () => Promise<TauRpcResult<MediaItemDTO, MediaItemApiError>>,
+		get_media_items: (ty: MediaItemType, amount: number) => Promise<TauRpcResult<MediaItemDTO[], MediaItemApiError>>,
 	},
 	Provider: {
 		deregister: (key: ProviderKey) => Promise<TauRpcResult<null, ProviderApiError>>,

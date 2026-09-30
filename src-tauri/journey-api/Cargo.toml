@@ -18,6 +18,7 @@ tracing = { workspace = true }
 journey-db = { workspace = true }
 journey-keyring = { workspace = true }
 journey-provider = { workspace = true }
+journey-media-item = { workspace = true }
 
 [lints]
 workspace = true

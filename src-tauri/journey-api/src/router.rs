@@ -1,6 +1,8 @@
-use anyhow::Result;
-use journey_provider::{ProviderManager, ProviderManagerFn};
 use std::sync::Arc;
+
+use anyhow::Result;
+use journey_media_item::MediaItemManager;
+use journey_provider::{ProviderManager, ProviderManagerFn};
 use tauri::Wry;
 use taurpc::Router;
 use tokio::sync::RwLock;
@@ -17,7 +19,12 @@ pub async fn get_router() -> Result<Router<Wry>> {
     let mut provider_manager = ProviderManager::default();
     provider_manager.init().await?;
 
-    let state = AppState::new(RwLock::new(AppStateInner { provider_manager }));
+    let media_item_manager = MediaItemManager::default();
+
+    let state = AppState::new(RwLock::new(AppStateInner {
+        provider_manager,
+        media_item_manager,
+    }));
 
     let router = taurpc::Router::new()
         .merge(
@@ -57,6 +64,7 @@ pub async fn get_router() -> Result<Router<Wry>> {
 #[derive(Debug)]
 pub struct AppStateInner {
     pub provider_manager: ProviderManager,
+    pub media_item_manager: MediaItemManager,
 }
 
 pub type AppState = Arc<RwLock<AppStateInner>>;

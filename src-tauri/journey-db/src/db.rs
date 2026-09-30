@@ -34,11 +34,21 @@ pub async fn get_conn() -> Result<DatabaseConnection, JourneyDbError> {
     Ok(conn)
 }
 
+#[derive(Debug, Error, Serialize, Type)]
+pub enum ConversionError {
+    #[error("Failed conversion: {0}")]
+    FailedItemRetrievalError(String),
+    #[error("Failed to parse Url: {0}")]
+    FailedParseUrlError(String),
+}
+
+pub type ConversionResult<T> = Result<T, ConversionError>;
+
 pub trait Convertible<T> {
     type DTO;
 
-    fn from_model(item: T) -> Result<Self::DTO>;
-    fn to_dto_vec(items: impl IntoIterator<Item = T>) -> Result<Option<Vec<Self::DTO>>> {
+    fn from_model(item: T) -> ConversionResult<Self::DTO>;
+    fn to_dto_vec(items: impl IntoIterator<Item = T>) -> ConversionResult<Option<Vec<Self::DTO>>> {
         let mut peekable = items.into_iter().peekable();
         if peekable.peek().is_none() {
             return Ok(None);

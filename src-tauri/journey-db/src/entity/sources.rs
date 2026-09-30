@@ -1,4 +1,7 @@
-use crate::{db::Convertible, entity::MediaItemDTO};
+use crate::{
+    db::{ConversionResult, Convertible},
+    entity::MediaItemDTO,
+};
 use Uuid;
 use anyhow::Result;
 use inherent::inherent;
@@ -33,7 +36,7 @@ pub struct SourceDTO {
 impl Convertible<ModelEx> for SourceDTO {
     type DTO = SourceDTO;
 
-    pub fn from_model(item: ModelEx) -> Result<Self> {
+    pub fn from_model(item: ModelEx) -> ConversionResult<Self> {
         let parent = match item.parent.into_option() {
             Some(parent) => Some(MediaItemDTO::from_model(parent)?),
             None => None,

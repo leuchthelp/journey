@@ -23,6 +23,7 @@ members = [
     "journey-api",
     "journey-db",
     "journey-keyring",
+    "journey-media-item",
     "journey-provider",
     "journey-utils",
 ]
@@ -40,7 +41,7 @@ tracing = { version = "0.1" }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tracing-test = "0.2.6"
 test-log = { version = "0.2", features = ["trace"] }
-taurpc = "0.8.2"
+taurpc = "0.8"
 strum = "0.28"
 strum_macros = "0.28"
 specta = { version = "2.0.0-rc.25", features = [
@@ -52,23 +53,23 @@ specta = { version = "2.0.0-rc.25", features = [
 ] }
 specta-serde = { version = "0.0.12" }
 specta-typescript = "0.0.12"
-jiff = { version = "0.2.35", features = ["serde"] }
-bon = "3.9"
-similar = "3.2.0"
-kameo = "0.22.2"
-url = { version = "2.5.8", features = ["serde"] }
-rapidhash = "4.5.1"
-chrono = "0.4.45"
-reqwest = "0.13.4"
-thiserror = "2.0.19"
-inherent = "1.0"
-async-trait = "0.1.91"
-dyn-clone = "1.0.20"
-anyhow = "1.0.104"
-serial_test = "3.5.0"
-futures = "0.3.33"
-uuid = { version = "^1.23.4", features = ["serde", "v7", "zerocopy"] }
-sea-orm = { version = "2.0.0-rc.43", features = [
+jiff = { version = "0.2", features = ["serde"] }
+bon = "3"
+similar = "3"
+kameo = "0.22"
+url = { version = "2", features = ["serde"] }
+rapidhash = "4"
+chrono = "0.4"
+reqwest = "0.13"
+thiserror = "2"
+inherent = "1"
+async-trait = "0.1"
+dyn-clone = "1"
+anyhow = "1"
+serial_test = "4"
+futures = "0.3"
+uuid = { version = "1", features = ["serde", "v7", "zerocopy"] }
+sea-orm = { version = "2", features = [
     "sqlx-sqlite",
     "runtime-tokio",
     "macros",
@@ -78,12 +79,13 @@ sea-orm = { version = "2.0.0-rc.43", features = [
     "with-uuid",
     "with-json",
 ] }
-sea-query = "1.0.2"
+sea-query = "1"
 journey-db = { path = "journey-db" }
 journey-api = { path = "journey-api" }
 journey-utils = { path = "journey-utils" }
 journey-keyring = { path = "journey-keyring" }
 journey-provider = { path = "journey-provider" }
+journey-media-item = { path = "journey-media-item" }
 
 dotenvy = { git = "https://github.com/allan2/dotenvy", features = ["macros"] }
 
@@ -111,7 +113,6 @@ url = { workspace = true }
 anyhow = { workspace = true }
 journey-api = { workspace = true }
 journey-keyring = { workspace = true }
-journey-provider = { workspace = true }
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-window-state = { workspace = true }

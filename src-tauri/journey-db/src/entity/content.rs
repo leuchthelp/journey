@@ -1,4 +1,7 @@
-use crate::{db::Convertible, entity::MediaItemDTO};
+use crate::{
+    db::{ConversionResult, Convertible},
+    entity::MediaItemDTO,
+};
 use anyhow::Result;
 use inherent::inherent;
 use sea_orm::entity::prelude::*;
@@ -66,7 +69,7 @@ pub struct ContentDTO {
 impl Convertible<ModelEx> for ContentDTO {
     type DTO = ContentDTO;
 
-    pub fn from_model(item: ModelEx) -> Result<Self> {
+    pub fn from_model(item: ModelEx) -> ConversionResult<Self> {
         let parent = match item.parent.into_option() {
             Some(parent) => Some(MediaItemDTO::from_model(parent)?),
             None => None,
