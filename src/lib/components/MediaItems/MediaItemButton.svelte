@@ -14,8 +14,6 @@
   let artist = $derived(
     item.content?.filter((item) => item.type === "Artists").at(0),
   );
-
-  $inspect(image);
 </script>
 
 <div class="flex size-24 flex-col md:size-44">

@@ -1,41 +1,8 @@
-import { error } from "@sveltejs/kit";
 import type { PageLoad } from "./$types.d.ts";
-import { page } from "$app/state";
-import { itemCache } from "#lib/components/MediaItems/ItemCache.ts";
 import { AlbumItem } from "#lib/components/MediaItems/MediaItems.ts";
 
-export const load: PageLoad = async ({ params }) => {
-  // Fastest: try check out parent page if it already posted the item
-  const data = page.data.post as AlbumItem[];
-  let res: AlbumItem | undefined;
-  if (data) {
-    res = data.filter((item) => item.uuid === params.slug)[0];
-
-    if (res) {
-      return {
-        post: res,
-      };
-    }
-  }
-
-  // Medium: look in cache if item has been posted already
-  if (itemCache) {
-    const tmp = itemCache.get(params.slug);
-    if (tmp) {
-      return {
-        post: tmp as AlbumItem,
-      };
-    }
-  }
-
-  // Brutal: fallback to database to get item fresh
-  res = new AlbumItem();
-
-  if (res) {
-    return {
-      post: res,
-    };
-  }
-
-  error(404, "Not found");
+export const load: PageLoad = async () => {
+  return {
+    post: new AlbumItem(),
+  };
 };
