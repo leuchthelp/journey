@@ -11,7 +11,7 @@ export type ContentDTO = {
 	description: string,
 };
 
-export type ContentType = "Unknown" | "Album" | "Artists" | "Container" | "ReleaseDate";
+export type ContentType = "Unknown" | "Name" | "Album" | "Artists" | "Container" | "ReleaseDate";
 
 export type ConversionError = ({ FailedItemRetrievalError: string }) & { FailedParseUrlError?: never } | ({ FailedParseUrlError: string }) & { FailedItemRetrievalError?: never };
 

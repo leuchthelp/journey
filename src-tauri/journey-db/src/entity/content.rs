@@ -30,6 +30,7 @@ use uuid::Uuid;
 pub enum ContentType {
     #[default]
     Unknown,
+    Name,
     Album,
     Artists,
     Container,
@@ -78,7 +79,7 @@ impl Convertible<ModelEx> for ContentDTO {
         Ok(ContentDTO {
             parent_id: item.parent_id,
             parent: parent,
-            ty: ContentType::Unknown,
+            ty: item.ty,
             description: item.description,
         })
     }

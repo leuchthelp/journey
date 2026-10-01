@@ -2,13 +2,12 @@ import { error } from "@sveltejs/kit";
 import type { PageLoad } from "./$types.d.ts";
 import { page } from "$app/state";
 import { itemCache } from "#lib/components/MediaItems/ItemCache.ts";
-import { SongItem } from "#lib/components/MediaItems/MediaItems.ts";
-import { singlePageDataQuery } from "#lib/db/queries.ts";
+import { AudioItem } from "#lib/components/MediaItems/MediaItems.ts";
 
 export const load: PageLoad = async ({ params }) => {
   // Fastest: try check out parent page if it already posted the item
-  const data = page.data.post as SongItem[];
-  let res: SongItem | undefined;
+  const data = page.data.post as AudioItem[];
+  let res: AudioItem | undefined;
   if (data) {
     res = data.filter((item) => item.uuid === params.slug)[0];
 
@@ -24,13 +23,13 @@ export const load: PageLoad = async ({ params }) => {
     const tmp = itemCache.get(params.slug);
     if (tmp) {
       return {
-        post: tmp as SongItem,
+        post: tmp as AudioItem,
       };
     }
   }
 
   // Brutal: fallback to database to get item fresh
-  res = new SongItem();
+  res = new AudioItem();
 
   if (res) {
     return {

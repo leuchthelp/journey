@@ -21,7 +21,7 @@ class BaseItem implements MediaItemDTO {
   children: MediaItemDTO[] = [];
 }
 
-export class SongItem extends BaseItem {
+export class AudioItem extends BaseItem {
   override type = "Audio" as MediaItemType;
   override outlineGradient = "ring-[#C2381D]";
 }

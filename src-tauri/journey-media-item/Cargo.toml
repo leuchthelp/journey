@@ -12,6 +12,7 @@ async-trait = { workspace = true }
 journey-db = { workspace = true }
 serde = { workspace = true }
 specta = { workspace = true }
+tracing = { workspace = true }
 
 [lints]
 workspace = true

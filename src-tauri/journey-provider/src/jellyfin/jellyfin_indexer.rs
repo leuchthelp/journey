@@ -266,6 +266,8 @@ impl JellyfinIndexer {
             item.name.clone().flatten()
         );
 
+        let name = (content::ContentType::Name, item.name.clone().flatten());
+
         let album = (content::ContentType::Album, item.album.clone().flatten());
 
         let artists = (
@@ -284,7 +286,7 @@ impl JellyfinIndexer {
         };
         let release_date = (content::ContentType::ReleaseDate, date);
 
-        Ok(vec![album, artists, container, release_date])
+        Ok(vec![name, album, artists, container, release_date])
     }
     #[allow(unreachable_patterns)]
     fn match_image_type(&self, kind: ImageType) -> IndexerResult<images::ImageType> {
