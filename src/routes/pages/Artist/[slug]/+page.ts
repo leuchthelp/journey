@@ -1,4 +1,4 @@
-import type { PageLoad } from "./$types.d.ts";
+import type { PageLoad } from "./$types";
 
 import { ArtistItem } from "#lib/components/MediaItems/MediaItems.ts";
 

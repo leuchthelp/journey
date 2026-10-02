@@ -7,7 +7,7 @@
 
   let { item }: Props = $props();
 
-  let image = $derived(item.images?.at(0)?.url!);
+  let image = $derived(item.images?.at(0)?.url);
   let name = $derived(
     item.content?.filter((item) => item.type === "Name").at(0),
   );
