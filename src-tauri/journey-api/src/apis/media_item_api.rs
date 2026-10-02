@@ -4,6 +4,7 @@ use journey_media_item::{MediaItemManagerError, MediaItemManagerFn};
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
+use uuid::Uuid;
 
 use crate::AppState;
 
@@ -21,6 +22,7 @@ pub trait MediaItemApi {
         ty: MediaItemType,
         amount: u64,
     ) -> MediaItemApiResult<Vec<MediaItemDTO>>;
+    async fn get_media_item(ty: MediaItemType, uuid: Uuid) -> MediaItemApiResult<MediaItemDTO>;
 }
 
 #[derive(Clone, Debug)]
@@ -38,5 +40,14 @@ impl MediaItemApi for MediaItemApiImpl {
         let lock = self.state.read().await;
         let items = lock.media_item_manager.get_items(ty, amount).await?;
         Ok(items)
+    }
+    async fn get_media_item(
+        self,
+        ty: MediaItemType,
+        uuid: Uuid,
+    ) -> MediaItemApiResult<MediaItemDTO> {
+        let lock = self.state.read().await;
+        let item = lock.media_item_manager.get_item(ty, uuid).await?;
+        Ok(item)
     }
 }

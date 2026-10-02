@@ -1,10 +1,6 @@
 <script lang="ts">
   import { Play, Pause } from "@lucide/svelte";
 
-  function toggleState() {
-    state = !state;
-  }
-
   type Props = {
     action?: string;
   };

@@ -9,11 +9,12 @@ use journey_db::{
         providers, sources,
     },
     get_conn,
-    sea_orm::{ColumnTrait, Condition, EntityLoaderTrait, QueryFilter},
+    sea_orm::{ColumnTrait, EntityLoaderTrait, QueryFilter},
 };
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
+use uuid::Uuid;
 
 #[derive(Debug, Error, Serialize, Type)]
 pub enum MediaItemManagerError {
@@ -39,29 +40,48 @@ pub trait MediaItemManagerFn: RequiredForMediaItemManager + Sync {
     ) -> MediaItemManagerResult<Vec<MediaItemDTO>> {
         let conn = get_conn().await?;
 
-        let filter_item_ty = media_items::Column::Ty.eq(ty);
-
-        let filter = Condition::all().add(filter_item_ty);
-
         let mut paginator = media_items::Entity::load()
-            .filter(filter)
-            .with(providers::Entity)
+            .filter(media_items::Column::Ty.eq(ty))
             .with(content::Entity)
             .with(sources::Entity)
             .with(images::Entity)
-            .with(jt_parent_to_child::Entity::REVERSE)
             .paginate(&conn, amount);
 
         let mut items = vec![];
 
-        if let Ok(Some(models)) = paginator.fetch_and_next().await {
-            for model in models {
-                let dto = MediaItemDTO::from_model(model)?;
-                items.push(dto);
+        match paginator.fetch_and_next().await {
+            Ok(Some(models)) => {
+                for model in models {
+                    let dto = MediaItemDTO::from_model(model)?;
+                    items.push(dto);
+                }
             }
-        }
+            Ok(None) => return Err(JourneyDbError::RecordNotFound(ty.to_string()).into()),
+            Err(err) => return Err(JourneyDbError::ConnectionError(err.to_string()).into()),
+        };
 
         Ok(items)
+    }
+    async fn get_item(
+        &self,
+        ty: MediaItemType,
+        uuid: Uuid,
+    ) -> MediaItemManagerResult<MediaItemDTO> {
+        match media_items::Entity::load()
+            .filter(media_items::Column::Ty.eq(ty))
+            .with(providers::Entity)
+            .with(content::Entity)
+            .with(sources::Entity)
+            .with(images::Entity)
+            .with(jt_parent_to_child::Entity)
+            .with(jt_parent_to_child::Entity::REVERSE)
+            .one(&get_conn().await?)
+            .await
+        {
+            Ok(Some(model)) => Ok(MediaItemDTO::from_model(model)?),
+            Ok(None) => Err(JourneyDbError::RecordNotFound(uuid.to_string()).into()),
+            Err(err) => Err(JourneyDbError::ConnectionError(err.to_string()).into()),
+        }
     }
 }
 

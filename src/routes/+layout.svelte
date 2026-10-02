@@ -5,7 +5,7 @@
   import * as Playbar from "#lib/components/Playbar/index.ts";
   import * as ProviderAccordion from "#lib/components/Settings/Provider/index.ts";
   import Settings from "#lib/components/Settings/Settings.svelte";
-  // import Player from "#lib/components/Player/Player.svelte";
+  import Player from "#lib/components/Player/Player.svelte";
   import { VariantManager } from "#lib/VariantManager.svelte.ts";
 
   const toggleVisible = () => {
@@ -14,6 +14,7 @@
 
   let { data, children }: LayoutProps = $props();
   let visible = $state(false);
+  let src = $state(undefined);
 
   let variantManager = $derived(new VariantManager(await data.providerReq));
 
@@ -30,18 +31,16 @@
   {@render children()}
 </main>
 
-<!-- <Player /> -->
-<audio-player class="z-1">
-  <media-container>
-    <Playbar.Root>
-      <Playbar.Skip action={"backward"} seconds={"-5"} />
-      <Playbar.Button action={"paused"} />
-      <Playbar.Skip action={"forward"} seconds={"+15"} />
-    </Playbar.Root>
-
-    <audio src={""}></audio>
-  </media-container>
-</audio-player>
+<Player>
+  <Playbar.Root>
+    <Playbar.Skip action={"backward"} seconds={"-5"} />
+    <Playbar.Button action={"paused"} />
+    <Playbar.Skip action={"forward"} seconds={"+15"} />
+  </Playbar.Root>
+  {#if src}
+    <audio {src}></audio>
+  {/if}
+</Player>
 
 <div
   class="fixed flex flex-row place-self-start *:m-1 md:h-full"

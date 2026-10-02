@@ -1,19 +1,27 @@
 <script lang="ts">
-  import { store } from "./PlayerControls.svelte";
+  import "@videojs/html/audio/player";
+  import "@videojs/html/ui/container";
+  import type { AudioPlayerElement } from "@videojs/html/audio";
+  import { onMount } from "svelte";
 
-  let test = $state(store);
+  type Props = {
+    children?: import("svelte").Snippet;
+  };
 
-  function play() {
-    store.loadSource("");
-    if (store.canPlay) store.play();
-  }
+  let { children }: Props = $props();
 
-  $inspect(test);
+  let player: AudioPlayerElement;
+  let paused = $state(true);
+
+  onMount(() => {
+    const sync = () => (paused = player.store.paused);
+    sync();
+    return player.store.subscribe(sync);
+  });
 </script>
 
-<journey-audio-player>
-  <button onclick={() => play()}>test</button>
-  <audio
-    src="https://music.leuchtapp.com/Audio/f0844cd0869870212759bddecf2c908c/stream?static=true"
-  ></audio>
-</journey-audio-player>
+<audio-player bind:this={player} class="z-1">
+  <media-container>
+    {@render children?.()}
+  </media-container>
+</audio-player>

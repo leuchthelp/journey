@@ -27,6 +27,7 @@ impl ActiveModelBehavior for ActiveModel {}
 #[derive(Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct SourceDTO {
+    pub source_id: Uuid,
     pub parent_id: Option<Uuid>,
     pub parent: Option<MediaItemDTO>,
     pub provider_id: Uuid,
@@ -43,6 +44,7 @@ impl Convertible<ModelEx> for SourceDTO {
         };
 
         Ok(SourceDTO {
+            source_id: item.source_id,
             parent_id: item.parent_id,
             parent: parent,
             provider_id: item.provider_id,

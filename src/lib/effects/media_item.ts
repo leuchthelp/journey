@@ -15,4 +15,16 @@ const getMediaItems = (type: MediaItemType, amount: number = 6) =>
     },
   );
 
-export { getMediaItems };
+const getMediaItem = (type: MediaItemType, uuid: string) =>
+  Effect.matchEffect(
+    pipe(API.MediaItem.get_media_item(type, uuid), wrapWithEffect),
+    {
+      onFailure: (err) => {
+        console.error(err);
+        return Effect.succeed(undefined);
+      },
+      onSuccess: (value) => Effect.succeed(value),
+    },
+  );
+
+export { getMediaItems, getMediaItem };

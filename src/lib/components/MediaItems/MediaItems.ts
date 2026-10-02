@@ -5,7 +5,7 @@ import type {
   SourceDTO,
   ProviderDTO,
   MediaItemType,
-} from "../../bindings.ts";
+} from "#lib/bindings.ts";
 
 class BaseItem implements MediaItemDTO {
   uuid!: string;
