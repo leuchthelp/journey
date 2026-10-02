@@ -1,6 +1,7 @@
 <script lang="ts">
   import "@videojs/html/audio/player";
   import "@videojs/html/ui/container";
+  import * as Playbar from "#lib/components/Playbar/index.ts";
   import type { AudioPlayerElement } from "@videojs/html/audio";
   import { onMount } from "svelte";
 
@@ -25,3 +26,8 @@
     {@render children?.()}
   </media-container>
 </audio-player>
+<Playbar.Root>
+  <Playbar.Skip action={"backward"} seconds={"-5"} />
+  <Playbar.Button action={"paused"} />
+  <Playbar.Skip action={"forward"} seconds={"+15"} />
+</Playbar.Root>

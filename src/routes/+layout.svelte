@@ -2,7 +2,6 @@
   import "../app.css";
   import type { LayoutProps } from "./$types";
   import * as Navbar from "#lib/components/Navbar/index.ts";
-  import * as Playbar from "#lib/components/Playbar/index.ts";
   import * as ProviderAccordion from "#lib/components/Settings/Provider/index.ts";
   import Settings from "#lib/components/Settings/Settings.svelte";
   import Player from "#lib/components/Player/Player.svelte";
@@ -32,11 +31,6 @@
 </main>
 
 <Player>
-  <Playbar.Root>
-    <Playbar.Skip action={"backward"} seconds={"-5"} />
-    <Playbar.Button action={"paused"} />
-    <Playbar.Skip action={"forward"} seconds={"+15"} />
-  </Playbar.Root>
   {#if src}
     <audio {src}></audio>
   {/if}
