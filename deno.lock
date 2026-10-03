@@ -2,7 +2,7 @@
   "version": "5",
   "specifiers": {
     "jsr:@deno/installer-shell-setup@*": "0.3.4",
-    "npm:@lucide/svelte@^1.50.0": "1.50.0_svelte@5.57.1",
+    "npm:@lucide/svelte@^1.51.0": "1.51.0_svelte@5.57.1",
     "npm:@sveltejs/adapter-static@4": "4.0.0_@sveltejs+kit@3.0.0_@types+node@26.6.4",
     "npm:@sveltejs/enhanced-img@1": "1.0.0_@sveltejs+vite-plugin-svelte@7.3.1_svelte@5.57.1_vite@8.3.2_@types+node@26.6.4",
     "npm:@sveltejs/kit@3": "3.0.0_@sveltejs+vite-plugin-svelte@7.3.1_svelte@5.57.1_typescript@6.0.3_vite@8.3.2_@types+node@26.6.4",
@@ -12,9 +12,9 @@
     "npm:@tauri-apps/cli@^2.12.1": "2.12.1",
     "npm:@tauri-apps/plugin-window-state@^2.5.0": "2.5.0",
     "npm:@types/node@^26.6.4": "26.6.4",
-    "npm:@videojs/core@10": "10.0.0_@videojs+element@10.0.0_react@19.3.0",
-    "npm:@videojs/html@10": "10.0.0_react@19.3.0",
-    "npm:@videojs/store@10": "10.0.0_@videojs+element@10.0.0_react@19.3.0",
+    "npm:@videojs/core@^10.0.1": "10.0.1_@videojs+element@10.0.1_react@19.3.0",
+    "npm:@videojs/html@^10.0.1": "10.0.1_react@19.3.0",
+    "npm:@videojs/store@^10.0.1": "10.0.1_@videojs+element@10.0.1_react@19.3.0",
     "npm:clsx@^2.1.1": "2.1.1",
     "npm:effect@4": "4.0.0",
     "npm:prettier-plugin-svelte@^4.1.1": "4.1.1_prettier@3.9.9_svelte@5.57.1",
@@ -253,8 +253,8 @@
         "@lit-labs/ssr-dom-shim"
       ]
     },
-    "@lucide/svelte@1.50.0_svelte@5.57.1": {
-      "integrity": "sha512-0VGYwm1YgZd7UMv/DLZIUV0QXj9QbVds3b/ElkoTj9TwpI5GIHAV1Yk74TQ3dAzY0ShT4X/2xq7pihzBNVnvxQ==",
+    "@lucide/svelte@1.51.0_svelte@5.57.1": {
+      "integrity": "sha512-FNoBtfrnQS1LV7yRm8T8pF6OH72BzCyPOWrOmVcpqGGLFmQZndRB4h0qhzUKqPq2JNkSfF7f4tUaiCwdY4WFfg==",
       "dependencies": [
         "svelte"
       ]
@@ -613,22 +613,22 @@
         "undici-types"
       ]
     },
-    "@videojs/core@10.0.0_@videojs+element@10.0.0_react@19.3.0": {
-      "integrity": "sha512-U5tYZGH3q96K/dlgytYCA3A4zGSlsWy2Ldy7A9rjCf3a/Zxc8Dc62TFRIDgsedpCMvBiBhWz1xlIeX/nPS5mog==",
+    "@videojs/core@10.0.1_@videojs+element@10.0.1_react@19.3.0": {
+      "integrity": "sha512-N+f41wgFcmpe0QUhO0Q9sFHpMxKvr38ojkX5FlxAo3LKDAo2UrG2KIeklte+1VVae3oaJfP6J/KYtrRRObRxxw==",
       "dependencies": [
         "@videojs/media",
         "@videojs/store",
         "@videojs/utils"
       ]
     },
-    "@videojs/element@10.0.0": {
-      "integrity": "sha512-LSZeueFJUXiAGLY30zqeS32zhir2yYT3j5Zp+xUmLge/AQafebiOd5AbsbM3kb8WyH3jJg9FiQvIjBfi5wpG7g==",
+    "@videojs/element@10.0.1": {
+      "integrity": "sha512-s42yzkN3PH3573ZVcFRLNAXCbQTraXX9X/nUUVjx4NH3n36VGTmFiqJ3jrGhU+IWg4euasKyuVnwSp6qp4C1lg==",
       "dependencies": [
         "@lit/context"
       ]
     },
-    "@videojs/html@10.0.0_react@19.3.0": {
-      "integrity": "sha512-4H3wAXn5wcmMLDw9nrTw+2GAX8kiBMN+cRqD4gy43TbYgshQZm1+Kog1wOtUv+zEanfJE5Akm2FaoEaF5HgvTg==",
+    "@videojs/html@10.0.1_react@19.3.0": {
+      "integrity": "sha512-QAkGefFJU/u+w7ZNod4XyQSOBQ3Ij/uPHTO/hfW+ALlIeDYEsYzplQtHoLzU+Fh4mzHFhKKJI2iEW4x15fxj9Q==",
       "dependencies": [
         "@videojs/core",
         "@videojs/element",
@@ -639,29 +639,29 @@
         "@videojs/utils"
       ]
     },
-    "@videojs/media@10.0.0": {
-      "integrity": "sha512-qO1Wpdv0e9F+XtcsCl2kJuLPIJO83qgJM+mZ4FgiVvgyg8l6nABqWBe83jaYdV9VGL8vSfqolhUfrgMGAOicgA==",
+    "@videojs/media@10.0.1": {
+      "integrity": "sha512-hMC2aS/8PovwJBi8y2qShC/amYfH6SBce7SZAM54qzRq8hl4FwWGFeUMMmXp8x4agRxLuCSqGqZg/EoGH2I5mQ==",
       "dependencies": [
         "@videojs/utils"
       ]
     },
-    "@videojs/native-hls-video@10.0.0": {
-      "integrity": "sha512-O9Nh9eDclzL34dd9CzFgW42V5aGu6Y541wRc/9sKvLiAtwIAQlff8CAQN27lDTn9Cz9KKDzd6P8Yxgjk1frPpQ==",
+    "@videojs/native-hls-video@10.0.1": {
+      "integrity": "sha512-MElgeDaxOJUj+OjHV3++TuW8TTgipTuzlRkfFDMMbnutlPLkSlX3VKhXo5ZNPhhXkt47oBVx4RGnAQJLWzilPw==",
       "dependencies": [
         "@videojs/media",
         "@videojs/utils"
       ]
     },
-    "@videojs/spf@10.0.0": {
-      "integrity": "sha512-Zka8t+ead3/6sFhWfU7WYYJWvL3d//QDuNm3JeRDABTvH8Qz9JQb6FD/NPIffWeGbaSYdW4vQk1Btz0Ol8HIOA==",
+    "@videojs/spf@10.0.1": {
+      "integrity": "sha512-1HUTI1W++EKZuO3MaklFdEU/cEUhkJlKKuQx0Xi3VwjeHgVToAz7b1ySDH903KluPQy6cAGqXpro5Wt00y4DYA==",
       "dependencies": [
         "@videojs/media",
         "@videojs/utils",
         "signal-polyfill"
       ]
     },
-    "@videojs/store@10.0.0_@videojs+element@10.0.0_react@19.3.0": {
-      "integrity": "sha512-SeJ/PERBssswgfHTiSGfzlMEQ1N8sHjxQ2jp02hf760mNGYx6idtV4HvRbcNo5Ccn6O1OOiN/0Aim5Xc+E6ZAQ==",
+    "@videojs/store@10.0.1_@videojs+element@10.0.1_react@19.3.0": {
+      "integrity": "sha512-BTkkTRHAU0XaZi+n3yWhtQJbe0BNjQLBd414u/s/nMZDz5bc1fp6b/voNbNriuSMd0Ro+ZmyzfPaMskiCa6GUQ==",
       "dependencies": [
         "@videojs/element",
         "@videojs/utils",
@@ -673,8 +673,8 @@
         "react"
       ]
     },
-    "@videojs/utils@10.0.0": {
-      "integrity": "sha512-TKT61xKZAato+zpYII4TwCJsg662+14GmRKx10WmVsGIP8T2JMh1qCJnwhpc9RyfvmFG1M4eJkIh5eqzZhHmZQ=="
+    "@videojs/utils@10.0.1": {
+      "integrity": "sha512-S7WO9lPfyCz5YQYWtpE42JZTtJKUaiWaAZGAa+VLoBiFMfpoogCloSP4pjChTYcQ6sGcLlQJNxVKhM1RvI/Dig=="
     },
     "@vitest/mocker@5.0.3_vite@8.3.2_@types+node@26.6.4": {
       "integrity": "sha512-T8sWAIbkSyAjkwTcaEc3Iu0o9A27X1/kdXrizhZkGuSKScRQtRzclfAMpOTcGdXCsqxeWlpGy3XjqaW8CpLORg==",
@@ -1263,7 +1263,7 @@
   "workspace": {
     "packageJson": {
       "dependencies": [
-        "npm:@lucide/svelte@^1.50.0",
+        "npm:@lucide/svelte@^1.51.0",
         "npm:@sveltejs/adapter-static@4",
         "npm:@sveltejs/enhanced-img@1",
         "npm:@sveltejs/kit@3",
@@ -1273,9 +1273,9 @@
         "npm:@tauri-apps/cli@^2.12.1",
         "npm:@tauri-apps/plugin-window-state@^2.5.0",
         "npm:@types/node@^26.6.4",
-        "npm:@videojs/core@10",
-        "npm:@videojs/html@10",
-        "npm:@videojs/store@10",
+        "npm:@videojs/core@^10.0.1",
+        "npm:@videojs/html@^10.0.1",
+        "npm:@videojs/store@^10.0.1",
         "npm:clsx@^2.1.1",
         "npm:effect@4",
         "npm:prettier-plugin-svelte@^4.1.1",
