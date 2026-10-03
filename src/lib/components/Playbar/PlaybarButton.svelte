@@ -2,22 +2,16 @@
   import { Play, Pause } from "@lucide/svelte";
 
   type Props = {
-    action?: string;
+    action: string;
   };
 
   let { action }: Props = $props();
 
-  let state = $state(false);
-
-  $effect(() => {
-    if (!action) action = "";
-  });
-
-  $inspect(state);
+  let paused = $state(true);
 </script>
 
 <media-play-button class={`${action} playbar-styled-button`}>
-  {#if state}
+  {#if paused}
     <Pause />
   {:else}
     <Play />

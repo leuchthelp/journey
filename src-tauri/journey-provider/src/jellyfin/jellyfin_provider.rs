@@ -9,7 +9,9 @@ use jellyfin_sdk_rs::{
     required::{ClientInfo, DeviceInfo},
 };
 use journey_db::entity::providers::{self, ProviderAuthSchema};
-use journey_utils::constants::{PRODUCT_NAME, PRODUCT_VERSION};
+use journey_utils::constants::{
+    OS_ARCH, OS_HOSTNAME, OS_PLATFORM, OS_VERSION, PRODUCT_NAME, PRODUCT_VERSION,
+};
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
@@ -51,10 +53,7 @@ impl NewProvider for JellyfinProvider {
             id: Uuid::now_v7(),
             name: format!(
                 "{}-{}-{}-{}",
-                tauri_plugin_os::hostname(),
-                tauri_plugin_os::platform(),
-                tauri_plugin_os::arch(),
-                tauri_plugin_os::version()
+                *OS_HOSTNAME, OS_PLATFORM, OS_ARCH, *OS_VERSION
             ),
             languages: None,
         };

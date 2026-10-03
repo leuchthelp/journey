@@ -2686,11 +2686,6 @@ dependencies = [
  "anyhow",
  "journey-api",
  "journey-keyring",
- "sea-orm",
- "serde",
- "serde_json",
- "specta",
- "specta-typescript",
  "tauri",
  "tauri-build",
  "tauri-plugin-fs",
@@ -2701,8 +2696,6 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
- "url",
- "uuid",
 ]
 
 [[package]]
@@ -2814,6 +2807,7 @@ name = "journey-utils"
 version = "0.1.0"
 dependencies = [
  "dotenvy 0.15.7 (git+https://github.com/allan2/dotenvy)",
+ "tauri-plugin-os",
 ]
 
 [[package]]
