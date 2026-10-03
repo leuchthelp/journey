@@ -10,6 +10,7 @@ use serde::Serialize;
 use specta::Type;
 use tauri::ipc::Channel;
 use thiserror::Error;
+use uuid::Uuid;
 
 use crate::AppState;
 
@@ -46,6 +47,7 @@ pub trait ProviderApi {
         key: IndexerKey,
         on_event: Channel<IndexerMsg>,
     ) -> ProviderApiResult<()>;
+    async fn stream(key: ProviderKey, uuid: Uuid) -> ProviderApiResult<()>;
 }
 
 #[derive(Clone, Debug)]
@@ -113,6 +115,12 @@ impl ProviderApi for ProviderApiImpl {
                 Err(err) => Err(ProviderApiError::FailedChannelSendError(err.to_string())),
             }?;
         }
+
+        Ok(())
+    }
+    async fn stream(self, key: ProviderKey, uuid: Uuid) -> ProviderApiResult<()> {
+        let lock = self.state.read().await;
+        lock.provider_manager.get_audio_stream(key, uuid).await?;
 
         Ok(())
     }

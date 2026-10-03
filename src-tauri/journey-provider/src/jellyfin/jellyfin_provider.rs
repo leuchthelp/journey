@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, io::Cursor};
 
 use async_trait::async_trait;
 use inherent::inherent;
@@ -20,7 +20,7 @@ use uuid::Uuid;
 use crate::{
     ProviderError,
     indexer::{Indexer, NewIndexer},
-    jellyfin::jellyfin_indexer::JellyfinIndexer,
+    jellyfin::{helpers::get_audio_stream, jellyfin_indexer::JellyfinIndexer},
     provider::{NewProvider, Provider, ProviderResult, RequiredForProvider},
 };
 
@@ -133,6 +133,26 @@ impl RequiredForProvider for JellyfinProvider {
         self.config = client_config;
         Ok(access_token)
     }
+    pub async fn get_audio_stream(&self, uuid: Uuid) -> ProviderResult<()> {
+        let response = get_audio_stream()
+            .configuration(self.get_config()?)
+            .item_id(&uuid.to_string())
+            .call()
+            .await?;
+
+        let stream = response.bytes().await.unwrap();
+
+        let device = rodio::DeviceSinkBuilder::open_default_sink().unwrap();
+        let player = rodio::Player::connect_new(&device.mixer());
+
+        let cursor = Cursor::new(stream);
+        let source = rodio::Decoder::new(cursor).unwrap();
+
+        player.append(source);
+        player.sleep_until_end();
+
+        Ok(())
+    }
 }
 
 impl JellyfinProvider {
@@ -149,7 +169,6 @@ impl JellyfinProvider {
 
         Ok(self.model.provider_id.set_ne(id))
     }
-
     /*
        EFFECTIVELY: WE DON'T TRUST THE JELLYFIN API AT ALL
 

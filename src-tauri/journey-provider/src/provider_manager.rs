@@ -17,6 +17,7 @@ use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
 use tracing::info;
+use uuid::Uuid;
 
 use crate::{
     ProviderError,
@@ -196,6 +197,12 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
 
         provider.save_token(&token)?;
         provider.add_to_db().await?;
+        Ok(())
+    }
+    async fn get_audio_stream(&self, key: ProviderKey, uuid: Uuid) -> ProviderManagerResult<()> {
+        let provider = self.get_variant(&key)?;
+
+        provider.get_audio_stream(uuid).await?;
         Ok(())
     }
 }

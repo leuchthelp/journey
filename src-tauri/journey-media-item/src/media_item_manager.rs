@@ -43,6 +43,7 @@ pub trait MediaItemManagerFn: RequiredForMediaItemManager + Sync {
         let mut paginator = media_items::Entity::load()
             .filter(media_items::Column::Ty.eq(ty))
             .with(content::Entity)
+            .with(providers::Entity)
             .with(sources::Entity)
             .with(images::Entity)
             .paginate(&conn, amount);

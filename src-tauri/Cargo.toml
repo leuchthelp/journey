@@ -44,6 +44,7 @@ test-log = { version = "0.2", features = ["trace"] }
 taurpc = "0.8"
 strum = "0.28"
 strum_macros = "0.28"
+bytes = "1"
 specta = { version = "2.0.0-rc.25", features = [
     "derive",
     "uuid",
@@ -93,6 +94,7 @@ journey-provider = { path = "journey-provider" }
 journey-media-item = { path = "journey-media-item" }
 
 dotenvy = { git = "https://github.com/allan2/dotenvy", features = ["macros"] }
+jellyfin-sdk-rs = { git = "https://github.com/leuchthelp/jellyfin-sdk-rs", branch = "master" }
 
 
 [workspace.lints.rust]

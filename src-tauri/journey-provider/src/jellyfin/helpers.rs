@@ -4,9 +4,12 @@ use jellyfin_sdk_rs::{
     apis::configuration::Configuration,
     models::{self, BaseItemDtoQueryResult},
 };
+use reqwest::Response;
 use uuid::Uuid;
 
-use crate::jellyfin::jellyfin_indexer::JellyfinIndexerError;
+use crate::{
+    jellyfin::jellyfin_indexer::JellyfinIndexerError, jellyfin_provider::JellyfinProviderError,
+};
 
 #[bon::builder]
 pub async fn get_items_request(
@@ -197,5 +200,119 @@ pub async fn get_items_request(
         Err(err) => Err(JellyfinIndexerError::ApiEntryRetrievalError(
             err.to_string(),
         )),
+    }
+}
+
+#[bon::builder]
+pub async fn get_audio_stream(
+    configuration: &Configuration,
+    item_id: &str,
+    container: Option<&str>,
+    r#static: Option<bool>,
+    params: Option<&str>,
+    tag: Option<&str>,
+    device_profile_id: Option<&str>,
+    play_session_id: Option<&str>,
+    segment_container: Option<&str>,
+    segment_length: Option<i32>,
+    min_segments: Option<i32>,
+    media_source_id: Option<&str>,
+    device_id: Option<&str>,
+    audio_codec: Option<&str>,
+    enable_auto_stream_copy: Option<bool>,
+    allow_video_stream_copy: Option<bool>,
+    allow_audio_stream_copy: Option<bool>,
+    audio_sample_rate: Option<i32>,
+    max_audio_bit_depth: Option<i32>,
+    audio_bit_rate: Option<i32>,
+    audio_channels: Option<i32>,
+    max_audio_channels: Option<i32>,
+    profile: Option<&str>,
+    level: Option<&str>,
+    framerate: Option<f32>,
+    max_framerate: Option<f32>,
+    copy_timestamps: Option<bool>,
+    start_time_ticks: Option<i64>,
+    width: Option<i32>,
+    height: Option<i32>,
+    video_bit_rate: Option<i32>,
+    subtitle_stream_index: Option<i32>,
+    subtitle_method: Option<&str>,
+    max_ref_frames: Option<i32>,
+    max_video_bit_depth: Option<i32>,
+    require_avc: Option<bool>,
+    de_interlace: Option<bool>,
+    require_non_anamorphic: Option<bool>,
+    transcoding_max_audio_channels: Option<i32>,
+    cpu_core_limit: Option<i32>,
+    live_stream_id: Option<&str>,
+    enable_mpegts_m2_ts_mode: Option<bool>,
+    video_codec: Option<&str>,
+    subtitle_codec: Option<&str>,
+    transcode_reasons: Option<&str>,
+    audio_stream_index: Option<i32>,
+    video_stream_index: Option<i32>,
+    context: Option<&str>,
+    stream_options: Option<std::collections::HashMap<String, String>>,
+    enable_audio_vbr_encoding: Option<bool>,
+) -> Result<Response, JellyfinProviderError> {
+    match sdk::apis::audio_api::get_audio_stream(
+        configuration,
+        item_id,
+        container,
+        r#static,
+        params,
+        tag,
+        device_profile_id,
+        play_session_id,
+        segment_container,
+        segment_length,
+        min_segments,
+        media_source_id,
+        device_id,
+        audio_codec,
+        enable_auto_stream_copy,
+        allow_video_stream_copy,
+        allow_audio_stream_copy,
+        audio_sample_rate,
+        max_audio_bit_depth,
+        audio_bit_rate,
+        audio_channels,
+        max_audio_channels,
+        profile,
+        level,
+        framerate,
+        max_framerate,
+        copy_timestamps,
+        start_time_ticks,
+        width,
+        height,
+        video_bit_rate,
+        subtitle_stream_index,
+        subtitle_method,
+        max_ref_frames,
+        max_video_bit_depth,
+        require_avc,
+        de_interlace,
+        require_non_anamorphic,
+        transcoding_max_audio_channels,
+        cpu_core_limit,
+        live_stream_id,
+        enable_mpegts_m2_ts_mode,
+        video_codec,
+        subtitle_codec,
+        transcode_reasons,
+        audio_stream_index,
+        video_stream_index,
+        context,
+        stream_options,
+        enable_audio_vbr_encoding,
+    )
+    .await
+    {
+        Ok(response) => Ok(response),
+        Err(err) => Err(JellyfinProviderError::ApiEntryRetrievalError(Some(
+            err.to_string(),
+        ))),
     }
 }

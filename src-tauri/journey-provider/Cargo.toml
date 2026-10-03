@@ -11,6 +11,8 @@ tauri-plugin-os = { workspace = true }
 reqwest = { workspace = true }
 chrono = { workspace = true }
 url = { workspace = true }
+bytes = { workspace = true }
+rodio = { workspace = true }
 jiff = { workspace = true }
 kameo = { workspace = true }
 similar = { workspace = true }
@@ -33,7 +35,7 @@ tokio = { workspace = true }
 journey-db = { workspace = true }
 journey-utils = { workspace = true }
 journey-keyring = { workspace = true }
-jellyfin-sdk-rs = { git = "https://github.com/leuchthelp/jellyfin-sdk-rs", branch = "master" }
+jellyfin-sdk-rs = { workspace = true }
 
 [dev-dependencies]
 serial_test = { workspace = true }
