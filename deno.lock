@@ -2,7 +2,7 @@
   "version": "5",
   "specifiers": {
     "jsr:@deno/installer-shell-setup@*": "0.3.4",
-    "npm:@lucide/svelte@^1.51.0": "1.51.0_svelte@5.57.1",
+    "npm:@lucide/svelte@^1.52.0": "1.52.0_svelte@5.57.1",
     "npm:@sveltejs/adapter-static@4": "4.0.0_@sveltejs+kit@3.0.0_@types+node@26.6.4",
     "npm:@sveltejs/enhanced-img@1": "1.0.0_@sveltejs+vite-plugin-svelte@7.3.1_svelte@5.57.1_vite@8.3.2_@types+node@26.6.4",
     "npm:@sveltejs/kit@3": "3.0.0_@sveltejs+vite-plugin-svelte@7.3.1_svelte@5.57.1_typescript@6.0.3_vite@8.3.2_@types+node@26.6.4",
@@ -20,7 +20,7 @@
     "npm:prettier-plugin-svelte@^4.1.1": "4.1.1_prettier@3.9.9_svelte@5.57.1",
     "npm:prettier-plugin-tailwindcss@~0.8.1": "0.8.1_prettier@3.9.9_prettier-plugin-svelte@4.1.1",
     "npm:prettier@^3.9.9": "3.9.9",
-    "npm:sv@^1.0.1": "1.0.1",
+    "npm:sv@^1.1.0": "1.1.0",
     "npm:svelte-check@^4.7.6": "4.7.6_svelte@5.57.1_typescript@6.0.3",
     "npm:svelte@^5.57.1": "5.57.1",
     "npm:tailwind-merge@^3.7.0": "3.7.0",
@@ -253,8 +253,8 @@
         "@lit-labs/ssr-dom-shim"
       ]
     },
-    "@lucide/svelte@1.51.0_svelte@5.57.1": {
-      "integrity": "sha512-FNoBtfrnQS1LV7yRm8T8pF6OH72BzCyPOWrOmVcpqGGLFmQZndRB4h0qhzUKqPq2JNkSfF7f4tUaiCwdY4WFfg==",
+    "@lucide/svelte@1.52.0_svelte@5.57.1": {
+      "integrity": "sha512-bQ8t3IcZxWqAdmdMZPyZEv8Qf+MDgBAf7n43eRQoXyBeLWr8HWToiMIO6vKlHxC/lnMiCDdTzm09hjy92ch46A==",
       "dependencies": [
         "svelte"
       ]
@@ -402,8 +402,8 @@
     "@sveltejs/load-config@0.2.3": {
       "integrity": "sha512-VT3qmUb8pRV2QrZjd8iAmtg8lf4W0TIjZbvXtz5MKei/q96teWZgGJyyidJzOjzZzvdq616eSRVeMYIQChUTAQ=="
     },
-    "@sveltejs/sv-utils@1.0.0": {
-      "integrity": "sha512-nK6hcTMF9Iffu3zHS6+1bE7yDROFPvraKGvzjUy7aBQkzoccKse6WSWhpMvPLMP2tOC9+el4+HI+RhfA1OPFpQ=="
+    "@sveltejs/sv-utils@1.0.1": {
+      "integrity": "sha512-Y1tHH+8jpaoiGGiWPG8WcRiJrQW122QbofCv/uDYXelHCp8YcOErZYOjSP0XNgoV4oN5H2gbPEAeL6fQX9Rlpg=="
     },
     "@sveltejs/vite-plugin-svelte@7.3.1_svelte@5.57.1_vite@8.3.2_@types+node@26.6.4": {
       "integrity": "sha512-ZPsLN8B1e/En+Ak5s4V7srFDT532oS0qieLsQwu63NGKsS+iAjoO2Js1BochlHlglcU+Pt7WAO3C5Ee+4f6gVA==",
@@ -1106,8 +1106,8 @@
     "std-env@4.3.0": {
       "integrity": "sha512-OtU/EgQ1kIm5KwqQpBC6ZEMXrZRui11w8zgfTWp8cdO9B8OaPsbA8bTHO2P+HNo1VlUTGMVBwPhydu6poeXiag=="
     },
-    "sv@1.0.1": {
-      "integrity": "sha512-w0Us7C+4JsTLVW42NjMnyFBIeEEjwSEv2URDThUtv53jHYe1k7eaqXrP23JoeGcCxfEL86TVCWfuI8pqJjnbRQ==",
+    "sv@1.1.0": {
+      "integrity": "sha512-q3HsgVYWqbMoxVI4sS/mBusOTc3XgOMO4H4FLEQq9nNuRKy/KHgbD2oES2iQ/KdP9qqSlHFuAkHZKc/oB4bJ+A==",
       "dependencies": [
         "@sveltejs/sv-utils"
       ],
@@ -1263,7 +1263,7 @@
   "workspace": {
     "packageJson": {
       "dependencies": [
-        "npm:@lucide/svelte@^1.51.0",
+        "npm:@lucide/svelte@^1.52.0",
         "npm:@sveltejs/adapter-static@4",
         "npm:@sveltejs/enhanced-img@1",
         "npm:@sveltejs/kit@3",
@@ -1281,7 +1281,7 @@
         "npm:prettier-plugin-svelte@^4.1.1",
         "npm:prettier-plugin-tailwindcss@~0.8.1",
         "npm:prettier@^3.9.9",
-        "npm:sv@^1.0.1",
+        "npm:sv@^1.1.0",
         "npm:svelte-check@^4.7.6",
         "npm:svelte@^5.57.1",
         "npm:tailwind-merge@^3.7.0",

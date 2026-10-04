@@ -13,7 +13,7 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@lucide/svelte": "^1.51.0",
+    "@lucide/svelte": "^1.52.0",
     "@sveltejs/adapter-static": "^4.0.0",
     "@sveltejs/enhanced-img": "^1.0.0",
     "@tailwindcss/vite": "^4.3.3",
@@ -39,7 +39,7 @@
     "prettier": "^3.9.9",
     "prettier-plugin-svelte": "^4.1.1",
     "prettier-plugin-tailwindcss": "^0.8.1",
-    "sv": "^1.0.1",
+    "sv": "^1.1.0",
     "svelte": "^5.57.1",
     "svelte-check": "^4.7.6",
     "vite": "^8.3.2",
