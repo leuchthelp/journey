@@ -41,8 +41,6 @@ pub struct JellyfinProvider {
 }
 
 impl NewProvider for JellyfinProvider {
-    type Provider = JellyfinProvider;
-
     fn new(model: providers::ActiveModelEx) -> Box<Self> {
         let client_info = ClientInfo {
             name: PRODUCT_NAME,

@@ -67,8 +67,6 @@ pub enum ProviderError {
 pub type ProviderResult<T> = Result<T, ProviderError>;
 
 pub trait NewProvider {
-    type Provider;
-
     fn new(model: providers::ActiveModelEx) -> Box<Self>;
 }
 
