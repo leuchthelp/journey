@@ -24,6 +24,7 @@ members = [
     "journey-db",
     "journey-keyring",
     "journey-media-item",
+    "journey-playback",
     "journey-provider",
     "journey-utils",
 ]
@@ -34,17 +35,28 @@ tauri-plugin-persisted-scope = "2"
 tauri-plugin-os = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-window-state = "2"
+
+serial_test = "4"
+test-log = { version = "0.2", features = ["trace"] }
+tracing-test = "0.2.6"
+
+anyhow = "1"
+inherent = "1"
+thiserror = "2"
+url = { version = "2", features = ["serde"] }
+uuid = { version = "1", features = ["serde", "v7", "zerocopy"] }
+bon = "3"
+similar = "3"
+rapidhash = "4"
+async-trait = "0.1"
+
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7", features = ["full"] }
 tracing = { version = "0.1" }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-tracing-test = "0.2.6"
-test-log = { version = "0.2", features = ["trace"] }
-taurpc = "0.8"
-strum = "0.28"
-strum_macros = "0.28"
-bytes = "1"
+
 specta = { version = "2.0.0-rc.25", features = [
     "derive",
     "uuid",
@@ -52,29 +64,14 @@ specta = { version = "2.0.0-rc.25", features = [
     "tokio",
     "jiff",
 ] }
-specta-serde = { version = "0.0.12" }
 specta-typescript = "0.0.12"
-jiff = { version = "0.2", features = ["serde"] }
-bon = "3"
-similar = "3"
-kameo = "0.22"
-url = { version = "2", features = ["serde"] }
-rapidhash = "4"
+specta-serde = { version = "0.0.12" }
+taurpc = "0.8"
+
+journey-db = { path = "journey-db" }
 chrono = "0.4"
-reqwest = "0.13"
-thiserror = "2"
-inherent = "1"
-async-trait = "0.1"
-dyn-clone = "1"
-anyhow = "1"
-serial_test = "4"
-futures = "0.3"
-rodio = { version = "0.22", features = [
-    "symphonia-alac",
-    "symphonia-simd",
-    "symphonia-mkv",
-] }
-uuid = { version = "1", features = ["serde", "v7", "zerocopy"] }
+strum = "0.28"
+strum_macros = "0.28"
 sea-orm = { version = "2", features = [
     "sqlx-sqlite",
     "runtime-tokio",
@@ -86,16 +83,35 @@ sea-orm = { version = "2", features = [
     "with-json",
 ] }
 sea-query = "1"
-journey-db = { path = "journey-db" }
+
+
 journey-api = { path = "journey-api" }
-journey-utils = { path = "journey-utils" }
-journey-keyring = { path = "journey-keyring" }
+
+
+futures = "0.3"
+
 journey-provider = { path = "journey-provider" }
+dyn-clone = "1"
+kameo = "0.22"
+jiff = { version = "0.2", features = ["serde"] }
+jellyfin-sdk-rs = { git = "https://github.com/leuchthelp/jellyfin-sdk-rs", branch = "master" }
+
+
 journey-media-item = { path = "journey-media-item" }
 
+journey-playback = { path = "journey-playback" }
+reqwest = "0.13"
+stream-download = { version = "0.24", features = ["async-read"] }
+rodio = { version = "0.22", features = [
+    "symphonia-alac",
+    "symphonia-simd",
+    "symphonia-mkv",
+] }
 
+journey-utils = { path = "journey-utils" }
 dotenvy = { git = "https://github.com/allan2/dotenvy", features = ["macros"] }
-jellyfin-sdk-rs = { git = "https://github.com/leuchthelp/jellyfin-sdk-rs", branch = "master" }
+
+journey-keyring = { path = "journey-keyring" }
 
 
 [workspace.lints.rust]

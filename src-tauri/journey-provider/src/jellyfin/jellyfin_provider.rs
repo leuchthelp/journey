@@ -138,16 +138,24 @@ impl RequiredForProvider for JellyfinProvider {
             .call()
             .await?;
 
-        let stream = response.bytes().await.unwrap();
+        use futures::stream::TryStreamExt;
 
-        let device = rodio::DeviceSinkBuilder::open_default_sink().unwrap();
-        let player = rodio::Player::connect_new(&device.mixer());
+        let stream = tokio_util::io::StreamReader::new(
+            response.bytes_stream().map_err(std::io::Error::other),
+        );
 
-        let cursor = Cursor::new(stream);
-        let source = rodio::Decoder::new(cursor).unwrap();
+        let reader = stream_download::StreamDownload::new_async_read(
+            stream_download::async_read::AsyncReadStreamParams::new(stream),
+            stream_download::storage::temp::TempStorageProvider::new(),
+            stream_download::Settings::default(),
+        )
+        .await
+        .unwrap();
 
-        player.append(source);
-        player.sleep_until_end();
+        let sink = rodio::DeviceSinkBuilder::open_default_sink().unwrap();
+        let player = rodio::Player::connect_new(sink.mixer());
+        player.append(rodio::Decoder::new(reader).unwrap());
+        player.play();
 
         Ok(())
     }
