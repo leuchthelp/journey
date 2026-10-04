@@ -93,7 +93,7 @@ jellyfin-sdk-rs = { git = "https://github.com/leuchthelp/jellyfin-sdk-rs", branc
 
 journey-media-item = { path = "journey-media-item" }
 journey-playback = { path = "journey-playback" }
-reqwest = "0.13"
+reqwest = { version = "0.13" }
 stream-download = { version = "0.24", features = ["async-read"] }
 rodio = { version = "0.22", features = [
     "symphonia-alac",
