@@ -126,7 +126,7 @@ impl ProviderApi for ProviderApiImpl {
         let lock = self.state.read().await;
         let response = lock.provider_manager.get_audio_stream(key, uuid).await?;
 
-        warn!("For response from server");
+        warn!("Got response from server");
 
         match lock.audio_player.ask(AppendStream { response }).await {
             Ok(_) => Ok(()),
