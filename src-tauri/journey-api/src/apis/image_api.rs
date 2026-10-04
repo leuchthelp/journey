@@ -17,7 +17,7 @@ pub trait ImageApi {
     async fn get_images() -> ImageApiResult<ImageDTO>;
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct ImageApiImpl {
     pub state: AppState,
 }

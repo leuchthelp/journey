@@ -17,7 +17,7 @@ pub trait SourceApi {
     async fn get_source() -> SourceResult<SourceDTO>;
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct SourceApiImpl {
     pub state: AppState,
 }

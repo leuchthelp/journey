@@ -11,6 +11,7 @@ use journey_db::sea_orm::EntityTrait;
 use journey_db::sea_query::OnConflict;
 use journey_keyring::Entry;
 use journey_utils::constants::PRODUCT_NAME;
+use reqwest::Response;
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
@@ -77,7 +78,7 @@ pub trait RequiredForProvider {
     fn get_auth_schema(&self) -> Vec<ProviderAuthSchema>;
     fn invalidate(&mut self) -> ProviderResult<()>;
     async fn password_auth(&mut self, uname: String, psw: String) -> ProviderResult<String>;
-    async fn get_audio_stream(&self, uuid: Uuid) -> ProviderResult<()>;
+    async fn get_audio_stream(&self, uuid: Uuid) -> ProviderResult<Response>;
 }
 
 #[async_trait]

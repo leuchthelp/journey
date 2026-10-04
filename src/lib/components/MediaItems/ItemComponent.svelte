@@ -17,7 +17,7 @@
   onclick={async () =>
     await Effect.runPromise(
       stream(item.providers?.at(0)?.key!, item.sources?.at(0)?.sourceId!),
-    )}>Play</button
+    )}>Append Stream</button
 >
 <div>
   <a href="/pages/{item.type}/{item.uuid}">

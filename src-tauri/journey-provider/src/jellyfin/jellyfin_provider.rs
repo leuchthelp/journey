@@ -1,4 +1,4 @@
-use std::{fmt::Debug, io::Cursor};
+use std::fmt::Debug;
 
 use async_trait::async_trait;
 use inherent::inherent;
@@ -12,6 +12,7 @@ use journey_db::entity::providers::{self, ProviderAuthSchema};
 use journey_utils::constants::{
     OS_ARCH, OS_HOSTNAME, OS_PLATFORM, OS_VERSION, PRODUCT_NAME, PRODUCT_VERSION,
 };
+use reqwest::Response;
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
@@ -131,33 +132,14 @@ impl RequiredForProvider for JellyfinProvider {
         self.config = client_config;
         Ok(access_token)
     }
-    pub async fn get_audio_stream(&self, uuid: Uuid) -> ProviderResult<()> {
+    pub async fn get_audio_stream(&self, uuid: Uuid) -> ProviderResult<Response> {
         let response = get_audio_stream()
             .configuration(self.get_config()?)
             .item_id(&uuid.to_string())
             .call()
             .await?;
 
-        use futures::stream::TryStreamExt;
-
-        let stream = tokio_util::io::StreamReader::new(
-            response.bytes_stream().map_err(std::io::Error::other),
-        );
-
-        let reader = stream_download::StreamDownload::new_async_read(
-            stream_download::async_read::AsyncReadStreamParams::new(stream),
-            stream_download::storage::temp::TempStorageProvider::new(),
-            stream_download::Settings::default(),
-        )
-        .await
-        .unwrap();
-
-        let sink = rodio::DeviceSinkBuilder::open_default_sink().unwrap();
-        let player = rodio::Player::connect_new(sink.mixer());
-        player.append(rodio::Decoder::new(reader).unwrap());
-        player.play();
-
-        Ok(())
+        Ok(response)
     }
 }
 

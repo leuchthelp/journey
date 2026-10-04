@@ -15,6 +15,11 @@ export type ContentType = "Unknown" | "Name" | "Album" | "Artists" | "Container"
 
 export type ConversionError = ({ FailedItemRetrievalError: string }) & { FailedParseUrlError?: never } | ({ FailedParseUrlError: string }) & { FailedItemRetrievalError?: never };
 
+export type Duration = {
+	secs: number,
+	nanos: number,
+};
+
 export type ImageApiError = never;
 
 export type ImageDTO = {
@@ -37,9 +42,9 @@ export type IndexerKey = {
 export type IndexerManagerError = ({ NoSuchCommError: string }) & { IndexerError?: never; IndexerRunnerError?: never; NoSuchTaskError?: never } | ({ NoSuchTaskError: string }) & { IndexerError?: never; IndexerRunnerError?: never; NoSuchCommError?: never } | ({ IndexerError: IndexerError }) & { IndexerRunnerError?: never; NoSuchCommError?: never; NoSuchTaskError?: never } | ({ IndexerRunnerError: IndexerRunnerError }) & { IndexerError?: never; NoSuchCommError?: never; NoSuchTaskError?: never };
 
 export type IndexerMsg = { event: "Started"; data: {
-	total: number,
 	time: string,
 } } | { event: "Progress"; data: {
+	total: number,
 	item: string | null,
 	success: boolean,
 	alreadyExists: boolean,
@@ -78,7 +83,12 @@ export type MediaItemManagerError = ({ FailedItemRetrievalError: string }) & { C
 
 export type MediaItemType = "Unknown" | "Audio" | "Playlist" | "Artist" | "Album" | "Genre";
 
-export type ProviderApiError = ({ FailedChannelSendError: string }) & { IndexerManagerError?: never; ProviderError?: never; ProviderManagerError?: never } | ({ ProviderManagerError: ProviderManagerError }) & { FailedChannelSendError?: never; IndexerManagerError?: never; ProviderError?: never } | ({ ProviderError: ProviderError }) & { FailedChannelSendError?: never; IndexerManagerError?: never; ProviderManagerError?: never } | ({ IndexerManagerError: IndexerManagerError }) & { FailedChannelSendError?: never; ProviderError?: never; ProviderManagerError?: never };
+export type PlayerApiError = { FailedMessageSendError: {
+	msg: string,
+	err: string,
+} };
+
+export type ProviderApiError = ({ FailedChannelSendError: string }) & { FailedAppendStreamError?: never; IndexerManagerError?: never; ProviderError?: never; ProviderManagerError?: never } | ({ FailedAppendStreamError: string }) & { FailedChannelSendError?: never; IndexerManagerError?: never; ProviderError?: never; ProviderManagerError?: never } | ({ ProviderManagerError: ProviderManagerError }) & { FailedAppendStreamError?: never; FailedChannelSendError?: never; IndexerManagerError?: never; ProviderError?: never } | ({ ProviderError: ProviderError }) & { FailedAppendStreamError?: never; FailedChannelSendError?: never; IndexerManagerError?: never; ProviderManagerError?: never } | ({ IndexerManagerError: IndexerManagerError }) & { FailedAppendStreamError?: never; FailedChannelSendError?: never; ProviderError?: never; ProviderManagerError?: never };
 
 export type ProviderAuthSchema = "Unknown" | "Password" | "OTP" | "Oauth";
 
@@ -115,9 +125,9 @@ export type SourceDTO = {
 	parent: MediaItemDTO | null,
 	providerId: string,
 };
-const ARGS_MAP = {"Content":{"get_content":[]},"Image":{"get_images":[]},"MediaItem":{"get_media_item":["ty","uuid"],"get_media_items":["ty","amount"]},"Provider":{"deregister":["key"],"get_provider":["key"],"get_providers":[],"get_supported_auth_schema":["variant"],"get_supported_variants":[],"indexer_status":["key","on_event"],"password_auth":["url","ty","uname","psw"],"stream":["key","uuid"]},"Source":{"get_source":[]}};
+const ARGS_MAP = {"Content":{"get_content":[]},"Image":{"get_images":[]},"MediaItem":{"get_media_item":["ty","uuid"],"get_media_items":["ty","amount"]},"Player":{"pause":[],"play":["immediately"]},"Provider":{"append_stream":["key","uuid"],"deregister":["key"],"get_provider":["key"],"get_providers":[],"get_supported_auth_schema":["variant"],"get_supported_variants":[],"indexer_status":["key","on_event"],"password_auth":["url","ty","uname","psw"]},"Source":{"get_source":[]}};
 
-const RESULT_MAP = {"Content":{"get_content":true},"Image":{"get_images":true},"MediaItem":{"get_media_item":true,"get_media_items":true},"Provider":{"deregister":true,"get_provider":true,"get_providers":true,"get_supported_auth_schema":true,"get_supported_variants":false,"indexer_status":true,"password_auth":true,"stream":true},"Source":{"get_source":true}};
+const RESULT_MAP = {"Content":{"get_content":true},"Image":{"get_images":true},"MediaItem":{"get_media_item":true,"get_media_items":true},"Player":{"pause":true,"play":true},"Provider":{"append_stream":true,"deregister":true,"get_provider":true,"get_providers":true,"get_supported_auth_schema":true,"get_supported_variants":false,"indexer_status":true,"password_auth":true},"Source":{"get_source":true}};
 
 export type Router = {
 	Content: {
@@ -130,7 +140,12 @@ export type Router = {
 		get_media_item: (ty: MediaItemType, uuid: string) => Promise<TauRpcResult<MediaItemDTO, MediaItemApiError>>,
 		get_media_items: (ty: MediaItemType, amount: number) => Promise<TauRpcResult<MediaItemDTO[], MediaItemApiError>>,
 	},
+	Player: {
+		pause: () => Promise<TauRpcResult<Duration, PlayerApiError>>,
+		play: (immediately: boolean) => Promise<TauRpcResult<Duration, PlayerApiError>>,
+	},
 	Provider: {
+		append_stream: (key: ProviderKey, uuid: string) => Promise<TauRpcResult<null, ProviderApiError>>,
 		deregister: (key: ProviderKey) => Promise<TauRpcResult<null, ProviderApiError>>,
 		get_provider: (key: ProviderKey) => Promise<TauRpcResult<ProviderDTO, ProviderApiError>>,
 		get_providers: () => Promise<TauRpcResult<ProviderDTO[], ProviderApiError>>,
@@ -138,7 +153,6 @@ export type Router = {
 		get_supported_variants: () => Promise<ProviderVariant[]>,
 		indexer_status: (key: IndexerKey, onEvent: (response: IndexerMsg) => void) => Promise<TauRpcResult<null, ProviderApiError>>,
 		password_auth: (url: string, ty: ProviderVariant, uname: string, psw: string) => Promise<TauRpcResult<ProviderKey, ProviderApiError>>,
-		stream: (key: ProviderKey, uuid: string) => Promise<TauRpcResult<null, ProviderApiError>>,
 	},
 	Source: {
 		get_source: () => Promise<TauRpcResult<SourceDTO, SourceApiError>>,

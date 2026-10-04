@@ -2,6 +2,7 @@ use anyhow::Result;
 use journey_db::entity::{
     ProviderDTO, ProviderKey, ProviderVariant, providers::ProviderAuthSchema,
 };
+use journey_playback::audio_player::AppendStream;
 use journey_provider::{
     IndexerKey, IndexerManagerError, IndexerMsg, ProviderError, ProviderManagerError,
     ProviderManagerFn,
@@ -10,6 +11,7 @@ use serde::Serialize;
 use specta::Type;
 use tauri::ipc::Channel;
 use thiserror::Error;
+use tracing::warn;
 use uuid::Uuid;
 
 use crate::AppState;
@@ -18,6 +20,8 @@ use crate::AppState;
 pub enum ProviderApiError {
     #[error("Failed to send msg via channel: {0}")]
     FailedChannelSendError(String),
+    #[error("Failed to send msg via channel: {0}")]
+    FailedAppendStreamError(String),
     #[error(transparent)]
     ProviderManagerError(#[from] ProviderManagerError),
     #[error(transparent)]
@@ -47,10 +51,10 @@ pub trait ProviderApi {
         key: IndexerKey,
         on_event: Channel<IndexerMsg>,
     ) -> ProviderApiResult<()>;
-    async fn stream(key: ProviderKey, uuid: Uuid) -> ProviderApiResult<()>;
+    async fn append_stream(key: ProviderKey, uuid: Uuid) -> ProviderApiResult<()>;
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct ProviderApiImpl {
     pub state: AppState,
 }
@@ -118,10 +122,15 @@ impl ProviderApi for ProviderApiImpl {
 
         Ok(())
     }
-    async fn stream(self, key: ProviderKey, uuid: Uuid) -> ProviderApiResult<()> {
+    async fn append_stream(self, key: ProviderKey, uuid: Uuid) -> ProviderApiResult<()> {
         let lock = self.state.read().await;
-        lock.provider_manager.get_audio_stream(key, uuid).await?;
+        let response = lock.provider_manager.get_audio_stream(key, uuid).await?;
 
-        Ok(())
+        warn!("For response from server");
+
+        match lock.audio_player.ask(AppendStream { response }).await {
+            Ok(_) => Ok(()),
+            Err(err) => Err(ProviderApiError::FailedAppendStreamError(err.to_string())),
+        }
     }
 }

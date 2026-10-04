@@ -112,13 +112,16 @@ const indexerStatus = (
   });
 
 const stream = (key: ProviderKey, uuid: string) =>
-  Effect.matchEffect(pipe(API.Provider.stream(key, uuid), wrapWithEffect), {
-    onFailure: (err) => {
-      console.error(err);
-      return Effect.succeed(false);
+  Effect.matchEffect(
+    pipe(API.Provider.append_stream(key, uuid), wrapWithEffect),
+    {
+      onFailure: (err) => {
+        console.error(err);
+        return Effect.succeed(false);
+      },
+      onSuccess: () => Effect.succeed(true),
     },
-    onSuccess: () => Effect.succeed(true),
-  });
+  );
 
 export {
   getSupportedProviderVariants,

@@ -17,7 +17,7 @@ pub trait ContentApi {
     async fn get_content() -> ContentApiResult<ContentDTO>;
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct ContentApiImpl {
     pub state: AppState,
 }

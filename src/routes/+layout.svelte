@@ -31,7 +31,7 @@
 
 <Playbar.Root>
   <Playbar.Skip action={"backward"} seconds={"-5"} />
-  <Playbar.Button action={"paused"} />
+  <Playbar.Button />
   <Playbar.Skip action={"forward"} seconds={"+15"} />
 </Playbar.Root>
 

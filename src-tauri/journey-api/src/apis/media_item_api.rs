@@ -25,7 +25,7 @@ pub trait MediaItemApi {
     async fn get_media_item(ty: MediaItemType, uuid: Uuid) -> MediaItemApiResult<MediaItemDTO>;
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct MediaItemApiImpl {
     pub state: AppState,
 }

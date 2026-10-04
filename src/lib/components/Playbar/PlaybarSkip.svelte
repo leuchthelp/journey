@@ -6,13 +6,13 @@
     seconds: string;
   };
 
-  let { action, seconds }: Props = $props();
+  let { action }: Props = $props();
 </script>
 
-<media-seek-button {seconds} class={`${action} playbar-styled-button`}>
+<button class={`${action} playbar-styled-button`}>
   {#if action === "forward"}
     <SkipForward />
   {:else if action === "backward"}
     <SkipBack />
   {/if}
-</media-seek-button>
+</button>

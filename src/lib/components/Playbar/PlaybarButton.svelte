@@ -1,19 +1,18 @@
 <script lang="ts">
+  import { play } from "#lib/effects/player.ts";
   import { Play, Pause } from "@lucide/svelte";
+  import { Effect } from "effect";
 
-  type Props = {
-    action: string;
-  };
-
-  let { action }: Props = $props();
-
-  let paused = $state(true);
+  let state = $state(true);
 </script>
 
-<media-play-button class={`${action} playbar-styled-button`}>
-  {#if paused}
+<button
+  class="playbar-styled-button"
+  onclick={async () => await Effect.runPromise(play(false))}
+>
+  {#if state}
     <Pause />
   {:else}
     <Play />
   {/if}
-</media-play-button>
+</button>

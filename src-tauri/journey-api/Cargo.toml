@@ -12,9 +12,12 @@ serde = { workspace = true }
 taurpc = { workspace = true }
 specta = { workspace = true }
 tokio = { workspace = true }
+tracing = { workspace = true }
+kameo = { workspace = true }
 journey-db = { workspace = true }
 journey-provider = { workspace = true }
 journey-media-item = { workspace = true }
+journey-playback = { workspace = true }
 
 [lints]
 workspace = true

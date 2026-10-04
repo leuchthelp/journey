@@ -13,6 +13,7 @@ use journey_db::{
     sea_orm::{EntityTrait, IntoActiveModel, Iterable},
 };
 use rapidhash::RapidHashMap;
+use reqwest::Response;
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
@@ -199,11 +200,14 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         provider.add_to_db().await?;
         Ok(())
     }
-    async fn get_audio_stream(&self, key: ProviderKey, uuid: Uuid) -> ProviderManagerResult<()> {
+    async fn get_audio_stream(
+        &self,
+        key: ProviderKey,
+        uuid: Uuid,
+    ) -> ProviderManagerResult<Response> {
         let provider = self.get_variant(&key)?;
-
-        provider.get_audio_stream(uuid).await?;
-        Ok(())
+        let response = provider.get_audio_stream(uuid).await?;
+        Ok(response)
     }
 }
 

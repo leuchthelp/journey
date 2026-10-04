@@ -4,6 +4,19 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+specta = { workspace = true }
+kameo = { workspace = true }
+stream-download = { workspace = true }
+rodio = { workspace = true }
+futures = { workspace = true }
+tokio = { workspace = true }
+tokio-util = { workspace = true }
+tracing = { workspace = true }
+reqwest = { workspace = true }
+
 
 [lints]
 workspace = true

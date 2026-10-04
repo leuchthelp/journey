@@ -2821,13 +2821,16 @@ dependencies = [
  "anyhow",
  "journey-db",
  "journey-media-item",
+ "journey-playback",
  "journey-provider",
+ "kameo",
  "serde",
  "specta",
  "tauri",
  "taurpc",
  "thiserror 2.0.21",
  "tokio",
+ "tracing",
  "uuid",
 ]
 
@@ -2878,6 +2881,20 @@ dependencies = [
 [[package]]
 name = "journey-playback"
 version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "futures",
+ "kameo",
+ "reqwest",
+ "rodio",
+ "serde",
+ "specta",
+ "stream-download",
+ "thiserror 2.0.21",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
 
 [[package]]
 name = "journey-provider"
