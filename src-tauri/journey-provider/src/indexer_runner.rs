@@ -108,7 +108,6 @@ impl Message<NewTask> for IndexerRunner {
 
     async fn handle(&mut self, msg: NewTask, _: &mut Context<Self, Self::Reply>) -> Self::Reply {
         match msg.comm.send(IndexerMsg::Started {
-            total: 200,
             time: Timestamp::now(),
         }) {
             Ok(_) => Ok(()),

@@ -38,10 +38,10 @@ use crate::{
 #[serde(rename_all_fields = "camelCase", tag = "event", content = "data")]
 pub enum IndexerMsg {
     Started {
-        total: i32,
         time: Timestamp,
     },
     Progress {
+        total: usize,
         item: Option<String>,
         success: bool,
         already_exists: bool,
@@ -242,6 +242,7 @@ pub trait Indexer: RequiredForIndexer + DynClone + Debug + Send {
         &self,
         txn: &DatabaseTransaction,
         comm: &UnboundedSender<IndexerMsg>,
+        total: usize,
         music_brainz_id: Option<Uuid>,
         weak_id: String,
         source_id: Uuid,
@@ -301,9 +302,10 @@ pub trait Indexer: RequiredForIndexer + DynClone + Debug + Send {
         };
 
         let msg = IndexerMsg::Progress {
+            total,
             item: Some(weak_id),
-            success: success,
-            already_exists: already_exists,
+            success,
+            already_exists,
         };
 
         match comm.send(msg) {

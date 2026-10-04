@@ -161,10 +161,11 @@ impl JellyfinIndexer {
         kind: Vec<BaseItemKind>,
     ) -> IndexerResult<()> {
         let items = self.get_items(user_id, kind).await?;
+        let total = items.len();
 
         let tasks = items
             .iter()
-            .map(|item| self.assemble_media_item(txn, comm, item));
+            .map(|item| self.assemble_media_item(txn, comm, total, item));
 
         try_join_all(tasks).await?;
         Ok(())
@@ -173,6 +174,7 @@ impl JellyfinIndexer {
         &self,
         txn: &DatabaseTransaction,
         comm: &UnboundedSender<IndexerMsg>,
+        total: usize,
         item: &BaseItemDto,
     ) -> IndexerResult<()> {
         let source_id = self.check_entry(item.id)?;
@@ -185,6 +187,7 @@ impl JellyfinIndexer {
         self.index_media_item(
             txn,
             comm,
+            total,
             music_brainz_id,
             weak_id,
             source_id,
