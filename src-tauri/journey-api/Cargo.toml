@@ -9,14 +9,10 @@ tauri = { workspace = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }
 serde = { workspace = true }
-serde_json = { workspace = true }
 taurpc = { workspace = true }
 specta = { workspace = true }
-specta-typescript = { workspace = true }
 tokio = { workspace = true }
-tracing = { workspace = true }
 journey-db = { workspace = true }
-journey-keyring = { workspace = true }
 journey-provider = { workspace = true }
 journey-media-item = { workspace = true }
 

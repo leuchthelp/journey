@@ -2820,18 +2820,14 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "journey-db",
- "journey-keyring",
  "journey-media-item",
  "journey-provider",
  "serde",
- "serde_json",
  "specta",
- "specta-typescript",
  "tauri",
  "taurpc",
  "thiserror 2.0.21",
  "tokio",
- "tracing",
  "uuid",
 ]
 
@@ -2845,13 +2841,11 @@ dependencies = [
  "sea-orm",
  "sea-query",
  "serde",
- "serde_json",
  "specta",
  "strum",
  "strum_macros",
  "taurpc",
  "thiserror 2.0.21",
- "tokio",
  "url",
  "uuid",
 ]
@@ -2873,13 +2867,11 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
- "futures",
  "inherent",
  "journey-db",
  "serde",
  "specta",
  "thiserror 2.0.21",
- "tracing",
  "uuid",
 ]
 
@@ -2895,7 +2887,6 @@ dependencies = [
  "async-trait",
  "bon",
  "chrono",
- "dotenvy 0.15.7 (git+https://github.com/allan2/dotenvy)",
  "dyn-clone",
  "futures",
  "inherent",
@@ -2913,7 +2904,6 @@ dependencies = [
  "similar",
  "specta",
  "stream-download",
- "tauri-plugin-os",
  "taurpc",
  "test-log",
  "thiserror 2.0.21",

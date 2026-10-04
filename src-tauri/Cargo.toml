@@ -51,7 +51,7 @@ rapidhash = "4"
 async-trait = "0.1"
 
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+futures = "0.3"
 tokio = { version = "1", features = ["full"] }
 tokio-util = { version = "0.7", features = ["full"] }
 tracing = { version = "0.1" }
@@ -64,8 +64,6 @@ specta = { version = "2.0.0-rc.25", features = [
     "tokio",
     "jiff",
 ] }
-specta-typescript = "0.0.12"
-specta-serde = { version = "0.0.12" }
 taurpc = "0.8"
 
 journey-db = { path = "journey-db" }
@@ -86,10 +84,6 @@ sea-query = "1"
 
 
 journey-api = { path = "journey-api" }
-
-
-futures = "0.3"
-
 journey-provider = { path = "journey-provider" }
 dyn-clone = "1"
 kameo = "0.22"
@@ -98,7 +92,6 @@ jellyfin-sdk-rs = { git = "https://github.com/leuchthelp/jellyfin-sdk-rs", branc
 
 
 journey-media-item = { path = "journey-media-item" }
-
 journey-playback = { path = "journey-playback" }
 reqwest = "0.13"
 stream-download = { version = "0.24", features = ["async-read"] }

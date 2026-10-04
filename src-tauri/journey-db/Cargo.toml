@@ -12,14 +12,12 @@ strum_macros = { workspace = true }
 bon = { workspace = true }
 url = { workspace = true }
 uuid = { workspace = true }
-tokio = { workspace = true }
 anyhow = { workspace = true }
 inherent = { workspace = true }
 thiserror = { workspace = true }
 sea-orm = { workspace = true }
 sea-query = { workspace = true }
 serde = { workspace = true }
-serde_json = { workspace = true }
 
 taurpc = { workspace = true }
 specta = { workspace = true }
