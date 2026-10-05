@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{io::Cursor, time::Duration};
 
 use anyhow::Result;
 use kameo::{
@@ -6,11 +6,10 @@ use kameo::{
     message::{Context, Message},
 };
 use reqwest::Response;
-use rodio::{DeviceSinkBuilder, MixerDeviceSink, Player};
+use rodio::{Decoder, DeviceSinkBuilder, MixerDeviceSink, Player};
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
-use tracing::warn;
 
 use crate::helper::convert;
 
@@ -57,21 +56,22 @@ impl Message<AppendStream> for AudioPlayer {
         msg: AppendStream,
         _: &mut Context<Self, Self::Reply>,
     ) -> Self::Reply {
-        let decoder = convert(msg.response).await?;
+        //let decoder = convert(msg.response).await?;
+        let cursor = match msg.response.bytes().await {
+            Ok(cursor) => Ok(Cursor::new(cursor)),
+            Err(err) => Err(AudioPlayerError::FailedBuildStreamReaderError(
+                err.to_string(),
+            )),
+        }?;
 
-        warn!("Setup decoder successfully");
+        let decoder = match Decoder::new(cursor) {
+            Ok(decoder) => Ok(decoder),
+            Err(err) => Err(AudioPlayerError::FailedBuildDecoderError(err.to_string())),
+        }?;
 
-        let handle = tokio::task::spawn_blocking(move || {
-            let sink = DeviceSinkBuilder::open_default_sink().unwrap();
-            let player = Player::connect_new(sink.mixer());
-            player.append(decoder);
-
-            warn!("Playing sound");
-            player.sleep_until_end();
-            warn!("Finished");
-        });
-        handle.await.unwrap();
-
+        //self.player.pause();
+        self.player.append(decoder);
+        self.player.pause();
         Ok(())
     }
 }
