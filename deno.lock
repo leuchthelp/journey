@@ -16,7 +16,7 @@
     "npm:@videojs/html@^10.0.1": "10.0.1_react@19.3.0",
     "npm:@videojs/store@^10.0.1": "10.0.1_@videojs+element@10.0.1_react@19.3.0",
     "npm:clsx@^2.1.1": "2.1.1",
-    "npm:effect@4": "4.0.0",
+    "npm:effect@^4.0.1": "4.0.1",
     "npm:prettier-plugin-svelte@^4.1.1": "4.1.1_prettier@3.9.9_svelte@5.57.1",
     "npm:prettier-plugin-tailwindcss@~0.8.1": "0.8.1_prettier@3.9.9_prettier-plugin-svelte@4.1.1",
     "npm:prettier@^3.9.9": "3.9.9",
@@ -729,8 +729,8 @@
     "devalue@5.9.4": {
       "integrity": "sha512-sPAT4pztbu6586/hrhOnMKS17IJrvg12mXiSPSS3W5qDeN2RGgvZ0diZCm31dBbnevfVmujNO3IM2wrS4Y2Rhg=="
     },
-    "effect@4.0.0": {
-      "integrity": "sha512-ooc1TG5t+FfzgYnFz2ff6BBKyZ7EwBRVXC7c4RhQUAD6/TZ2gTXXMeb4WX7a19ozQo4J73/QW+S00YAIresoMQ=="
+    "effect@4.0.1": {
+      "integrity": "sha512-b1VlQG9g8fwxE5QnIZuPoOP/0MsqHJSRKxUijjoM80E5q95FXrX5yWtY5XI8G+GJsBQAVSDbLS458z9a++uVvw=="
     },
     "enhanced-resolve@5.24.2": {
       "integrity": "sha512-rpsZEGT1jFuve6QlpyRp9ckQ+kN61hvF9BzCPyMdaKTm8UJce96KBn3sorXOFXlzjPrs3Vc4T1NsSroZ3PxlFw==",
@@ -1277,7 +1277,7 @@
         "npm:@videojs/html@^10.0.1",
         "npm:@videojs/store@^10.0.1",
         "npm:clsx@^2.1.1",
-        "npm:effect@4",
+        "npm:effect@^4.0.1",
         "npm:prettier-plugin-svelte@^4.1.1",
         "npm:prettier-plugin-tailwindcss@~0.8.1",
         "npm:prettier@^3.9.9",
