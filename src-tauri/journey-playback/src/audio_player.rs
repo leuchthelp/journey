@@ -11,8 +11,6 @@ use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
 
-use crate::helper::convert;
-
 #[derive(Debug, Error, Serialize, Type)]
 pub enum AudioPlayerError {
     #[error("Failed to build device sink: {0}")]
@@ -56,7 +54,6 @@ impl Message<AppendStream> for AudioPlayer {
         msg: AppendStream,
         _: &mut Context<Self, Self::Reply>,
     ) -> Self::Reply {
-        //let decoder = convert(msg.response).await?;
         let cursor = match msg.response.bytes().await {
             Ok(cursor) => Ok(Cursor::new(cursor)),
             Err(err) => Err(AudioPlayerError::FailedBuildStreamReaderError(
@@ -69,7 +66,6 @@ impl Message<AppendStream> for AudioPlayer {
             Err(err) => Err(AudioPlayerError::FailedBuildDecoderError(err.to_string())),
         }?;
 
-        //self.player.pause();
         self.player.append(decoder);
         self.player.pause();
         Ok(())
