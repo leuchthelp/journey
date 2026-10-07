@@ -25,11 +25,11 @@ pub async fn get_router() -> Result<Router<Wry>> {
     let media_item_manager = MediaItemManager::default();
     let audio_player = AudioPlayer::spawn(AudioPlayer::new()?);
 
-    let state = AppState::new(RwLock::new(AppStateInner {
-        provider_manager,
+    let state = AppState::new(AppStateInner {
+        provider_manager: RwLock::new(provider_manager),
         media_item_manager,
         audio_player,
-    }));
+    });
 
     let router = taurpc::Router::new()
         .merge(
@@ -73,9 +73,9 @@ pub async fn get_router() -> Result<Router<Wry>> {
 }
 
 pub struct AppStateInner {
-    pub provider_manager: ProviderManager,
+    pub provider_manager: RwLock<ProviderManager>,
     pub media_item_manager: MediaItemManager,
     pub audio_player: ActorRef<AudioPlayer>,
 }
 
-pub type AppState = Arc<RwLock<AppStateInner>>;
+pub type AppState = Arc<AppStateInner>;

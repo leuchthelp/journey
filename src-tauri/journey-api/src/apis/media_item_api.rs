@@ -37,8 +37,7 @@ impl MediaItemApi for MediaItemApiImpl {
         ty: MediaItemType,
         amount: u64,
     ) -> MediaItemApiResult<Vec<MediaItemDTO>> {
-        let lock = self.state.read().await;
-        let items = lock.media_item_manager.get_items(ty, amount).await?;
+        let items = self.state.media_item_manager.get_items(ty, amount).await?;
         Ok(items)
     }
     async fn get_media_item(
@@ -46,8 +45,7 @@ impl MediaItemApi for MediaItemApiImpl {
         ty: MediaItemType,
         uuid: Uuid,
     ) -> MediaItemApiResult<MediaItemDTO> {
-        let lock = self.state.read().await;
-        let item = lock.media_item_manager.get_item(ty, uuid).await?;
+        let item = self.state.media_item_manager.get_item(ty, uuid).await?;
         Ok(item)
     }
 }

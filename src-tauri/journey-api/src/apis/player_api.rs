@@ -30,8 +30,8 @@ pub struct PlayerApiImpl {
 #[taurpc::resolvers]
 impl PlayerApi for PlayerApiImpl {
     async fn play(self, immediately: bool) -> PlayerApiResult<Duration> {
-        let lock = self.state.read().await;
-        let duration = match lock
+        let duration = match self
+            .state
             .audio_player
             .ask(Play {
                 immediately: immediately,
@@ -48,8 +48,7 @@ impl PlayerApi for PlayerApiImpl {
         Ok(duration)
     }
     async fn pause(self) -> PlayerApiResult<Duration> {
-        let lock = self.state.read().await;
-        let duration = match lock.audio_player.ask(Pause).await {
+        let duration = match self.state.audio_player.ask(Pause).await {
             Ok(duration) => Ok(duration),
             Err(err) => Err(PlayerApiError::FailedMessageSendError {
                 msg: "Pause",
