@@ -71,14 +71,9 @@ impl Convertible<ModelEx> for ContentDTO {
     type DTO = ContentDTO;
 
     pub fn from_model(item: ModelEx) -> ConversionResult<Self> {
-        let parent = match item.parent.into_option() {
-            Some(parent) => Some(MediaItemDTO::from_model(parent)?),
-            None => None,
-        };
-
         Ok(ContentDTO {
             parent_id: item.parent_id,
-            parent: parent,
+            parent: MediaItemDTO::option_from(item.parent)?,
             ty: item.ty,
             description: item.description,
         })

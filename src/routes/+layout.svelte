@@ -5,7 +5,7 @@
   import * as Playbar from "#lib/components/Playbar/index.ts";
   import * as ProviderAccordion from "#lib/components/Settings/Provider/index.ts";
   import Settings from "#lib/components/Settings/Settings.svelte";
-  import { VariantManager } from "#lib/VariantManager.svelte.ts";
+  import { ProviderTypeManager } from "#lib/ProviderTypeManager.svelte.ts";
 
   const toggleVisible = () => {
     visible = !visible;
@@ -14,11 +14,13 @@
   let { data, children }: LayoutProps = $props();
   let visible = $state(false);
 
-  let variantManager = $derived(new VariantManager(await data.providerReq));
+  let providerTypeManager = $derived(
+    new ProviderTypeManager(await data.providerReq),
+  );
 
-  let shownVariants = $derived(
-    (await data.supportedVariantReq).filter(
-      (value) => !variantManager.knownVariants.includes(value),
+  let shownTypes = $derived(
+    (await data.supportedTypeReq).filter(
+      (value) => !providerTypeManager.knownTypes.includes(value),
     ),
   );
 </script>
@@ -45,20 +47,20 @@
   {#if visible}
     <Settings>
       <ProviderAccordion.Root title={"Providers"}>
-        <div>Currently indexing: {variantManager.progress} providers.</div>
-        {#each shownVariants as variant}
-          {#if variant !== "Unknown"}
-            <button onclick={() => variantManager.add(variant)}
-              >Add new {variant}</button
+        <div>Currently indexing: {providerTypeManager.progress} providers.</div>
+        {#each shownTypes as type}
+          {#if type !== "Unknown"}
+            <button onclick={() => providerTypeManager.add(type)}
+              >Add new {type}</button
             >
           {/if}
         {/each}
-        {#each variantManager.all as [variant, proxy] (variant)}
+        {#each providerTypeManager.all as [type, proxy] (type)}
           <ProviderAccordion.Body
-            {variant}
+            {type}
             {proxy}
-            incProgress={() => variantManager.incProgress()}
-            decProgress={() => variantManager.decProgress()}
+            incProgress={() => providerTypeManager.incProgress()}
+            decProgress={() => providerTypeManager.decProgress()}
           />
         {/each}
       </ProviderAccordion.Root>

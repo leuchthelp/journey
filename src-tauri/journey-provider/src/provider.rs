@@ -5,7 +5,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use dyn_clone::{DynClone, clone_trait_object};
 use journey_db::entity::providers::{self, ProviderAuthSchema};
-use journey_db::entity::{ProviderKey, ProviderVariant};
+use journey_db::entity::{ProviderKey, ProviderType};
 use journey_db::get_conn;
 use journey_db::sea_orm::EntityTrait;
 use journey_db::sea_query::OnConflict;
@@ -23,7 +23,6 @@ use crate::indexer::Indexer;
 use crate::jellyfin::jellyfin_provider::JellyfinProviderError;
 
 #[derive(Debug, Error, Serialize, Type)]
-//#[serde(tag = "error", content = "data")]
 pub enum ProviderError {
     #[error("Error throw if a given auth function is not implemented.")]
     NotImplError,
@@ -31,7 +30,7 @@ pub enum ProviderError {
     TooManyCredentialsError,
     #[error("Found no access token, nothing to remove: {0}")]
     NoCredentialsError(String),
-    #[error("ProviderVariant has not been set yet.")]
+    #[error("ProviderType has not been set yet.")]
     MissingVariantError,
     #[error("server_id has not been set yet, try authenticating first.")]
     MissingServerIdError,
@@ -83,7 +82,7 @@ pub trait RequiredForProvider {
 
 #[async_trait]
 pub trait Provider: RequiredForProvider + DynClone + Debug {
-    fn ty(&self) -> ProviderResult<ProviderVariant> {
+    fn ty(&self) -> ProviderResult<ProviderType> {
         match self.get_model().ty.try_as_ref() {
             Some(variant) => Ok(*variant),
             _ => Err(ProviderError::MissingVariantError),

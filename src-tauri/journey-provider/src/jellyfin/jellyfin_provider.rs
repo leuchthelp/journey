@@ -205,7 +205,7 @@ mod variant_jellyfin {
         jellyfin_provider::JellyfinProvider,
         provider::{NewProvider, Provider},
     };
-    use journey_db::entity::{ProviderVariant, providers};
+    use journey_db::entity::{ProviderType, providers};
     use journey_keyring::Entry;
     use journey_utils::get_env_local;
 
@@ -213,11 +213,11 @@ mod variant_jellyfin {
     fn matching_name() {
         let model = providers::ActiveModelEx::new()
             .set_url(Url::parse("http://smth.example.com").unwrap())
-            .set_ty(ProviderVariant::JellyfinProvider);
+            .set_ty(ProviderType::JellyfinProvider);
 
         assert!(matches!(
             JellyfinProvider::new(model).ty().unwrap(),
-            ProviderVariant::JellyfinProvider
+            ProviderType::JellyfinProvider
         ));
     }
 
@@ -236,7 +236,7 @@ mod variant_jellyfin {
 
         let model = providers::ActiveModelEx::new()
             .set_url(Url::parse(&url).unwrap())
-            .set_ty(ProviderVariant::JellyfinProvider);
+            .set_ty(ProviderType::JellyfinProvider);
         let mut provider = JellyfinProvider::new(model);
 
         assert!(provider.authenticated().is_err());

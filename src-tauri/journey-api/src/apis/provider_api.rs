@@ -1,7 +1,5 @@
 use anyhow::Result;
-use journey_db::entity::{
-    ProviderDTO, ProviderKey, ProviderVariant, providers::ProviderAuthSchema,
-};
+use journey_db::entity::{ProviderDTO, ProviderKey, ProviderType, providers::ProviderAuthSchema};
 use journey_playback::audio_player::AppendStream;
 use journey_provider::{
     IndexerKey, IndexerManagerError, IndexerMsg, ProviderError, ProviderManagerError,
@@ -33,15 +31,15 @@ type ProviderApiResult<T> = Result<T, ProviderApiError>;
 
 #[taurpc::procedures(path = "Provider")]
 pub trait ProviderApi {
-    async fn get_supported_variants() -> Vec<ProviderVariant>;
+    async fn get_supported_variants() -> Vec<ProviderType>;
     async fn get_supported_auth_schema(
-        variant: ProviderVariant,
+        variant: ProviderType,
     ) -> ProviderApiResult<Vec<ProviderAuthSchema>>;
     async fn get_providers() -> ProviderApiResult<Vec<ProviderDTO>>;
     async fn get_provider(key: ProviderKey) -> ProviderApiResult<ProviderDTO>;
     async fn password_auth(
         url: String,
-        ty: ProviderVariant,
+        ty: ProviderType,
         uname: String,
         psw: String,
     ) -> ProviderApiResult<ProviderKey>;
@@ -60,13 +58,13 @@ pub struct ProviderApiImpl {
 
 #[taurpc::resolvers]
 impl ProviderApi for ProviderApiImpl {
-    async fn get_supported_variants(self) -> Vec<ProviderVariant> {
+    async fn get_supported_variants(self) -> Vec<ProviderType> {
         let lock = self.state.provider_manager.read().await;
         lock.get_supported_variants()
     }
     async fn get_supported_auth_schema(
         self,
-        variant: ProviderVariant,
+        variant: ProviderType,
     ) -> ProviderApiResult<Vec<ProviderAuthSchema>> {
         let lock = self.state.provider_manager.read().await;
         Ok(lock.get_supported_auth_schema(variant)?)
@@ -84,7 +82,7 @@ impl ProviderApi for ProviderApiImpl {
     async fn password_auth(
         self,
         url: String,
-        ty: ProviderVariant,
+        ty: ProviderType,
         uname: String,
         psw: String,
     ) -> ProviderApiResult<ProviderKey> {

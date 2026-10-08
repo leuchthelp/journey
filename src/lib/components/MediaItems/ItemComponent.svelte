@@ -9,14 +9,16 @@
   };
 
   let { item }: Props = $props();
-
   $inspect(item);
 </script>
 
 <button
   onclick={async () =>
     await Effect.runPromise(
-      stream(item.providers?.at(0)?.key!, item.sources?.at(0)?.sourceId!),
+      stream(
+        item.providers?.JellyfinProvider?.at(0)?.key!,
+        item.sources?.at(0)?.sourceId!,
+      ),
     )}>Append Stream</button
 >
 <div>

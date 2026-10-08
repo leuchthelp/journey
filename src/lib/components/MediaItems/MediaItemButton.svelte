@@ -7,13 +7,9 @@
 
   let { item }: Props = $props();
 
-  let image = $derived(item.images?.at(0)?.url);
-  let name = $derived(
-    item.content?.filter((item) => item.type === "Name").at(0),
-  );
-  let artist = $derived(
-    item.content?.filter((item) => item.type === "Artists").at(0),
-  );
+  let image = $derived(item.images?.Primary?.at(0)?.url);
+  let name = $derived(item.content?.Name);
+  let artist = $derived(item.content?.Artists);
 </script>
 
 <div class="flex size-24 flex-col md:size-44">

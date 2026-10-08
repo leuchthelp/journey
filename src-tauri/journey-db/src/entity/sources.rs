@@ -38,15 +38,10 @@ impl Convertible<ModelEx> for SourceDTO {
     type DTO = SourceDTO;
 
     pub fn from_model(item: ModelEx) -> ConversionResult<Self> {
-        let parent = match item.parent.into_option() {
-            Some(parent) => Some(MediaItemDTO::from_model(parent)?),
-            None => None,
-        };
-
         Ok(SourceDTO {
             source_id: item.source_id,
             parent_id: item.parent_id,
-            parent: parent,
+            parent: MediaItemDTO::option_from_option(item.parent)?,
             provider_id: item.provider_id,
         })
     }

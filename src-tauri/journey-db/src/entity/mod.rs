@@ -18,4 +18,4 @@ pub use providers::ProviderDTO;
 pub use sources::SourceDTO;
 
 pub use providers::ProviderKey;
-pub use providers::ProviderVariant;
+pub use providers::ProviderType;

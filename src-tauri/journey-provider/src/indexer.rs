@@ -7,7 +7,7 @@ use futures::future::try_join_all;
 use jiff::Timestamp;
 use journey_db::JourneyDbError;
 use journey_db::entity::{
-    ProviderVariant,
+    ProviderType,
     content::{self},
     images, jt_parent_to_child,
     media_items::{self, MediaItemType},
@@ -100,7 +100,7 @@ pub trait RequiredForIndexer {
 
 #[async_trait]
 pub trait Indexer: RequiredForIndexer + DynClone + Debug + Send {
-    fn ty(&self) -> IndexerResult<ProviderVariant> {
+    fn ty(&self) -> IndexerResult<ProviderType> {
         match self.get_model().ty.try_as_ref() {
             Some(variant) => Ok(*variant),
             _ => Err(IndexerError::MissingVariantError),
@@ -129,7 +129,7 @@ pub trait Indexer: RequiredForIndexer + DynClone + Debug + Send {
     }
     fn key(&self) -> IndexerResult<IndexerKey> {
         Ok(IndexerKey {
-            variant: self.ty()?,
+            ty: self.ty()?,
             provider_id: self.provider_id()?,
         })
     }

@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter};
 use anyhow::Result;
 use async_trait::async_trait;
 use inherent::inherent;
-use journey_db::{entity::ProviderVariant, get_conn};
+use journey_db::{entity::ProviderType, get_conn};
 use kameo::prelude::*;
 use rapidhash::RapidHashMap;
 use serde::Serialize;
@@ -35,7 +35,8 @@ pub type IndexerManagerResult<T> = Result<T, IndexerManagerError>;
 #[derive(Debug, PartialEq, Eq, Hash, Copy)]
 #[serde(rename_all = "camelCase")]
 pub struct IndexerKey {
-    pub variant: ProviderVariant,
+    #[serde(rename = "type")]
+    pub ty: ProviderType,
     pub provider_id: Uuid,
 }
 
@@ -44,7 +45,7 @@ impl Display for IndexerKey {
         write!(
             f,
             "Key for server: {}, provider: {}",
-            self.provider_id, self.variant
+            self.provider_id, self.ty
         )
     }
 }

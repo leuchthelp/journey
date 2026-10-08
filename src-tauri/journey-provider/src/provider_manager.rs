@@ -6,7 +6,7 @@ use futures::TryStreamExt;
 use inherent::inherent;
 use journey_db::{
     entity::{
-        ProviderDTO, ProviderKey, ProviderVariant,
+        ProviderDTO, ProviderKey, ProviderType,
         providers::{self, ProviderAuthSchema},
     },
     get_conn,
@@ -30,7 +30,7 @@ use crate::{
 
 #[derive(Debug, Error, Serialize, Type)]
 pub enum ProviderManagerError {
-    #[error(r#"ProviderVariant is "Unknown" & value is not Set on ActiveModel."#)]
+    #[error(r#"ProviderType is "Unknown" & value is not Set on ActiveModel."#)]
     UnknownProviderError,
     #[error("No providers registered yet. Please add some first")]
     NoProviderError,
@@ -76,14 +76,12 @@ pub trait RequiredForProviderManager {
 pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
     fn get_type(
         &self,
-        ty: &ProviderVariant,
+        ty: &ProviderType,
         model: impl IntoActiveModel<providers::ActiveModelEx>,
     ) -> ProviderManagerResult<Box<dyn Provider + Send + Sync>> {
         match ty {
-            ProviderVariant::JellyfinProvider => {
-                Ok(JellyfinProvider::new(model.into_active_model()))
-            }
-            ProviderVariant::Unknown => Err(ProviderManagerError::UnknownProviderError),
+            ProviderType::JellyfinProvider => Ok(JellyfinProvider::new(model.into_active_model())),
+            ProviderType::Unknown => Err(ProviderManagerError::UnknownProviderError),
         }
     }
     fn get_provider(&self, key: &ProviderKey) -> ProviderManagerResult<ProviderDTO> {
@@ -105,6 +103,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
             let new = ProviderDTO::builder()
                 .authenticated(provider.authenticated()?)
                 .ty(provider.ty()?)
+                .url(provider.url()?)
                 .key(provider.key()?)
                 .build();
             providers.push(new);
@@ -130,16 +129,16 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
 
         Ok(indexers)
     }
-    fn get_supported_variants(&self) -> Vec<ProviderVariant> {
-        ProviderVariant::iter().collect()
+    fn get_supported_variants(&self) -> Vec<ProviderType> {
+        ProviderType::iter().collect()
     }
     fn get_supported_auth_schema(
         &self,
-        variant: ProviderVariant,
+        variant: ProviderType,
     ) -> ProviderManagerResult<Vec<ProviderAuthSchema>> {
         match variant {
-            ProviderVariant::JellyfinProvider => Ok(JellyfinProvider::default().get_auth_schema()),
-            ProviderVariant::Unknown => Err(ProviderManagerError::UnknownProviderError),
+            ProviderType::JellyfinProvider => Ok(JellyfinProvider::default().get_auth_schema()),
+            ProviderType::Unknown => Err(ProviderManagerError::UnknownProviderError),
         }
     }
     async fn start_indexing(&mut self) -> ProviderManagerResult<()> {
@@ -171,7 +170,7 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
     async fn password_auth(
         &mut self,
         url: String,
-        ty: ProviderVariant,
+        ty: ProviderType,
         uname: String,
         psw: String,
     ) -> ProviderManagerResult<ProviderKey> {
@@ -264,7 +263,7 @@ impl ProviderManagerFn for ProviderManager {}
 
 #[cfg(test)]
 mod provider_manager_test {
-    use journey_db::entity::ProviderVariant;
+    use journey_db::entity::ProviderType;
     use journey_db::entity::providers::{self};
     use journey_utils::constants::PRODUCT_NAME;
     use journey_utils::get_env_local;
@@ -303,7 +302,7 @@ mod provider_manager_test {
         let key = provider_manager
             .password_auth(
                 url,
-                ProviderVariant::JellyfinProvider,
+                ProviderType::JellyfinProvider,
                 env_map.var("TEST_JELLYFIN_USER").unwrap(),
                 env_map.var("TEST_JELLYFIN_PW").unwrap(),
             )

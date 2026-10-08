@@ -6,24 +6,24 @@ import type {
   ProviderDTO,
   ProviderKey,
   ProviderAuthSchema,
-  ProviderVariant,
+  ProviderType,
 } from "../bindings.ts";
 import { API } from "../proxy.ts";
 
-const getSupportedProviderVariants = () =>
+const getSupportedProviderTypes = () =>
   Effect.gen(function* () {
     const wrapped = pipe(API.Provider.get_supported_variants, Effect.promise);
 
     return yield* Effect.matchEffect(wrapped, {
       onFailure: (err) => {
         console.error(err);
-        return Effect.succeed([] as ProviderVariant[]);
+        return Effect.succeed([] as ProviderType[]);
       },
       onSuccess: (value) => Effect.succeed(value),
     });
   });
 
-const getSupportedAuthSchema = (variant: ProviderVariant) =>
+const getSupportedAuthSchema = (variant: ProviderType) =>
   Effect.gen(function* () {
     const wrapped = pipe(
       API.Provider.get_supported_auth_schema(variant),
@@ -84,7 +84,7 @@ const setIndexerKey = (provider?: ProviderDTO) =>
     onSuccess: (checkedProvider) => {
       const key: IndexerKey = {
         providerId: checkedProvider.key.providerId,
-        variant: checkedProvider.type,
+        type: checkedProvider.type,
       };
       return Effect.succeed(key);
     },
@@ -124,7 +124,7 @@ const stream = (key: ProviderKey, uuid: string) =>
   );
 
 export {
-  getSupportedProviderVariants,
+  getSupportedProviderTypes,
   getSupportedAuthSchema,
   getProvider,
   getProviders,

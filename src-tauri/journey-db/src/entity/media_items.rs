@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use anyhow::Result;
 use inherent::inherent;
 use sea_orm::entity::prelude::*;
@@ -7,7 +9,11 @@ use strum_macros::{Display, EnumString};
 use uuid::Uuid;
 
 use crate::db::{ConversionResult, Convertible};
-use crate::entity::{ContentDTO, ImageDTO, ProviderDTO, SourceDTO};
+use crate::entity::content::{self, ContentType};
+use crate::entity::images::{self, ImageType};
+use crate::entity::{
+    ContentDTO, ImageDTO, ProviderDTO, ProviderType, SourceDTO, media_items, providers,
+};
 
 #[derive(
     Display,
@@ -20,6 +26,7 @@ use crate::entity::{ContentDTO, ImageDTO, ProviderDTO, SourceDTO};
     Copy,
     PartialEq,
     Eq,
+    Hash,
     EnumIter,
     EnumString,
     DeriveValueType,
@@ -79,11 +86,11 @@ pub struct MediaItemDTO {
     pub ty: MediaItemType,
     pub outline_gradient: Option<String>,
     pub sources: Option<Vec<SourceDTO>>,
-    pub content: Option<Vec<ContentDTO>>,
-    pub providers: Option<Vec<ProviderDTO>>,
-    pub images: Option<Vec<ImageDTO>>,
-    pub children: Option<Vec<MediaItemDTO>>,
-    pub parents: Option<Vec<MediaItemDTO>>,
+    pub content: Option<HashMap<ContentType, ContentDTO>>,
+    pub providers: Option<HashMap<ProviderType, Vec<ProviderDTO>>>,
+    pub images: Option<HashMap<ImageType, Vec<ImageDTO>>>,
+    pub children: Option<HashMap<MediaItemType, Vec<MediaItemDTO>>>,
+    pub parents: Option<HashMap<MediaItemType, Vec<MediaItemDTO>>>,
 }
 
 #[inherent]
@@ -91,24 +98,24 @@ impl Convertible<ModelEx> for MediaItemDTO {
     type DTO = MediaItemDTO;
 
     pub fn from_model(item: ModelEx) -> ConversionResult<Self> {
-        let sources = SourceDTO::to_dto_vec(item.sources)?;
-        let content = ContentDTO::to_dto_vec(item.content)?;
-        let providers = ProviderDTO::to_dto_vec(item.providers)?;
-        let images = ImageDTO::to_dto_vec(item.images)?;
-        let children = MediaItemDTO::to_dto_vec(item.children)?;
-        let parents = MediaItemDTO::to_dto_vec(item.parents)?;
+        let sources = SourceDTO::to_vec(item.sources)?;
+        let content = ContentDTO::to_hashmap(item.content, content::Column::Ty)?;
+        let providers = ProviderDTO::to_hashmap_vec(item.providers, providers::Column::Ty)?;
+        let images = ImageDTO::to_hashmap_vec(item.images, images::Column::Ty)?;
+        let children = MediaItemDTO::to_hashmap_vec(item.children, media_items::Column::Ty)?;
+        let parents = MediaItemDTO::to_hashmap_vec(item.parents, media_items::Column::Ty)?;
 
         Ok(MediaItemDTO {
             uuid: item.music_brainz_id,
             is_tmp: item.is_tmp,
             ty: item.ty,
             outline_gradient: Some(item.outline_gradient),
-            sources: sources,
-            content: content,
-            providers: providers,
-            images: images,
-            children: children,
-            parents: parents,
+            sources,
+            content,
+            providers,
+            images,
+            children,
+            parents,
         })
     }
 }

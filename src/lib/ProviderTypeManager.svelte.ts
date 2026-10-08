@@ -1,7 +1,7 @@
 import { SvelteMap } from "svelte/reactivity";
-import type { ProviderKey, ProviderVariant, ProviderDTO } from "./bindings.ts";
+import type { ProviderKey, ProviderType, ProviderDTO } from "./bindings.ts";
 
-export class VariantProxy {
+export class ProviderTypeProxy {
   keys = $state<(ProviderKey | undefined)[]>([]);
 
   constructor(keys: (ProviderKey | undefined)[] = []) {
@@ -17,8 +17,8 @@ export class VariantProxy {
   }
 }
 
-export class VariantManager {
-  #variants = new SvelteMap<ProviderVariant, VariantProxy>();
+export class ProviderTypeManager {
+  #types = new SvelteMap<ProviderType, ProviderTypeProxy>();
   #inProgress = $state(0);
 
   constructor(providers: Iterable<ProviderDTO> = []) {
@@ -26,23 +26,23 @@ export class VariantManager {
   }
 
   get all() {
-    return this.#variants;
+    return this.#types;
   }
 
-  get knownVariants() {
-    return [...this.#variants.keys()];
+  get knownTypes() {
+    return [...this.#types.keys()];
   }
 
   get progress() {
     return this.#inProgress;
   }
 
-  get(variant: ProviderVariant) {
-    return this.#variants.get(variant);
+  get(type: ProviderType) {
+    return this.#types.get(type);
   }
 
-  add(variant: ProviderVariant, key?: ProviderKey) {
-    this.#variants.getOrInsert(variant, new VariantProxy([key]));
+  add(type: ProviderType, key?: ProviderKey) {
+    this.#types.getOrInsert(type, new ProviderTypeProxy([key]));
   }
 
   incProgress() {

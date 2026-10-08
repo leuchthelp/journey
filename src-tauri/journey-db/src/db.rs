@@ -1,11 +1,13 @@
+use std::{collections::HashMap, hash::Hash};
+
 use anyhow::Result;
-use sea_orm::{Database, DatabaseConnection};
+use sea_orm::{Database, DatabaseConnection, EntityTrait, ModelTrait, compound::BelongsTo};
+use sea_query::ValueType;
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
 
 #[derive(Debug, Error, Serialize, Type)]
-//#[serde(tag = "error", content = "data")]
 pub enum JourneyDbError {
     #[error("Failed to establish database connection: {0}")]
     ConnectionError(String),
@@ -40,26 +42,84 @@ pub enum ConversionError {
     FailedItemRetrievalError(String),
     #[error("Failed to parse Url: {0}")]
     FailedParseUrlError(String),
+    #[error("Failed to get matching Key column entry for HashMap: {0}")]
+    FailedGetHashmapKeyError(String),
 }
 
 pub type ConversionResult<T> = Result<T, ConversionError>;
 
-pub trait Convertible<T> {
+pub trait Convertible<T: ModelTrait> {
     type DTO;
 
     fn from_model(item: T) -> ConversionResult<Self::DTO>;
-    fn to_dto_vec(items: impl IntoIterator<Item = T>) -> ConversionResult<Option<Vec<Self::DTO>>> {
-        let mut peekable = items.into_iter().peekable();
-        if peekable.peek().is_none() {
-            return Ok(None);
+    fn option_from<E: EntityTrait<ModelEx = T>>(
+        option: BelongsTo<E>,
+    ) -> ConversionResult<Option<Self::DTO>> {
+        match option.into_option() {
+            Some(item) => Ok(Some(Self::from_model(item)?)),
+            None => Ok(None),
         }
-
+    }
+    fn option_from_option<E: EntityTrait<ModelEx = T>>(
+        option: BelongsTo<Option<E>>,
+    ) -> ConversionResult<Option<Self::DTO>> {
+        match option.into_option() {
+            Some(item) => Ok(Some(Self::from_model(item)?)),
+            None => Ok(None),
+        }
+    }
+    fn to_vec(items: impl IntoIterator<Item = T>) -> ConversionResult<Option<Vec<Self::DTO>>> {
         let mut result: Vec<Self::DTO> = vec![];
-        for item in peekable {
+        for item in items.into_iter() {
             let dto = Self::from_model(item)?;
             result.push(dto);
         }
 
-        Ok(Some(result))
+        match result.is_empty() {
+            true => Ok(None),
+            false => Ok(Some(result)),
+        }
+    }
+    fn to_hashmap<Key: ValueType + Eq + Hash>(
+        items: impl IntoIterator<Item = T>,
+        key_column: <<T>::Entity as EntityTrait>::Column,
+    ) -> ConversionResult<Option<HashMap<Key, Self::DTO>>> {
+        let mut result: HashMap<Key, Self::DTO> = HashMap::default();
+        for item in items.into_iter() {
+            let key = match <Key>::try_from(item.get(key_column)) {
+                Ok(key) => Ok(key),
+                Err(err) => Err(ConversionError::FailedGetHashmapKeyError(err.to_string())),
+            }?;
+            let dto = Self::from_model(item)?;
+            result.insert(key, dto);
+        }
+
+        match result.is_empty() {
+            true => Ok(None),
+            false => Ok(Some(result)),
+        }
+    }
+    fn to_hashmap_vec<Key: ValueType + Eq + Hash>(
+        items: impl IntoIterator<Item = T>,
+        key_column: <<T>::Entity as EntityTrait>::Column,
+    ) -> ConversionResult<Option<HashMap<Key, Vec<Self::DTO>>>> {
+        let mut result: HashMap<Key, Vec<Self::DTO>> = HashMap::default();
+        for item in items.into_iter() {
+            let key = match <Key>::try_from(item.get(key_column)) {
+                Ok(key) => Ok(key),
+                Err(err) => Err(ConversionError::FailedGetHashmapKeyError(err.to_string())),
+            }?;
+            let dto = Self::from_model(item)?;
+
+            match result.get_mut(&key) {
+                Some(vec) => vec.push(dto),
+                None => _ = result.insert(key, vec![dto]),
+            }
+        }
+
+        match result.is_empty() {
+            true => Ok(None),
+            false => Ok(Some(result)),
+        }
     }
 }

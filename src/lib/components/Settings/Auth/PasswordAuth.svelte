@@ -2,7 +2,7 @@
   import {
     type IndexerMsg,
     type ProviderKey,
-    type ProviderVariant,
+    type ProviderType,
   } from "#lib/bindings.ts";
   import { Effect } from "effect";
   import { passwordAuth, logOutOfProvider } from "#lib/effects/auth.ts";
@@ -28,13 +28,13 @@
   };
 
   type Props = {
-    variant: ProviderVariant;
+    type: ProviderType;
     key?: ProviderKey;
     onKeyChange: (value: ProviderKey | undefined) => void;
     incProgress: () => void;
     decProgress: () => void;
   };
-  let { key, variant, onKeyChange, incProgress, decProgress }: Props = $props();
+  let { key, type, onKeyChange, incProgress, decProgress }: Props = $props();
 
   let url = $state("");
   let uname = $state("");
@@ -74,7 +74,7 @@
     <form
       onsubmit={async () => {
         const [newKey, newUrl, newUname, newPsw] = await Effect.runPromise(
-          passwordAuth(url, variant, uname, psw),
+          passwordAuth(url, type, uname, psw),
         );
 
         onKeyChange(newKey);

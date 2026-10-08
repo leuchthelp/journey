@@ -1,7 +1,5 @@
-use crate::{
-    db::{ConversionError, ConversionResult, Convertible},
-    entity::{MediaItemDTO, ProviderDTO},
-};
+use std::collections::HashMap;
+
 use anyhow::Result;
 use inherent::inherent;
 use sea_orm::entity::prelude::*;
@@ -10,6 +8,14 @@ use specta::Type;
 use strum_macros::{Display, EnumString};
 use url::Url;
 use uuid::Uuid;
+
+use crate::{
+    db::{ConversionError, ConversionResult, Convertible},
+    entity::{
+        MediaItemDTO, ProviderDTO,
+        media_items::{self, MediaItemType},
+    },
+};
 
 #[derive(
     Display,
@@ -22,6 +28,7 @@ use uuid::Uuid;
     Copy,
     PartialEq,
     Eq,
+    Hash,
     EnumIter,
     EnumString,
     DeriveValueType,
@@ -54,10 +61,10 @@ pub struct Model {
     id: i32,
     #[sea_orm(unique)]
     pub url: String,
+    pub ty: ImageType,
     pub provider_id: Option<Uuid>,
     #[sea_orm(belongs_to, from = "provider_id", to = "provider_id")]
     pub provider: BelongsTo<Option<super::providers::Entity>>,
-    pub ty: ImageType,
     #[sea_orm(has_many, via = "jt_media_item_to_image")]
     pub media_items: HasMany<super::media_items::Entity>,
 }
@@ -69,10 +76,11 @@ impl ActiveModelBehavior for ActiveModel {}
 #[serde(rename_all = "camelCase")]
 pub struct ImageDTO {
     pub url: Url,
+    #[serde(rename = "type")]
+    pub ty: ImageType,
     pub provider_id: Option<Uuid>,
     pub provider: Option<ProviderDTO>,
-    pub ty: ImageType,
-    pub media_items: Option<Vec<MediaItemDTO>>,
+    pub media_items: Option<HashMap<MediaItemType, Vec<MediaItemDTO>>>,
 }
 
 #[inherent]
@@ -80,36 +88,32 @@ impl Convertible<ModelEx> for ImageDTO {
     type DTO = ImageDTO;
 
     pub fn from_model(item: ModelEx) -> ConversionResult<Self> {
-        let provider = match item.provider.into_option() {
-            Some(provider) => Some(ProviderDTO::from_model(provider)?),
-            None => None,
-        };
-
-        let media_items = MediaItemDTO::to_dto_vec(item.media_items)?;
+        let provider = ProviderDTO::option_from_option(item.provider)?;
+        let media_items = MediaItemDTO::to_hashmap_vec(item.media_items, media_items::Column::Ty)?;
 
         let url = match Url::parse(&item.url) {
-            Ok(url) => url,
-            Err(err) => return Err(ConversionError::FailedParseUrlError(err.to_string())),
-        };
+            Ok(url) => Ok(url),
+            Err(err) => Err(ConversionError::FailedParseUrlError(err.to_string())),
+        }?;
 
         Ok(ImageDTO {
-            url: url,
-            provider_id: item.provider_id,
-            provider: provider,
+            url,
             ty: item.ty,
-            media_items: media_items,
+            provider_id: item.provider_id,
+            provider,
+            media_items,
         })
     }
 }
 
-impl ImageDTO {
-    pub fn new() -> Self {
-        return ImageDTO {
+impl Default for ImageDTO {
+    fn default() -> Self {
+        ImageDTO {
             url: Url::parse("https://example.net").unwrap(),
-            ty: ImageType::Primary,
+            ty: ImageType::Unknown,
             provider_id: None,
             provider: None,
             media_items: None,
-        };
+        }
     }
 }

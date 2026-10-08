@@ -1,6 +1,13 @@
+use std::{collections::HashMap, hash::Hash};
+
 use crate::{
+    ConversionError,
     db::{ConversionResult, Convertible},
-    entity::{ImageDTO, MediaItemDTO},
+    entity::{
+        ImageDTO, MediaItemDTO,
+        images::{self, ImageType},
+        media_items::{self, MediaItemType},
+    },
 };
 use anyhow::Result;
 use bon::Builder;
@@ -29,7 +36,7 @@ use uuid::Uuid;
     DeriveValueType,
 )]
 #[sea_orm(value_type = "String")]
-pub enum ProviderVariant {
+pub enum ProviderType {
     #[default]
     Unknown,
     JellyfinProvider,
@@ -68,7 +75,7 @@ pub struct Model {
     pub provider_id: Uuid,
     #[sea_orm(unique)]
     pub user_id: Uuid,
-    pub ty: ProviderVariant,
+    pub ty: ProviderType,
     pub url: String,
     #[sea_orm(has_many, via = "jt_media_item_to_provider")]
     pub media_items: HasMany<super::media_items::Entity>,
@@ -93,10 +100,10 @@ pub struct ProviderDTO {
     pub authenticated: bool,
     pub key: ProviderKey,
     #[serde(rename = "type")]
-    pub ty: ProviderVariant,
-    pub url: Option<Url>,
-    pub media_items: Option<Vec<MediaItemDTO>>,
-    pub images: Option<Vec<ImageDTO>>,
+    pub ty: ProviderType,
+    pub url: Url,
+    pub media_items: Option<HashMap<MediaItemType, Vec<MediaItemDTO>>>,
+    pub images: Option<HashMap<ImageType, Vec<ImageDTO>>>,
 }
 
 #[inherent]
@@ -104,13 +111,13 @@ impl Convertible<ModelEx> for ProviderDTO {
     type DTO = ProviderDTO;
 
     pub fn from_model(item: ModelEx) -> ConversionResult<Self> {
-        let parents = MediaItemDTO::to_dto_vec(item.media_items)?;
-        let images = ImageDTO::to_dto_vec(item.images)?;
+        let media_items = MediaItemDTO::to_hashmap_vec(item.media_items, media_items::Column::Ty)?;
+        let images = ImageDTO::to_hashmap_vec(item.images, images::Column::Ty)?;
 
         let url = match Url::parse(&item.url) {
-            Ok(url) => Some(url),
-            Err(_) => None,
-        };
+            Ok(url) => Ok(url),
+            Err(err) => Err(ConversionError::FailedParseUrlError(err.to_string())),
+        }?;
 
         Ok(ProviderDTO {
             authenticated: false,
@@ -119,9 +126,9 @@ impl Convertible<ModelEx> for ProviderDTO {
                 provider_id: item.provider_id,
             },
             ty: item.ty,
-            url: url,
-            media_items: parents,
-            images: images,
+            url,
+            media_items,
+            images,
         })
     }
 }
