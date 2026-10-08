@@ -1,9 +1,9 @@
 import type { PageLoad } from "./$types";
+import { Effect } from "effect";
+import { getMediaItem } from "#lib/effects/media_item.ts";
 
-import { ArtistItem } from "#lib/components/MediaItems/MediaItems.ts";
-
-export const load: PageLoad = async () => {
+export const load: PageLoad = async ({ params }) => {
   return {
-    post: new ArtistItem(),
+    itemReq: await Effect.runPromise(getMediaItem("Artist", params.slug)),
   };
 };

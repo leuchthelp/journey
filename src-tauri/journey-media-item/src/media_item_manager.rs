@@ -46,10 +46,10 @@ pub trait MediaItemManagerFn: RequiredForMediaItemManager + Sync {
             .with(providers::Entity)
             .with(sources::Entity)
             .with(images::Entity)
+            .with((jt_parent_to_child::Entity::REVERSE, content::Entity))
             .paginate(&conn, amount);
 
         let mut items = vec![];
-
         match paginator.fetch_and_next().await {
             Ok(Some(models)) => {
                 for model in models {

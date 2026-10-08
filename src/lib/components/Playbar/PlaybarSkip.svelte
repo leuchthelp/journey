@@ -9,7 +9,7 @@
   let { action }: Props = $props();
 </script>
 
-<button class={`${action} playbar-styled-button`}>
+<button class="{action} playbar-styled-button">
   {#if action === "forward"}
     <SkipForward />
   {:else if action === "backward"}

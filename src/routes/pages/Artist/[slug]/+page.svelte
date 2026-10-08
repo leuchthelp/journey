@@ -5,7 +5,9 @@
 </script>
 
 <h1>
-  {#if data.post}
-    {data.post.uuid}
-  {/if}
+  {#await data.itemReq then item}
+    {#if item}
+      {item.uuid}
+    {/if}
+  {/await}
 </h1>

@@ -4,7 +4,7 @@
 
   let { data }: PageProps = $props();
 
-  let item = $derived(data.item);
+  let item = $derived(data.itemReq);
 </script>
 
 <h1>
