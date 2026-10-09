@@ -17,7 +17,7 @@ use reqwest::Response;
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
-use tracing::info;
+use tracing::{info, warn};
 use uuid::Uuid;
 
 use crate::{
@@ -199,14 +199,16 @@ pub trait ProviderManagerFn: RequiredForProviderManager + Sync {
         provider.add_to_db().await?;
         Ok(())
     }
-    async fn get_audio_stream(
-        &self,
-        key: ProviderKey,
-        uuid: Uuid,
-    ) -> ProviderManagerResult<Response> {
-        let provider = self.get_variant(&key)?;
-        let response = provider.get_audio_stream(uuid).await?;
-        Ok(response)
+    async fn get_audio_stream(&self, uuid: Uuid) -> ProviderManagerResult<Response> {
+        warn!("Logic to pick the best suited provider is currently not implemented.");
+        let providers = self
+            .get_variants_values()
+            .collect::<Vec<&Box<dyn Provider + Send + Sync>>>();
+
+        match providers.first() {
+            Some(provider) => Ok(provider.get_audio_stream(uuid).await?),
+            None => Err(ProviderManagerError::NoProviderError),
+        }
     }
 }
 

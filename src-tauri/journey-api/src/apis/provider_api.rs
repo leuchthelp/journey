@@ -48,7 +48,7 @@ pub trait ProviderApi {
         key: IndexerKey,
         on_event: Channel<IndexerMsg>,
     ) -> ProviderApiResult<()>;
-    async fn append_stream(key: ProviderKey, uuid: Uuid) -> ProviderApiResult<()>;
+    async fn append_stream(uuid: Uuid) -> ProviderApiResult<()>;
 }
 
 #[derive(Clone)]
@@ -116,9 +116,9 @@ impl ProviderApi for ProviderApiImpl {
 
         Ok(())
     }
-    async fn append_stream(self, key: ProviderKey, uuid: Uuid) -> ProviderApiResult<()> {
+    async fn append_stream(self, uuid: Uuid) -> ProviderApiResult<()> {
         let lock = self.state.provider_manager.read().await;
-        let response = lock.get_audio_stream(key, uuid).await?;
+        let response = lock.get_audio_stream(uuid).await?;
 
         match self.state.audio_player.ask(AppendStream { response }).await {
             Ok(_) => Ok(()),

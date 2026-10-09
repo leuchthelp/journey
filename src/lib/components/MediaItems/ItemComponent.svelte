@@ -1,9 +1,9 @@
 <script lang="ts">
   import type { MediaItemDTO } from "#lib/bindings.ts";
   import { Effect } from "effect";
-  import { stream } from "#lib/effects/provider.ts";
+  import { append_stream } from "#lib/effects/provider.ts";
   import { Play } from "@lucide/svelte";
-  import PageLink from "../PageLink.svelte";
+  import PageLink from "#lib/components/PageLink.svelte";
 
   type Props = {
     item: MediaItemDTO;
@@ -27,12 +27,8 @@
     <button
       class="invisible absolute self-end-safe rounded-full bg-amber-50 group-hover:visible hover:bg-amber-500"
       onclick={async () =>
-        await Effect.runPromise(
-          stream(
-            item.providers?.JellyfinProvider?.at(0)?.key!,
-            item.sources?.at(0)?.sourceId!,
-          ),
-        )}><Play /></button
+        await Effect.runPromise(append_stream(item.sources?.at(0)?.sourceId!))}
+      ><Play /></button
     >
   </div>
   <PageLink type={item.type} uuid={item.uuid} description={name?.description}>

@@ -111,9 +111,9 @@ const indexerStatus = (
     });
   });
 
-const stream = (key: ProviderKey, uuid: string) =>
+const append_stream = (uuid: string) =>
   Effect.matchEffect(
-    pipe(API.Provider.append_stream(key, uuid), wrapWithEffect),
+    pipe(API.Provider.append_stream(uuid), wrapWithEffect),
     {
       onFailure: (err) => {
         console.error(err);
@@ -130,5 +130,5 @@ export {
   getProviders,
   setIndexerKey,
   indexerStatus,
-  stream,
+  append_stream,
 };
