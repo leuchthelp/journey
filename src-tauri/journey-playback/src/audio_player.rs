@@ -6,7 +6,7 @@ use kameo::{
     message::{Context, Message},
 };
 use reqwest::Response;
-use rodio::{Decoder, DeviceSinkBuilder, MixerDeviceSink, Player};
+use rodio::{Decoder, DeviceSinkBuilder, MixerDeviceSink, Player, Source};
 use serde::Serialize;
 use specta::Type;
 use thiserror::Error;
@@ -52,7 +52,7 @@ impl Message<AppendStream> for AudioPlayer {
     async fn handle(
         &mut self,
         msg: AppendStream,
-        _: &mut Context<Self, Self::Reply>,
+        ctx: &mut Context<Self, Self::Reply>,
     ) -> Self::Reply {
         let cursor = match msg.response.bytes().await {
             Ok(cursor) => Ok(Cursor::new(cursor)),
@@ -66,8 +66,10 @@ impl Message<AppendStream> for AudioPlayer {
             Err(err) => Err(AudioPlayerError::FailedBuildDecoderError(err.to_string())),
         }?;
 
-        self.player.append(decoder);
-        self.player.pause();
+        decoder.periodic_access(Duration::from_millis(5), move |src| {
+            futures::executor::block_on(async { () })
+        });
+        let actor_ref = ctx.actor_ref();
         Ok(())
     }
 }

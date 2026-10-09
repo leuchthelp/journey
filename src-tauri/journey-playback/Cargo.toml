@@ -16,6 +16,7 @@ tokio = { workspace = true }
 tokio-util = { workspace = true }
 tracing = { workspace = true }
 reqwest = { workspace = true }
+crossbeam = "0.8.5"
 
 
 [lints]
