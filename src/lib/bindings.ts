@@ -125,7 +125,7 @@ export type SourceDTO = {
 	parent: MediaItemDTO | null,
 	providerId: string,
 };
-const ARGS_MAP = {"Content":{"get_content":[]},"Image":{"get_images":[]},"MediaItem":{"get_media_item":["ty","uuid"],"get_media_items":["ty","amount"]},"Player":{"pause":[],"play":["immediately"]},"Provider":{"append_stream":["key","uuid"],"deregister":["key"],"get_provider":["key"],"get_providers":[],"get_supported_auth_schema":["variant"],"get_supported_variants":[],"indexer_status":["key","on_event"],"password_auth":["url","ty","uname","psw"]},"Source":{"get_source":[]}};
+const ARGS_MAP = {"Content":{"get_content":[]},"Image":{"get_images":[]},"MediaItem":{"get_media_item":["ty","uuid"],"get_media_items":["ty","amount"]},"Player":{"pause":[],"play":["immediately"]},"Provider":{"append_stream":["uuid"],"deregister":["key"],"get_provider":["key"],"get_providers":[],"get_supported_auth_schema":["variant"],"get_supported_variants":[],"indexer_status":["key","on_event"],"password_auth":["url","ty","uname","psw"]},"Source":{"get_source":[]}};
 
 const RESULT_MAP = {"Content":{"get_content":true},"Image":{"get_images":true},"MediaItem":{"get_media_item":true,"get_media_items":true},"Player":{"pause":true,"play":true},"Provider":{"append_stream":true,"deregister":true,"get_provider":true,"get_providers":true,"get_supported_auth_schema":true,"get_supported_variants":false,"indexer_status":true,"password_auth":true},"Source":{"get_source":true}};
 
@@ -145,7 +145,7 @@ export type Router = {
 		play: (immediately: boolean) => Promise<TauRpcResult<Duration, PlayerApiError>>,
 	},
 	Provider: {
-		append_stream: (key: ProviderKey, uuid: string) => Promise<TauRpcResult<null, ProviderApiError>>,
+		append_stream: (uuid: string) => Promise<TauRpcResult<null, ProviderApiError>>,
 		deregister: (key: ProviderKey) => Promise<TauRpcResult<null, ProviderApiError>>,
 		get_provider: (key: ProviderKey) => Promise<TauRpcResult<ProviderDTO, ProviderApiError>>,
 		get_providers: () => Promise<TauRpcResult<ProviderDTO[], ProviderApiError>>,
