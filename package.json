@@ -1,16 +1,19 @@
 {
   "name": "journey",
-  "private": true,
   "version": "0.1.0",
   "type": "module",
+  "imports": {
+    "#lib": "./src/lib/index.js",
+    "#lib/*": "./src/lib/*"
+  },
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
+    "dev": "vp dev",
+    "build": "tsc && vp build",
+    "preview": "vp preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "format": "dx prettier --write .",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "prepare": "vp config"
   },
   "dependencies": {
     "@lucide/svelte": "^1.55.0",
@@ -33,17 +36,17 @@
     "@sveltejs/kit": "^3.0.1",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@tauri-apps/cli": "^2.12.1",
-    "prettier": "^3.9.10",
-    "prettier-plugin-svelte": "^4.1.1",
-    "prettier-plugin-tailwindcss": "^0.8.1",
     "sv": "^1.1.1",
     "svelte": "^5.57.2",
     "svelte-check": "^4.7.6",
-    "vite": "^8.3.4",
-    "vitest": "^5.0.3"
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
   },
-  "imports": {
-    "#lib": "./src/lib/index.ts",
-    "#lib/*": "./src/lib/*"
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.10.1",
+      "onFail": "download"
+    }
   }
 }

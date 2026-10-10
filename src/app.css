@@ -6,11 +6,11 @@ body {
 
 @layer components {
   .grid-play-options {
-    @apply m-4 grid grid-cols-3 place-items-center-safe gap-x-2 rounded-full bg-bg-playbar;
+    @apply bg-bg-playbar m-4 grid grid-cols-3 place-items-center-safe gap-x-2 rounded-full;
   }
 
   .playbar-styled-button {
-    @apply size-[8.5vh] place-content-center-safe rounded-full hover:bg-hover hover:ring;
+    @apply hover:bg-hover size-[8.5vh] place-content-center-safe rounded-full hover:ring;
   }
 }
 

@@ -20,13 +20,13 @@ tauri-build = { version = "2", features = [] }
 [workspace]
 resolver = "3"
 members = [
-    "journey-api",
-    "journey-db",
-    "journey-keyring",
-    "journey-media-item",
-    "journey-playback",
-    "journey-provider",
-    "journey-utils",
+  "journey-api",
+  "journey-db",
+  "journey-keyring",
+  "journey-media-item",
+  "journey-playback",
+  "journey-provider",
+  "journey-utils",
 ]
 
 [workspace.dependencies]
@@ -57,13 +57,7 @@ tokio-util = { version = "0.7", features = ["full"] }
 tracing = { version = "0.1" }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
-specta = { version = "2.0.0-rc.25", features = [
-    "derive",
-    "uuid",
-    "url",
-    "tokio",
-    "jiff",
-] }
+specta = { version = "2.0.0-rc.25", features = ["derive", "uuid", "url", "tokio", "jiff"] }
 taurpc = "0.8"
 
 journey-db = { path = "journey-db" }
@@ -71,14 +65,14 @@ chrono = "0.4"
 strum = "0.28"
 strum_macros = "0.28"
 sea-orm = { version = "2", features = [
-    "sqlx-sqlite",
-    "runtime-tokio",
-    "macros",
-    "schema-sync",
-    "entity-registry",
-    "serde",
-    "with-uuid",
-    "with-json",
+  "sqlx-sqlite",
+  "runtime-tokio",
+  "macros",
+  "schema-sync",
+  "entity-registry",
+  "serde",
+  "with-uuid",
+  "with-json",
 ] }
 sea-query = "1"
 
@@ -95,11 +89,7 @@ journey-media-item = { path = "journey-media-item" }
 journey-playback = { path = "journey-playback" }
 reqwest = { version = "0.13" }
 stream-download = { version = "0.24", features = ["async-read"] }
-rodio = { version = "0.22", features = [
-    "symphonia-alac",
-    "symphonia-simd",
-    "symphonia-mkv",
-] }
+rodio = { version = "0.22", features = ["symphonia-alac", "symphonia-simd", "symphonia-mkv"] }
 
 journey-utils = { path = "journey-utils" }
 dotenvy = { git = "https://github.com/allan2/dotenvy", features = ["macros"] }

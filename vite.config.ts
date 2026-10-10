@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig, lazyPlugins } from "vite-plus";
 import { enhancedImages } from "@sveltejs/enhanced-img";
 import { sveltekit } from "@sveltejs/kit/vite";
 import tailwindcss from "@tailwindcss/vite";
@@ -7,9 +7,8 @@ import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 
 const host = process.env.TAURI_DEV_HOST;
 
-// https://vite.dev/config/
-export default defineConfig(() => ({
-  plugins: [
+export default defineConfig({
+  plugins: lazyPlugins(() => [
     tailwindcss(),
     enhancedImages(),
     sveltekit({
@@ -24,7 +23,7 @@ export default defineConfig(() => ({
         fallback: "200.html",
       }),
     }),
-  ],
+  ]),
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
@@ -48,4 +47,13 @@ export default defineConfig(() => ({
     },
     envPrefix: ["VITE_", "TAURI_ENV_*"],
   },
-}));
+  fmt: { sortTailwindcss: true, svelte: true },
+  lint: {
+    jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
+    rules: { "vite-plus/prefer-vite-plus-imports": "error" },
+    options: { typeAware: true, typeCheck: true },
+  },
+  staged: {
+    "*": "vp check --fix",
+  },
+});

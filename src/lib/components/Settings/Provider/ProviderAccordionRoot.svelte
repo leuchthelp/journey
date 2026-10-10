@@ -15,9 +15,7 @@
 </script>
 
 <div class="flex flex-col outline-4 outline-amber-200">
-  <button class="place-self-start" onclick={() => toggleVisible()}
-    >{title}</button
-  >
+  <button class="place-self-start" onclick={() => toggleVisible()}>{title}</button>
 
   {#if visible}
     <div transition:fade={{ duration: 75 }}>

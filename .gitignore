@@ -53,3 +53,4 @@ main.py
 
 #Allowed
 !src-tauri/icons/icon.png
+.vitest/

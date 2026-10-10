@@ -14,9 +14,7 @@
   let { data, children }: LayoutProps = $props();
   let visible = $state(false);
 
-  let providerTypeManager = $derived(
-    new ProviderTypeManager(await data.providerReq),
-  );
+  let providerTypeManager = $derived(new ProviderTypeManager(await data.providerReq));
 
   let shownTypes = $derived(
     (await data.supportedTypeReq).filter(
@@ -25,9 +23,7 @@
   );
 </script>
 
-<main
-  class="mt-5 flex h-full max-w-full scrollbar-none overflow-scroll overscroll-none p-2 pl-40"
->
+<main class="mt-5 flex h-full max-w-full scrollbar-none overflow-scroll overscroll-none p-2 pl-40">
   {@render children()}
 </main>
 
@@ -37,10 +33,7 @@
   <Playbar.Skip action={"forward"} seconds={"+15"} />
 </Playbar.Root>
 
-<div
-  class="fixed flex flex-row place-self-start *:m-1 md:h-full"
-  class:w-full={visible}
->
+<div class="fixed flex flex-row place-self-start *:m-1 md:h-full" class:w-full={visible}>
   <Navbar.Root>
     <Navbar.Button func={toggleVisible}>settings</Navbar.Button>
   </Navbar.Root>
@@ -50,9 +43,7 @@
         <div>Currently indexing: {providerTypeManager.progress} providers.</div>
         {#each shownTypes as type}
           {#if type !== "Unknown"}
-            <button onclick={() => providerTypeManager.add(type)}
-              >Add new {type}</button
-            >
+            <button onclick={() => providerTypeManager.add(type)}>Add new {type}</button>
           {/if}
         {/each}
         {#each providerTypeManager.all as [type, proxy] (type)}

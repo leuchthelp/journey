@@ -1,16 +1,8 @@
 <script lang="ts">
-  import {
-    type IndexerMsg,
-    type ProviderKey,
-    type ProviderType,
-  } from "#lib/bindings.ts";
+  import { type IndexerMsg, type ProviderKey, type ProviderType } from "#lib/bindings.ts";
   import { Effect } from "effect";
   import { passwordAuth, logOutOfProvider } from "#lib/effects/auth.ts";
-  import {
-    getProvider,
-    setIndexerKey,
-    indexerStatus,
-  } from "#lib/effects/provider.ts";
+  import { getProvider, setIndexerKey, indexerStatus } from "#lib/effects/provider.ts";
 
   const callback = (incoming: IndexerMsg) => {
     switch (incoming.event) {
@@ -44,9 +36,7 @@
   let provider = $derived(await Effect.runPromise(getProvider(key)));
 
   let indexer_key = $derived(Effect.runSync(setIndexerKey(provider)));
-  let indexer_status = $derived(
-    Effect.runPromise(indexerStatus(callback, indexer_key)),
-  );
+  let indexer_status = $derived(Effect.runPromise(indexerStatus(callback, indexer_key)));
 </script>
 
 <div class="">
@@ -97,13 +87,7 @@
       <input type="text" id="uname" required bind:value={uname} />
 
       <label for="psw">Password</label>
-      <input
-        type="password"
-        id="psw"
-        required
-        bind:value={psw}
-        autocomplete="current-password"
-      />
+      <input type="password" id="psw" required bind:value={psw} autocomplete="current-password" />
 
       <button type="submit">Connect</button>
     </form>
