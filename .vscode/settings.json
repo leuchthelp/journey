@@ -6,13 +6,7 @@
   "[javascript]": {
     "editor.defaultFormatter": "oxc.oxc-vscode"
   },
-  "[javascriptreact]": {
-    "editor.defaultFormatter": "oxc.oxc-vscode"
-  },
   "[typescript]": {
-    "editor.defaultFormatter": "oxc.oxc-vscode"
-  },
-  "[typescriptreact]": {
     "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "oxc.disableNestedConfig": true,
@@ -21,5 +15,8 @@
   "editor.formatOnSaveMode": "file",
   "editor.codeActionsOnSave": {
     "source.fixAll.oxc": "explicit"
+  },
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer"
   }
 }
