@@ -1,5 +1,6 @@
 <script lang="ts">
   import { error } from "@sveltejs/kit";
+
   import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();

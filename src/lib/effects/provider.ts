@@ -1,5 +1,7 @@
 import { Effect, pipe } from "effect";
+
 import { guaranteeNoError, wrapWithEffect } from "#lib/effects/generic.ts";
+
 import type {
   IndexerKey,
   IndexerMsg,

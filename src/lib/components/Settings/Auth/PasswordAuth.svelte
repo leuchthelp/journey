@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { type IndexerMsg, type ProviderKey, type ProviderType } from "#lib/bindings.ts";
   import { Effect } from "effect";
+
+  import { type IndexerMsg, type ProviderKey, type ProviderType } from "#lib/bindings.ts";
   import { passwordAuth, logOutOfProvider } from "#lib/effects/auth.ts";
   import { getProvider, setIndexerKey, indexerStatus } from "#lib/effects/provider.ts";
 

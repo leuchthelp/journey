@@ -1,5 +1,5 @@
-import ProviderAccordionRoot from "./ProviderAccordionRoot.svelte";
 import ProviderAccordionBody from "./ProviderAccordionBody.svelte";
+import ProviderAccordionRoot from "./ProviderAccordionRoot.svelte";
 
 export {
   ProviderAccordionRoot,

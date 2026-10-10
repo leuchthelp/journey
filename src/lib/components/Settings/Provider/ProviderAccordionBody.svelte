@@ -1,10 +1,12 @@
 <script lang="ts">
   import { Effect } from "effect";
+
+  import type { ProviderKey, ProviderType } from "#lib/bindings.ts";
   import * as ProviderAccordion from "#lib/components/Settings/Provider/index.ts";
   import { getSupportedAuthSchema } from "#lib/effects/provider.ts";
-  import { authSchemaComponents } from "../Auth/index.ts";
   import type { ProviderTypeProxy } from "#lib/ProviderTypeManager.svelte.ts";
-  import type { ProviderKey, ProviderType } from "#lib/bindings.ts";
+
+  import { authSchemaComponents } from "../Auth/index.ts";
 
   type Props = {
     type: ProviderType;

@@ -1,9 +1,10 @@
 <script lang="ts">
-  import type { MediaItemDTO } from "#lib/bindings.ts";
-  import { Effect } from "effect";
-  import { append_stream } from "#lib/effects/provider.ts";
   import { Play } from "@lucide/svelte";
+  import { Effect } from "effect";
+
+  import type { MediaItemDTO } from "#lib/bindings.ts";
   import PageLink from "#lib/components/PageLink.svelte";
+  import { append_stream } from "#lib/effects/provider.ts";
 
   type Props = {
     item: MediaItemDTO;

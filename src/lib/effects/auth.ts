@@ -1,6 +1,7 @@
+import { Effect, pipe } from "effect";
+
 import type { ProviderType, ProviderKey } from "../bindings.ts";
 import { API } from "../proxy.ts";
-import { Effect, pipe } from "effect";
 import { wrapWithEffect, guaranteeNoError } from "./generic.ts";
 
 const passwordAuth = (url: string, type: ProviderType, uname: string, psw: string) =>
