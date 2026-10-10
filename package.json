@@ -13,27 +13,27 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@lucide/svelte": "^1.54.0",
+    "@lucide/svelte": "^1.55.0",
     "@sveltejs/adapter-static": "^4.0.0",
     "@sveltejs/enhanced-img": "^1.0.0",
     "@tailwindcss/vite": "^4.3.3",
     "@tauri-apps/api": "^2.12.2",
     "@tauri-apps/plugin-window-state": "^2.5.0",
-    "@types/node": "^26.6.4",
+    "@types/node": "^26.6.5",
     "clsx": "^2.1.1",
     "effect": "^4.0.2",
     "tailwind-merge": "^3.7.0",
     "tailwindcss": "^4.3.3",
     "taurpc": "^2.0.0",
     "typescript": "^6.0.3",
-    "uuid": "^14.0.2"
+    "uuid": "^14.0.3"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^4.0.0",
     "@sveltejs/kit": "^3.0.1",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@tauri-apps/cli": "^2.12.1",
-    "prettier": "^3.9.9",
+    "prettier": "^3.9.10",
     "prettier-plugin-svelte": "^4.1.1",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "sv": "^1.1.1",
