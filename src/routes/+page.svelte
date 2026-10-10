@@ -1,5 +1,6 @@
 <script lang="ts">
   import ItemComponent from "#lib/components/MediaItems/ItemComponent.svelte";
+
   import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();

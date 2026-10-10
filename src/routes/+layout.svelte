@@ -1,11 +1,12 @@
 <script lang="ts">
   import "../app.css";
-  import type { LayoutProps } from "./$types";
   import * as Navbar from "#lib/components/Navbar/index.ts";
   import * as Playbar from "#lib/components/Playbar/index.ts";
   import * as ProviderAccordion from "#lib/components/Settings/Provider/index.ts";
   import Settings from "#lib/components/Settings/Settings.svelte";
   import { ProviderTypeManager } from "#lib/ProviderTypeManager.svelte.ts";
+
+  import type { LayoutProps } from "./$types";
 
   const toggleVisible = () => {
     visible = !visible;

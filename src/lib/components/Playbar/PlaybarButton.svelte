@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { play } from "#lib/effects/player.ts";
   import { Play, Pause } from "@lucide/svelte";
   import { Effect } from "effect";
+
+  import { play } from "#lib/effects/player.ts";
 
   let state = $state(true);
 </script>

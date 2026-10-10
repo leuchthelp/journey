@@ -1,9 +1,9 @@
-import { defineConfig, lazyPlugins } from "vite-plus";
+import adapter from "@sveltejs/adapter-static";
 import { enhancedImages } from "@sveltejs/enhanced-img";
 import { sveltekit } from "@sveltejs/kit/vite";
-import tailwindcss from "@tailwindcss/vite";
-import adapter from "@sveltejs/adapter-static";
 import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
+import tailwindcss from "@tailwindcss/vite";
+import { defineConfig, lazyPlugins } from "vite-plus";
 
 const host = process.env.TAURI_DEV_HOST;
 
@@ -47,7 +47,7 @@ export default defineConfig({
     },
     envPrefix: ["VITE_", "TAURI_ENV_*"],
   },
-  fmt: { sortTailwindcss: true, svelte: true },
+  fmt: { sortTailwindcss: true, svelte: true, sortImports: true, sortPackageJson: true },
   lint: {
     jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
     rules: { "vite-plus/prefer-vite-plus-imports": "error" },

@@ -1,4 +1,5 @@
 import { SvelteMap } from "svelte/reactivity";
+
 import type { ProviderKey, ProviderType, ProviderDTO } from "./bindings.ts";
 
 export class ProviderTypeProxy {

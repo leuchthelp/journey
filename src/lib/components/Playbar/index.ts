@@ -1,5 +1,5 @@
-import PlaybarRoot from "./PlaybarRoot.svelte";
 import PlaybarButton from "./PlaybarButton.svelte";
+import PlaybarRoot from "./PlaybarRoot.svelte";
 import PlaybarSkip from "./PlaybarSkip.svelte";
 
 export {

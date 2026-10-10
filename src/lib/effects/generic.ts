@@ -1,4 +1,5 @@
 import { Effect } from "effect";
+
 import type { TauRpcResult } from "../bindings.ts";
 
 const wrapWithEffect = <T, E>(promise: Promise<TauRpcResult<T, E>>) =>
