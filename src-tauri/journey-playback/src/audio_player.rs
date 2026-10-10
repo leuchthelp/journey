@@ -37,7 +37,6 @@ impl AudioPlayer {
         }?;
 
         let player = Player::connect_new(_sink.mixer());
-
         Ok(AudioPlayer { player, _sink })
     }
 }
