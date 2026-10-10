@@ -26,8 +26,7 @@
     </PageLink>
     <button
       class="invisible absolute self-end-safe rounded-full bg-amber-50 group-hover:visible hover:bg-amber-500"
-      onclick={async () =>
-        await Effect.runPromise(append_stream(item.sources?.at(0)?.sourceId!))}
+      onclick={async () => await Effect.runPromise(append_stream(item.sources?.at(0)?.sourceId!))}
       ><Play /></button
     >
   </div>

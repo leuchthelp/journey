@@ -29,7 +29,7 @@ serde = { workspace = true }
 taurpc = { workspace = true }
 specta = { workspace = true }
 tokio = { workspace = true }
-tokio-util = {workspace = true}
+tokio-util = { workspace = true }
 journey-db = { workspace = true }
 journey-utils = { workspace = true }
 journey-keyring = { workspace = true }

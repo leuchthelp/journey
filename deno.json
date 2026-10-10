@@ -1,4 +1,0 @@
-{
-  "allowScripts": ["npm:esbuild@0.25.12", "npm:sharp@0.34.5"],
-  "minimumDependencyAge": 0
-}

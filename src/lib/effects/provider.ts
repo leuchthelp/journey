@@ -25,10 +25,7 @@ const getSupportedProviderTypes = () =>
 
 const getSupportedAuthSchema = (variant: ProviderType) =>
   Effect.gen(function* () {
-    const wrapped = pipe(
-      API.Provider.get_supported_auth_schema(variant),
-      wrapWithEffect,
-    );
+    const wrapped = pipe(API.Provider.get_supported_auth_schema(variant), wrapWithEffect);
 
     return yield* Effect.matchEffect(wrapped, {
       onFailure: (err) => {
@@ -46,11 +43,7 @@ const getProvider = (key?: ProviderKey) =>
       return Effect.succeed(undefined);
     },
     onSuccess: (checkedKey) => {
-      const wrapped = pipe(
-        checkedKey,
-        API.Provider.get_provider,
-        wrapWithEffect,
-      );
+      const wrapped = pipe(checkedKey, API.Provider.get_provider, wrapWithEffect);
 
       return Effect.matchEffect(wrapped, {
         onFailure: (err) => {
@@ -90,17 +83,11 @@ const setIndexerKey = (provider?: ProviderDTO) =>
     },
   });
 
-const indexerStatus = (
-  callback: (response: IndexerMsg) => void,
-  key?: IndexerKey,
-) =>
+const indexerStatus = (callback: (response: IndexerMsg) => void, key?: IndexerKey) =>
   Effect.gen(function* () {
     const checkedKey = yield* pipe(key, Effect.fromNullishOr, guaranteeNoError);
 
-    const wrapped = pipe(
-      API.Provider.indexer_status(checkedKey, callback),
-      wrapWithEffect,
-    );
+    const wrapped = pipe(API.Provider.indexer_status(checkedKey, callback), wrapWithEffect);
 
     return yield* Effect.matchEffect(wrapped, {
       onFailure: (err) => {
@@ -112,16 +99,13 @@ const indexerStatus = (
   });
 
 const append_stream = (uuid: string) =>
-  Effect.matchEffect(
-    pipe(API.Provider.append_stream(uuid), wrapWithEffect),
-    {
-      onFailure: (err) => {
-        console.error(err);
-        return Effect.succeed(false);
-      },
-      onSuccess: () => Effect.succeed(true),
+  Effect.matchEffect(pipe(API.Provider.append_stream(uuid), wrapWithEffect), {
+    onFailure: (err) => {
+      console.error(err);
+      return Effect.succeed(false);
     },
-  );
+    onSuccess: () => Effect.succeed(true),
+  });
 
 export {
   getSupportedProviderTypes,

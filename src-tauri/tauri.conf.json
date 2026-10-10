@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "identifier": "com.leucht.journey",
   "build": {
-    "beforeDevCommand": "deno run dev",
+    "beforeDevCommand": "vp run dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "deno run build",
+    "beforeBuildCommand": "vp run build",
     "frontendDist": "../dist"
   },
   "app": {

@@ -3,7 +3,5 @@ name = "journey-docs"
 version = "0.1.0"
 description = "Documentation for journey"
 readme = "README.md"
-requires-python = ">=3.12"
-dependencies = [
-    "zensical>=0.0.39",
-]
+requires-python = ">=3.15"
+dependencies = ["zensical>=0.0.69"]

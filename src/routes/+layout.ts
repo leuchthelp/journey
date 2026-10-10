@@ -1,9 +1,6 @@
 import type { LayoutLoad } from "./$types";
 import { Effect } from "effect";
-import {
-  getProviders,
-  getSupportedProviderTypes,
-} from "#lib/effects/provider.ts";
+import { getProviders, getSupportedProviderTypes } from "#lib/effects/provider.ts";
 
 export const ssr = false;
 
