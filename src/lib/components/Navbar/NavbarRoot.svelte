@@ -1,0 +1,13 @@
+<script lang="ts">
+  type Props = {
+    children?: import("svelte").Snippet;
+  };
+
+  let { children }: Props = $props();
+</script>
+
+<div
+  class="flex w-[6vw] flex-col rounded-2xl p-3 pr-15 shadow-xl outline-2 outline-gray-400 backdrop-blur-sm backdrop-saturate-125 md:flex-col-reverse"
+>
+  {@render children?.()}
+</div>

@@ -1,27 +1,22 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-
-use musicbrainz_rs::entity::artist::*;
-use musicbrainz_rs::prelude::*;
-
-#[tauri::command]
-fn test2() {
-    let nirvana = Artist::fetch()
-        .id("5b11f4ce-a62d-471e-81fc-a69a8278c7da")
-        .execute()
-        .unwrap();
-
-    let tmp = nirvana.name;
-    println!("{tmp}");
-}
+use anyhow::Result;
+use journey_api::get_router;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
+pub async fn run() -> Result<()> {
+    let router = get_router().await?;
+
+    #[cfg(debug_assertions)]
+    taurpc::Exporter::new()
+        .error_handling(taurpc::ErrorHandlingMode::Result)
+        .export(&router, "../src/lib/bindings.ts")?;
+
     tauri::Builder::default()
-        .plugin(tauri_plugin_os::init())
-        .plugin(tauri_plugin_window_state::Builder::new().build())
         .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_window_state::Builder::new().build())
         .plugin(tauri_plugin_persisted_scope::init())
-        .invoke_handler(tauri::generate_handler![test2])
+        .invoke_handler(router.into_handler())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+
+    Ok(())
 }

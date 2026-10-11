@@ -1,14 +1,14 @@
+import { Effect } from "effect";
+
+import { getProviders, getSupportedProviderTypes } from "#lib/effects/provider.ts";
+
+import type { LayoutLoad } from "./$types";
+
 export const ssr = false;
 
-import { providerDataQuery } from "$lib/db/queries.ts";
-import type { LayoutLoad } from "./$types.d.ts";
-import { migrate_pglite } from "../lib/db/migrate.ts";
-
-export const load: LayoutLoad = async () => {
-  migrate_pglite().catch((e) => {
-    console.error("migration success", e);
-  });
+export const load: LayoutLoad = () => {
   return {
-    post: await providerDataQuery.execute(),
+    providerReq: Effect.runPromise(getProviders()),
+    supportedTypeReq: Effect.runPromise(getSupportedProviderTypes()),
   };
 };

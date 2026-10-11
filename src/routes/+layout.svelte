@@ -1,61 +1,61 @@
 <script lang="ts">
   import "../app.css";
-  import Navbar from "$lib/components/Navbar/Navbar.svelte";
-  import NavbarButton from "$lib/components/Navbar/NavbarButton.svelte";
-  import Playbar from "$lib/components/Playbar/Playbar.svelte";
-  import PlaybarButton from "$lib/components/Playbar/PlaybarButton.svelte";
-  import ProviderAccordion from "$lib/components/Settings/Provider/ProviderAccordion.svelte";
-  import Settings from "$lib/components/Settings/Settings.svelte";
-  import { toAuthComponent } from "$lib/snippets/ToAuthComponent.svelte";
+  import * as Navbar from "#lib/components/Navbar/index.ts";
+  import * as Playbar from "#lib/components/Playbar/index.ts";
+  import * as ProviderAccordion from "#lib/components/Settings/Provider/index.ts";
+  import Settings from "#lib/components/Settings/Settings.svelte";
+  import { ProviderTypeManager } from "#lib/ProviderTypeManager.svelte.ts";
+
   import type { LayoutProps } from "./$types";
-  import { providerManager } from "$lib/providers/ProviderManager";
+
+  const toggleVisible = () => {
+    visible = !visible;
+  };
 
   let { data, children }: LayoutProps = $props();
   let visible = $state(false);
 
-  function toggleVisible() {
-    visible = !visible;
-  }
+  let providerTypeManager = $derived(new ProviderTypeManager(await data.providerReq));
 
-  let displayables: string[] = $state([]);
-  function addComponent() {
-    displayables.push("JellyfinProvider");
-  }
-
-  // ugly, need to change to remove duplicate code
-  $effect(() => {
-    providerManager.initProvider(data.post);
-  });
+  let shownTypes = $derived(
+    (await data.supportedTypeReq).filter(
+      (value) => !providerTypeManager.knownTypes.includes(value),
+    ),
+  );
 </script>
 
-<main class="mt-5">
+<main class="mt-5 flex h-full max-w-full scrollbar-none overflow-scroll overscroll-none p-2 pl-40">
   {@render children()}
 </main>
 
-<Playbar>
-  <PlaybarButton>1</PlaybarButton>
-  <PlaybarButton>2</PlaybarButton>
-  <PlaybarButton>3</PlaybarButton>
-</Playbar>
+<Playbar.Root>
+  <Playbar.Skip action={"backward"} seconds={"-5"} />
+  <Playbar.Button />
+  <Playbar.Skip action={"forward"} seconds={"+15"} />
+</Playbar.Root>
 
-<div class="fixed flex flex-row h-full place-self-start" class:w-full={visible}>
-  <Navbar>
-    <div class="h-full"></div>
-    <NavbarButton func={toggleVisible}>settings</NavbarButton>
-  </Navbar>
+<div class="fixed flex flex-row place-self-start *:m-1 md:h-full" class:w-full={visible}>
+  <Navbar.Root>
+    <Navbar.Button func={toggleVisible}>settings</Navbar.Button>
+  </Navbar.Root>
   {#if visible}
     <Settings>
-      <ProviderAccordion title={"Providers"}>
-        <ProviderAccordion title={"Jellyfin"}>
-          <button onclick={() => addComponent()}>Add Jellyfin Provider</button>
-          {#each displayables as type}
-            {@render toAuthComponent(type)}
-          {/each}
-          {#each data.post as item}
-            {@render toAuthComponent(item.type, item.serverId)}
-          {/each}
-        </ProviderAccordion>
-      </ProviderAccordion>
+      <ProviderAccordion.Root title={"Providers"}>
+        <div>Currently indexing: {providerTypeManager.progress} providers.</div>
+        {#each shownTypes as type}
+          {#if type !== "Unknown"}
+            <button onclick={() => providerTypeManager.add(type)}>Add new {type}</button>
+          {/if}
+        {/each}
+        {#each providerTypeManager.all as [type, proxy] (type)}
+          <ProviderAccordion.Body
+            {type}
+            {proxy}
+            incProgress={() => providerTypeManager.incProgress()}
+            decProgress={() => providerTypeManager.decProgress()}
+          />
+        {/each}
+      </ProviderAccordion.Root>
     </Settings>
   {/if}
 </div>

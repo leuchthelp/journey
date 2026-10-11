@@ -1,36 +1,15 @@
 <script lang="ts">
+  import ItemComponent from "#lib/components/MediaItems/ItemComponent.svelte";
+
   import type { PageProps } from "./$types";
-  import { itemCache, homeCache } from "$lib/components/MediaItems/ItemCache";
-  import { toMediaItemComponent } from "$lib/snippets/ToMediaItemComponent.svelte";
-  import "@videojs/html/audio/player";
-  import "@videojs/html/audio/minimal-skin";
 
   let { data }: PageProps = $props();
-
-  $inspect(data);
 </script>
 
-<audio-player>
-  <media-container>
-    <audio></audio>
-    <media-play-button class="media-play-button">
-      <span class="paused">Play</span>
-    </media-play-button>
-    <media-volume-slider class="media-volume-slider">
-      <media-slider-track class="media-slider-track">
-        <media-slider-fill class="media-slider-fill"></media-slider-fill>
-      </media-slider-track>
-      <media-slider-thumb class="media-slider-thumb"></media-slider-thumb>
-      <media-slider-value type="pointer" class="media-slider-value"
-      ></media-slider-value>
-    </media-volume-slider>
-  </media-container>
-</audio-player>
-
-<div class="flex">
-  {#each data.post as item}
-    {#if itemCache.set(item.uuid!, item) && homeCache.set(item.uuid!, item)}
-      {@render toMediaItemComponent(item)}
-    {/if}
-  {/each}
+<div class="flex gap-3">
+  {#await data.mediaItemsReq then mediaItems}
+    {#each mediaItems as item}
+      <ItemComponent {item}></ItemComponent>
+    {/each}
+  {/await}
 </div>

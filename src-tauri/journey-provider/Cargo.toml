@@ -1,0 +1,42 @@
+[package]
+name = "journey-provider"
+version = "0.1.0"
+edition = "2024"
+
+[lints]
+workspace = true
+
+[dependencies]
+reqwest = { workspace = true }
+chrono = { workspace = true }
+url = { workspace = true }
+rodio = { workspace = true }
+jiff = { workspace = true }
+kameo = { workspace = true }
+similar = { workspace = true }
+rapidhash = { workspace = true }
+bon = { workspace = true }
+uuid = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+dyn-clone = { workspace = true }
+inherent = { workspace = true }
+tracing = { workspace = true }
+tracing-test = { workspace = true }
+futures = { workspace = true }
+serde = { workspace = true }
+taurpc = { workspace = true }
+specta = { workspace = true }
+tokio = { workspace = true }
+tokio-util = { workspace = true }
+journey-db = { workspace = true }
+journey-utils = { workspace = true }
+journey-keyring = { workspace = true }
+jellyfin-sdk-rs = { workspace = true }
+stream-download = { workspace = true }
+
+
+[dev-dependencies]
+serial_test = { workspace = true }
+test-log = { workspace = true }

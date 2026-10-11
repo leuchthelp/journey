@@ -49,6 +49,8 @@ main.py
 *.bin
 *.icns
 *.ico
+*.sqlite
 
 #Allowed
 !src-tauri/icons/icon.png
+.vitest/

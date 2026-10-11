@@ -1,35 +1,11 @@
-import type { PageLoad } from "./$types.d.ts";
-import { homeCache } from "$lib/components/MediaItems/ItemCache.ts";
-import type { MediaItem } from "$lib/db/relations.ts";
-import { mainPageDataQuery } from "$lib/db/queries.ts";
+import { Effect } from "effect";
 
-function toArrayClean<X>(xs: Iterable<X | undefined>): X[] {
-  const res: X[] = [];
+import { getMediaItems } from "#lib/effects/media_item.ts";
 
-  for (const entry of xs) {
-    if (entry) res.push(entry);
-  }
+import type { PageLoad } from "./$types";
 
-  return res;
-}
-
-export const load: PageLoad = async ({ parent }) => {
-  await parent();
-
-  let res: MediaItem[];
-
-  // Medium: look in cache if item has been posted already
-  if (homeCache) {
-    const tmp = homeCache.rvalues();
-    res = toArrayClean(tmp);
-
-    if (res.length !== 0) {
-      return {
-        post: res,
-      };
-    }
-  }
-
-  res = await mainPageDataQuery.execute({ limit: 6 });
-  return { post: res };
+export const load: PageLoad = () => {
+  return {
+    mediaItemsReq: Effect.runPromise(getMediaItems("Audio")),
+  };
 };

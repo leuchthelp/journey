@@ -1,6 +1,6 @@
 <script lang="ts">
   type Props = {
-    func: Function;
+    func: () => void;
     children?: import("svelte").Snippet;
   };
 
