@@ -89,7 +89,7 @@ journey-media-item = { path = "journey-media-item" }
 journey-playback = { path = "journey-playback" }
 reqwest = { version = "0.13" }
 stream-download = { version = "0.24", features = ["async-read"] }
-rodio = { version = "0.22", features = ["symphonia-alac", "symphonia-simd", "symphonia-mkv"] }
+rodio = { version = "0.23", features = ["symphonia-alac", "symphonia-simd", "symphonia-mkv"] }
 
 journey-utils = { path = "journey-utils" }
 dotenvy = { git = "https://github.com/allan2/dotenvy", features = ["macros"] }
