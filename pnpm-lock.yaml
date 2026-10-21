@@ -179,8 +179,8 @@ importers:
   .:
     dependencies:
       '@lucide/svelte':
-        specifier: ^1.55.0
-        version: 1.59.0(svelte@5.57.2)
+        specifier: ^1.60.0
+        version: 1.60.0(svelte@5.57.2)
       '@sveltejs/adapter-static':
         specifier: ^4.0.0
         version: 4.0.0(@sveltejs/kit@3.1.0(@sveltejs/vite-plugin-svelte@7.3.1(@voidzero-dev/vite-plus-core@1.1.0(@types/node@26.6.5)(jiti@2.7.0)(typescript@6.0.3))(svelte@5.57.2))(@voidzero-dev/vite-plus-core@1.1.0(@types/node@26.6.5)(jiti@2.7.0)(typescript@6.0.3))(svelte@5.57.2)(typescript@6.0.3))
@@ -191,7 +191,7 @@ importers:
         specifier: ^4.3.3
         version: 4.3.3(@voidzero-dev/vite-plus-core@1.1.0(@types/node@26.6.5)(jiti@2.7.0)(typescript@6.0.3))
       '@tauri-apps/api':
-        specifier: ^2.12.2
+        specifier: ^2.12.4
         version: 2.12.4
       '@tauri-apps/plugin-window-state':
         specifier: ^2.5.0
@@ -203,7 +203,7 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1
       effect:
-        specifier: ^4.0.2
+        specifier: ^4.0.5
         version: 4.0.5
       tailwind-merge:
         specifier: ^3.7.0
@@ -222,13 +222,13 @@ importers:
         version: 14.0.3
     devDependencies:
       '@sveltejs/kit':
-        specifier: ^3.0.1
+        specifier: ^3.1.0
         version: 3.1.0(@sveltejs/vite-plugin-svelte@7.3.1(@voidzero-dev/vite-plus-core@1.1.0(@types/node@26.6.5)(jiti@2.7.0)(typescript@6.0.3))(svelte@5.57.2))(@voidzero-dev/vite-plus-core@1.1.0(@types/node@26.6.5)(jiti@2.7.0)(typescript@6.0.3))(svelte@5.57.2)(typescript@6.0.3)
       '@sveltejs/vite-plugin-svelte':
         specifier: ^7.3.1
         version: 7.3.1(@voidzero-dev/vite-plus-core@1.1.0(@types/node@26.6.5)(jiti@2.7.0)(typescript@6.0.3))(svelte@5.57.2)
       '@tauri-apps/cli':
-        specifier: ^2.12.1
+        specifier: ^2.12.3
         version: 2.12.3
       sv:
         specifier: ^1.1.1
@@ -237,7 +237,7 @@ importers:
         specifier: ^5.57.2
         version: 5.57.2
       svelte-check:
-        specifier: ^4.7.6
+        specifier: ^4.7.7
         version: 4.7.7(picomatch@4.0.7)(svelte@5.57.2)(typescript@6.0.3)
       vite:
         specifier: 'catalog:'
@@ -444,8 +444,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@lucide/svelte@1.59.0':
-    resolution: {integrity: sha512-ga9IrEsFJBkt/34VnRFcQ2HLs8eOpOovXZ62XzwfC7f0zBfo4y116FBIDroZkD0gInYYY2hSSAcsQEm/Vm+AoA==}
+  '@lucide/svelte@1.60.0':
+    resolution: {integrity: sha512-Q4lkuuBLrhxjBK8yuJ6GjeHZDOzrxlRH5GOzCzI7HJBeCE+Rj1kwi4KsD81XM50bjnfwhPhSFrh/j+D4vn8jUg==}
     peerDependencies:
       svelte: ^5
 
@@ -1674,8 +1674,8 @@ packages:
     resolution: {integrity: sha512-LKWqWJRhstyYo9pGvgor/ivk2w94eSjE3RGVuzLGlr3NmD8bf7RcYGze1mNdEHRP6TRP6rMuDHk5t44hnTRyow==}
     engines: {node: '>=14.19.0'}
 
-  postcss@8.5.30:
-    resolution: {integrity: sha512-zkd+e9S1AQHhmaBKye9zlFHWjOwVgqXl1q3ECYy8561K7qxR2cREf/STLskulBFd78k6AOFeA+ff1TtEzk9bAA==}
+  postcss@8.5.31:
+    resolution: {integrity: sha512-YUbWYCgErwnMAVkjUnYa+KlMBzGpHwiIt/DE7f0G33AuX2LH9UcTk6KgWxd3zRU+pN3u/C+Xl3EnMLM4Hea7Sg==}
     engines: {node: ^10 || ^12 || >=14}
 
   pretty-format@27.5.1:
@@ -2032,7 +2032,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@lucide/svelte@1.59.0(svelte@5.57.2)':
+  '@lucide/svelte@1.60.0(svelte@5.57.2)':
     dependencies:
       svelte: 5.57.2
 
@@ -2460,7 +2460,7 @@ snapshots:
       '@oxc-project/runtime': 0.153.0
       '@oxc-project/types': 0.153.0
       lightningcss: 1.33.0
-      postcss: 8.5.30
+      postcss: 8.5.31
       yuku-codegen: 0.9.5
       yuku-parser: 0.9.5
     optionalDependencies:
@@ -2844,7 +2844,7 @@ snapshots:
 
   pngjs@7.0.0: {}
 
-  postcss@8.5.30:
+  postcss@8.5.31:
     dependencies:
       nanoid: 3.3.20
       picocolors: 1.1.1
