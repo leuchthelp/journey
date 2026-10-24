@@ -82,7 +82,7 @@ pub struct Model {
 
 impl ActiveModelBehavior for ActiveModel {}
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct ProviderKey {
     pub user_id: Uuid,
     pub provider_id: Uuid,

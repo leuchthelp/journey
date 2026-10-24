@@ -85,7 +85,7 @@ pub trait MediaItemManagerFn: RequiredForMediaItemManager + Sync {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct MediaItemManager {}
 
 #[async_trait]

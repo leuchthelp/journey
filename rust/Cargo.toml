@@ -20,7 +20,11 @@ members = [
 ]
 
 [workspace.dependencies]
-flutter_rust_bridge = "=2.13.0"
+flutter_rust_bridge = { version = "2.14.0-beta.2", features = [
+  "chrono",
+  "uuid",
+  "serde_json",
+] }
 
 serial_test = "4"
 tracing-test = "0.2.6"
@@ -87,13 +91,13 @@ tokio = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 anyhow = { workspace = true }
-flutter_rust_bridge = { workspace = true }
+flutter_rust_bridge = "=2.14.0-beta.2"
 journey-keyring = { workspace = true }
 journey-db = { workspace = true }
 journey-playback = { workspace = true }
 journey-provider = { workspace = true }
-journey-media-item = {workspace = true}
+journey-media-item = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 uuid = { workspace = true }
-kameo = {workspace = true}
+kameo = { workspace = true }
