@@ -1,0 +1,99 @@
+[package]
+name = "journey"
+version = "0.1.0"
+description = "a new way to experience music"
+authors = ["leuchthelp"]
+edition = "2024"
+
+[lib]
+crate-type = ["staticlib", "cdylib"]
+
+[workspace]
+resolver = "3"
+members = [
+  "journey-db",
+  "journey-keyring",
+  "journey-media-item",
+  "journey-playback",
+  "journey-provider",
+  "journey-utils",
+]
+
+[workspace.dependencies]
+flutter_rust_bridge = "=2.13.0"
+
+serial_test = "4"
+tracing-test = "0.2.6"
+anyhow = "1"
+inherent = "1"
+thiserror = "2"
+tracing = "0.1"
+bon = "3"
+similar = "3"
+rapidhash = "4"
+async-trait = "0.1"
+futures = "0.3"
+chrono = "0.4"
+strum = "0.28"
+strum_macros = "0.28"
+sea-query = "1"
+dyn-clone = "1"
+kameo = "0.22"
+reqwest = "0.13"
+
+test-log = { version = "0.2", features = ["trace"] }
+url = { version = "2", features = ["serde"] }
+uuid = { version = "1", features = ["serde", "v7", "zerocopy"] }
+serde = { version = "1", features = ["derive"] }
+tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7", features = ["full"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+jiff = { version = "0.2", features = ["serde"] }
+sea-orm = { version = "2", features = [
+  "sqlx-sqlite",
+  "runtime-tokio",
+  "macros",
+  "schema-sync",
+  "entity-registry",
+  "serde",
+  "with-uuid",
+  "with-json",
+] }
+rodio = { version = "0.23", features = [
+  "symphonia-alac",
+  "symphonia-simd",
+  "symphonia-mkv",
+] }
+
+dotenvy = { git = "https://github.com/allan2/dotenvy", features = ["macros"] }
+jellyfin-sdk-rs = { git = "https://github.com/leuchthelp/jellyfin-sdk-rs", branch = "master" }
+
+
+journey-db = { path = "journey-db" }
+journey-provider = { path = "journey-provider" }
+journey-utils = { path = "journey-utils" }
+journey-playback = { path = "journey-playback" }
+journey-media-item = { path = "journey-media-item" }
+journey-keyring = { path = "journey-keyring" }
+
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+unconditional_panic = "forbid"
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
+
+[dependencies]
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }
+flutter_rust_bridge = { workspace = true }
+journey-keyring = { workspace = true }
+journey-db = { workspace = true }
+journey-playback = { workspace = true }
+journey-provider = { workspace = true }
+journey-media-item = {workspace = true}
+serde = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+kameo = {workspace = true}
